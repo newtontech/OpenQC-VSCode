@@ -1,0 +1,92 @@
+# Git Ignore for OpenQC-VSCode
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build outputs
+dist/
+out/
+build/
+*.vsix
+*.egg-info/
+.eggs/
+
+# Test coverage
+coverage/
+.coverage
+.pytest_cache/
+.nyc_output/
+coverage.lcov
+coverage.xml
+lcov.info
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Python virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# VSCode extension development
+.vscode-test/
+.vscode extensions/
+
+# Package locks (keep package-lock.json)
+# package-lock.json
+# yarn.lock
+
+# Secrets
+secrets/
+*.pem
+*.key
+credentials.json
+
+# Documentation builds
+docs/_build/
+site/
+
+# Test fixtures (generated)
+tests/fixtures/generated/
