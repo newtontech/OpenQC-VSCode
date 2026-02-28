@@ -8,13 +8,13 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/newtontech/OpenQC.svg)](https://github.com/newtontech/OpenQC/stargazers)
 
-[Features](#features) • [Installation](#installation) • [Documentation](#documentation) • [Contributing](#contributing)
+[Features](#-features) • [Installation](#-installation) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
 
 ---
 
-## Overview
+## 📖 Overview
 
 OpenQC is a comprehensive VSCode extension designed to streamline quantum chemistry workflows. It provides visualization, editing, format conversion, and AI-assisted modification for all major quantum chemistry input file formats.
 
@@ -33,7 +33,7 @@ OpenQC is a comprehensive VSCode extension designed to streamline quantum chemis
 
 ---
 
-## Features
+## ✨ Features
 
 ### 🔬 Visualization
 - **3D Molecular Viewer**: Interactive visualization of molecular structures
@@ -73,19 +73,24 @@ OpenQC is a comprehensive VSCode extension designed to streamline quantum chemis
 
 ---
 
-## Installation
+## 🚀 Installation
+
+### Prerequisites
+- VSCode 1.85 or higher
+- Node.js 18+ (for building from source)
+- Python 3.8+ (for core library)
 
 ### From VSCode Marketplace
-\`\`\`bash
+```bash
 # Coming soon to marketplace
 code --install-extension newtontech.openqc
-\`\`\`
+```
 
 ### From Source
-\`\`\`bash
+```bash
 # Clone the repository
-git clone https://github.com/newtontech/OpenQC.git
-cd OpenQC
+git clone https://github.com/newtontech/OpenQC-VSCode.git
+cd OpenQC-VSCode
 
 # Install dependencies
 cd vscode-extension
@@ -97,18 +102,18 @@ vsce package
 
 # Install in VSCode
 code --install-extension openqc-*.vsix
-\`\`\`
+```
 
 ### Quick Start
 1. Open a quantum chemistry input file
-2. Press \`Ctrl+Shift+P\` → "OpenQC: Visualize"
+2. Press `Ctrl+Shift+P` → "OpenQC: Visualize"
 3. Explore your molecular structure!
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
-\`\`\`
+```
 OpenQC/
 ├── vscode-extension/     # VSCode extension (TypeScript)
 │   ├── src/
@@ -117,56 +122,36 @@ OpenQC/
 │   │   ├── views/            # Webview panels
 │   │   └── commands/         # Command implementations
 │   ├── syntaxes/             # TextMate grammars
-│   ├── language-configuration/
 │   └── package.json
 │
 ├── core/                 # Core Python library
-│   ├── openqc/
-│   │   ├── parsers/          # File format parsers
-│   │   ├── converters/       # Format converters
-│   │   ├── visualizers/      # Visualization engine
-│   │   └── utils/            # Utility functions
-│   └── pyproject.toml
+│   └── openqc/
+│       ├── parsers/          # File format parsers
+│       ├── converters/       # Format converters
+│       └── visualizers/      # Visualization engine
 │
 ├── server/               # Remote compute server
-│   ├── ssh_handler.py        # SSH connection management
-│   ├── slurm_interface.py    # Slurm job management
-│   └── file_transfer.py      # Remote file operations
+│   ├── ssh_handler.py
+│   └── slurm_interface.py
 │
 ├── ai-protocols/         # AI protocol implementations
-│   ├── mcp-server/           # MCP server for Claude
-│   │   ├── server.py
-│   │   └── tools/
-│   └── acp-adapter/          # ACP protocol adapter
-│       └── adapter.py
+│   ├── mcp-server/
+│   └── acp-adapter/
 │
 ├── docs/                 # Documentation
-│   ├── user-guide/
-│   ├── api-reference/
-│   └── examples/
-│
 ├── tests/                # Test suite
-│   ├── unit/
-│   ├── integration/
-│   └── fixtures/
-│
 └── examples/             # Example input files
-    ├── gaussian/
-    ├── vasp/
-    ├── qe/
-    └── orca/
-\`\`\`
+```
 
 ---
 
-## AI Integration
+## 🤖 AI Integration
 
 ### Claude Code (MCP)
 
 OpenQC provides a native MCP server for seamless Claude Code integration:
 
-\`\`\`json
-// Add to Claude Code config
+```json
 {
   "mcpServers": {
     "openqc": {
@@ -175,30 +160,33 @@ OpenQC provides a native MCP server for seamless Claude Code integration:
     }
   }
 }
-\`\`\`
+```
 
 **Available MCP Tools:**
-- \`parse_qc_file\` - Parse any QC input file
-- \`convert_format\` - Convert between formats
-- \`visualize_structure\` - Generate 3D visualization
-- \`modify_parameters\` - AI-assisted parameter changes
-- \`validate_input\` - Check for errors
-- \`submit_job\` - Submit to remote servers
-
-### Example Claude Code Session
-\`\`\`
-User: Parse this Gaussian file and convert it to VASP format
-Claude: [Uses openqc.parse_qc_file, then openqc.convert_format]
-Here's your VASP POSCAR file. The structure contains...
-
-User: Change the functional to PBE0 and increase the basis set
-Claude: [Uses openqc.modify_parameters]
-Done! I've updated the functional to PBE0 and changed...
-\`\`\`
+- `parse_qc_file` - Parse any QC input file
+- `convert_format` - Convert between formats
+- `visualize_structure` - Generate 3D visualization
+- `modify_parameters` - AI-assisted parameter changes
+- `validate_input` - Check for errors
+- `submit_job` - Submit to remote servers
 
 ---
 
-## License
+## 📚 Documentation
+
+- [User Guide](docs/user-guide/)
+- [API Reference](docs/api-reference/)
+- [Examples](examples/)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
@@ -207,5 +195,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 <div align="center">
 
 Made with ❤️ by the OpenQC Team
+
+[Report Bug](https://github.com/newtontech/OpenQC-VSCode/issues) • [Request Feature](https://github.com/newtontech/OpenQC-VSCode/issues)
 
 </div>
