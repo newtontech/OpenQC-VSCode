@@ -1,0 +1,48 @@
+{
+  "scopeName": "source.orca",
+  "patterns": [
+    {
+      "match": "^\\s*#.*",
+      "name": "comment.line.number-sign.orca"
+    },
+    {
+      "match": "^\\s*!\\s*(.*)",
+      "name": "keyword.control.route.orca"
+    },
+    {
+      "match": "%(\\w+)\\s+([^\\n]+)",
+      "captures": {
+        "1": { "name": "variable.parameter.orca" },
+        "2": { "name": "string.unquoted.orca" }
+      }
+    },
+    {
+      "match": "\\*\\s+(xyz|xyzfile)",
+      "name": "keyword.control.coordinates.orca"
+    },
+    {
+      "match": "\\b(HF|DFT|MP2|MP3|MP4|CCSD|CCSD\\(T\\)|B3LYP|PBE|BP86|M06|TPSS|WB97|CAM-B3LYP)\\b",
+      "name": "support.function.method.orca"
+    },
+    {
+      "match": "\\b(Opt|Freq|SP|IRC|TS|NumFreq)\\b",
+      "name": "support.function.jobtype.orca"
+    },
+    {
+      "match": "\\b(def2-SVP|def2-TZVP|def2-QZVP|6-31G\\*\\*|cc-pVDZ|cc-pVTZ|aug-cc-pVTZ)\\b",
+      "name": "support.function.basis.orca"
+    },
+    {
+      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
+      "name": "constant.numeric.float.orca"
+    },
+    {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.integer.orca"
+    },
+    {
+      "match": "^\\s*([A-Z][a-z]?)\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+",
+      "name": "entity.name.type.element.orca"
+    }
+  ]
+}
