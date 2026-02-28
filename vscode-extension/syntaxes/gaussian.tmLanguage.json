@@ -1,0 +1,110 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Gaussian",
+  "scopeName": "source.gaussian",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#route-section"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#elements"
+    },
+    {
+      "include": "#link0"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "!.*$",
+          "name": "comment.line.exclamation.gaussian"
+        }
+      ]
+    },
+    "link0": {
+      "patterns": [
+        {
+          "match": "(%)(nprocshared|mem|chk|subst|kjob|save|int)\\b",
+          "captures": {
+            "1": { "name": "punctuation.definition.link0.gaussian" },
+            "2": { "name": "keyword.control.link0.gaussian" }
+          }
+        },
+        {
+          "match": "(%)\\w+",
+          "name": "keyword.other.link0.gaussian"
+        }
+      ]
+    },
+    "route-section": {
+      "patterns": [
+        {
+          "match": "(#)([pnN]?)(\\s+)(.*)$",
+          "captures": {
+            "1": { "name": "punctuation.definition.route.gaussian" },
+            "2": { "name": "constant.other.route-level.gaussian" },
+            "4": { "patterns": [{ "include": "#keywords" }] }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(opt|freq|sp|force|energy|irc|scan|td|nmr|pop|density|guess|stable|cphf|raman|freq|readis|volume|polar|prop|nbo|sac|sac-ci|eet|zindo|cndo|indo|mndo|am1|pm3|pm6|pm7|hf|dft|mp2|mp3|mp4|mp5|ccsd|ccsd(t)|qcisd|qcisd(t)|bd|bd(t)|casscf|rhf|uhf|rohf|gvb|multiconfiguration)\\b",
+          "name": "keyword.control.method.gaussian"
+        },
+        {
+          "match": "\\b(b3lyp|b3lyp|pbe0|pbe1pbe|m06|m06-2x|m06-l|m11|m11-l|wb97x-d|wb97x|wb97|cam-b3lyp|lc-wpbe|b2plyp|b2gpplyp|mpw2plyp|scan|r2scan|revscan|pbe|rpbe|revpbe|pw91|blyp|bp86|bpbe|olyp|opbe|tpss|revtpss|m05|m05-2x|hse06|hse2pbe|n12|n12-sx|mn12-l|mn12-sx|mn15|mn15-l|sogga|sogga11|sogga11-x)\\b",
+          "name": "support.constant.functional.gaussian",
+          "caseInsensitive": true
+        },
+        {
+          "match": "\\b(sto-3g|3-21g|6-21g|4-31g|6-31g|6-31g\\*|6-31g\\*\\*|6-31\\+g|6-31\\+g\\*|6-31\\+g\\*\\*|6-311g|6-311g\\*|6-311g\\*\\*|6-311\\+g|6-311\\+g\\*|6-311\\+g\\*\\*|6-311\\+\\+g\\*\\*|def2-svp|def2-svpd|def2-tzvp|def2-tzvpd|def2-tzvpp|def2-tzvppd|def2-qzvp|def2-qzvpd|def2-qzvpp|def2-qzvppd|cc-pvdz|cc-pvtz|cc-pvqz|cc-pv5z|aug-cc-pvdz|aug-cc-pvtz|aug-cc-pvqz|aug-cc-pv5z|jun-cc-pvdz|jun-cc-pvtz|may-cc-pvdz|may-cc-pvtz)\\b",
+          "name": "support.constant.basis.gaussian",
+          "caseInsensitive": true
+        },
+        {
+          "match": "\\b(scf|int|pop|scrf|empiricaldispersion|opt|freq|irc|guess|geom|symm|output|density|counterpoise|massaged|cphf|iop|gen|genecp|pseudo)\\b",
+          "name": "keyword.other.option.gaussian"
+        },
+        {
+          "match": "=(\\w+(?:\\([^)]*\\))?)",
+          "captures": {
+            "1": { "name": "string.unquoted.value.gaussian" }
+          }
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b[-+]?\\d+\\.\\d+(?:[eE][-+]?\\d+)?\\b",
+          "name": "constant.numeric.float.gaussian"
+        },
+        {
+          "match": "\\b[-+]?\\d+\\b",
+          "name": "constant.numeric.integer.gaussian"
+        }
+      ]
+    },
+    "elements": {
+      "patterns": [
+        {
+          "match": "\\b([H]e|[L]i|[B]e|[B]|[C]|[N]|[O]|[F]|[N]e|[N]a|[M]g|[A]l|[S]i|[P]|[S]|[C]l|[A]r|[K]|[C]a|[S]c|[T]i|[V]|[C]r|[M]n|[F]e|[C]o|[N]i|[C]u|[Z]n|[G]a|[G]e|[A]s|[S]e|[B]r|[K]r|[R]b|[S]r|[Y]|[Z]r|[N]b|[M]o|[T]c|[R]u|[R]h|[P]d|[A]g|[C]d|[I]n|[S]n|[S]b|[T]e|[I]|[X]e|[C]s|[B]a|[L]a|[C]e|[P]r|[N]d|[P]m|[S]m|[E]u|[G]d|[T]b|[D]y|[H]o|[E]r|[T]m|[Y]b|[L]u|[H]f|[T]a|[W]|[R]e|[O]s|[I]r|[P]t|[A]u|[H]g|[T]l|[P]b|[B]i|[P]o|[A]t|[R]n|[F]r|[R]a|[A]c|[T]h|[P]a|[U]|[N]p|[P]u|[A]m|[C]m|[B]k|[C]f|[E]s|[F]m|[M]d|[N]o|[L]r|[R]f|[D]b|[S]g|[B]h|[H]s|[M]t|[D]s|[R]g|[C]n|[N]h|[F]l|[M]c|[L]v|[T]s|[O]g)\\b",
+          "name": "support.constant.element.gaussian"
+        }
+      ]
+    }
+  }
+}

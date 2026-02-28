@@ -1,0 +1,130 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ORCA",
+  "scopeName": "source.orca",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#simple-input"
+    },
+    {
+      "include": "#blocks"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#coordinates"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "#.*$",
+          "name": "comment.line.orca"
+        }
+      ]
+    },
+    "simple-input": {
+      "patterns": [
+        {
+          "match": "^(!)\\s+(.*)$",
+          "captures": {
+            "1": { "name": "punctuation.definition.simple.orca" },
+            "2": { 
+              "patterns": [
+                {
+                  "include": "#keywords"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(B3LYP|PBE0|M06|M06-2X|M06-L|wB97X-D|CAM-B3LYP|B2PLYP|DLPNO-CCSD\\(T\\)|HF|MP2|CCSD|CCSD\\(T\\))\\b",
+          "name": "support.constant.functional.orca",
+          "caseInsensitive": true
+        },
+        {
+          "match": "\\b(STO-3G|DEF2-SVP|DEF2-TZVP|DEF2-QZVP|DEF2-SVPD|DEF2-TZVPP|DEF2-TZVPPD|CC-PVDZ|CC-PVTZ|CC-PVQZ|AUG-CC-PVDZ|AUG-CC-PVTZ|AUG-CC-PVQZ)\\b",
+          "name": "support.constant.basis.orca",
+          "caseInsensitive": true
+        },
+        {
+          "match": "\\b(SP|OPT|FREQ|NEB-TS|TRANSITIONSTATE|MD|NMR|EPR|UVVIS|CASSCF|TIGHTSCF|LOOSESCF|DEFGRID|SLOWCONV|VERYTIGHTSCF|NORMALSCF|GRID[1-7])\\b",
+          "name": "keyword.control.method.orca",
+          "caseInsensitive": true
+        },
+        {
+          "match": "\\b(D3|D3BJ|D3ZERO|D3ABC|D4|CPCM|SMD|RI|RIJCOSX|RIJK|COSMO|SMD)\\b",
+          "name": "keyword.other.correction.orca",
+          "caseInsensitive": true
+        }
+      ]
+    },
+    "blocks": {
+      "patterns": [
+        {
+          "begin": "(%)\\s*(\\w+)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.block.orca" },
+            "2": { "name": "entity.name.tag.block.orca" }
+          },
+          "end": "\\b(END)\\b",
+          "endCaptures": {
+            "1": { "name": "keyword.control.end.orca" }
+          },
+          "name": "meta.block.orca",
+          "patterns": [
+            {
+              "include": "#block-content"
+            }
+          ]
+        }
+      ]
+    },
+    "block-content": {
+      "patterns": [
+        {
+          "match": "\\b(maxcore|nprocs|kext|convthresh|convsloppy|maxiter|shift|damp|lshift|method|functional|basis|grid|finalgrid|resconv|tightconv|looseconv|ngrid|nfinalgrid)\\b",
+          "name": "variable.parameter.block.orca"
+        },
+        {
+          "include": "#numbers"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b[-+]?\\d+\\.\\d+(?:[eE][-+]?\\d+)?\\b",
+          "name": "constant.numeric.float.orca"
+        },
+        {
+          "match": "\\b[-+]?\\d+\\b",
+          "name": "constant.numeric.integer.orca"
+        }
+      ]
+    },
+    "coordinates": {
+      "patterns": [
+        {
+          "match": "(\\*)\\s*(xyz|xyzfile|inline|xmol|gaufrag|gzmat|gzmt)(?:\\s+(\\d+)\\s+(\\d+))?",
+          "captures": {
+            "1": { "name": "punctuation.definition.coord.orca" },
+            "2": { "name": "keyword.control.coord-type.orca" },
+            "3": { "name": "constant.numeric.charge.orca" },
+            "4": { "name": "constant.numeric.multiplicity.orca" }
+          }
+        }
+      ]
+    }
+  }
+}

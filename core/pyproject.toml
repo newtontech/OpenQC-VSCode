@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openqc"
+version = "0.1.0"
+description = "Core library for OpenQC - Quantum Chemistry Input File Processing"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "OpenQC Team", email = "openqc@newtontech.io"}
+]
+maintainers = [
+    {name = "OpenQC Team", email = "openqc@newtontech.io"}
+]
+keywords = [
+    "quantum chemistry",
+    "computational chemistry",
+    "gaussian",
+    "vasp",
+    "quantum espresso",
+    "orca",
+    "visualization",
+    "format conversion"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics"
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "dpdata>=0.2.16",
+    "ase>=3.22.0",
+    "pymatgen>=2023.1.0",
+    "pydantic>=2.0.0",
+    "click>=8.0.0",
+    "rich>=13.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0"
+]
+pymol = [
+    "pymol-open-source>=2.5.0"
+]
+server = [
+    "paramiko>=3.0.0",
+    "fabric>=3.0.0"
+]
+all = [
+    "openqc[dev,pymol,server]"
+]
+
+[project.scripts]
+openqc = "openqc.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/newtontech/OpenQC"
+Documentation = "https://github.com/newtontech/OpenQC#readme"
+Repository = "https://github.com/newtontech/OpenQC.git"
+Issues = "https://github.com/newtontech/OpenQC/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["openqc*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-v --cov=openqc --cov-report=term-missing"

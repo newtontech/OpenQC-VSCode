@@ -1,0 +1,199 @@
+{
+  "name": "openqc",
+  "displayName": "OpenQC - Quantum Chemistry Toolkit",
+  "description": "Visualize, edit, convert, and modify quantum chemistry input files with AI assistance",
+  "version": "0.1.0",
+  "publisher": "newtontech",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e3a5f",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/newtontech/OpenQC.git"
+  },
+  "bugs": {
+    "url": "https://github.com/newtontech/OpenQC/issues"
+  },
+  "homepage": "https://github.com/newtontech/OpenQC#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "quantum chemistry",
+    "gaussian",
+    "vasp",
+    "quantum espresso",
+    "orca",
+    "molecular visualization",
+    "dft",
+    "computational chemistry"
+  ],
+  "activationEvents": [
+    "onLanguage:gaussian",
+    "onLanguage:vasp",
+    "onLanguage:quantumespresso",
+    "onLanguage:orca",
+    "onCommand:openqc.visualize",
+    "onCommand:openqc.convert"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "openqc.visualize",
+        "title": "OpenQC: Visualize Structure",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "openqc.convert",
+        "title": "OpenQC: Convert Format",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "openqc.validate",
+        "title": "OpenQC: Validate Input",
+        "icon": "$(check)"
+      },
+      {
+        "command": "openqc.connectServer",
+        "title": "OpenQC: Connect to Server",
+        "icon": "$(remote)"
+      },
+      {
+        "command": "openqc.submitJob",
+        "title": "OpenQC: Submit Job",
+        "icon": "$(play)"
+      },
+      {
+        "command": "openqc.aiAssist",
+        "title": "OpenQC: AI Assist",
+        "icon": "$(hubot)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "gaussian",
+        "aliases": ["Gaussian", "gaussian"],
+        "extensions": [".gjf", ".com", ".gau"],
+        "configuration": "./language-configuration/gaussian.json"
+      },
+      {
+        "id": "vasp",
+        "aliases": ["VASP", "vasp"],
+        "extensions": [".vasp", ".poscar"],
+        "filenames": ["POSCAR", "CONTCAR", "INCAR", "KPOINTS"],
+        "configuration": "./language-configuration/vasp.json"
+      },
+      {
+        "id": "quantumespresso",
+        "aliases": ["Quantum ESPRESSO", "QE", "quantumespresso"],
+        "extensions": [".pw", ".scf", ".nscf", ".relax", ".md", ".cp"],
+        "configuration": "./language-configuration/qe.json"
+      },
+      {
+        "id": "orca",
+        "aliases": ["ORCA", "orca"],
+        "extensions": [".inp"],
+        "configuration": "./language-configuration/orca.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gaussian",
+        "scopeName": "source.gaussian",
+        "path": "./syntaxes/gaussian.tmLanguage.json"
+      },
+      {
+        "language": "vasp",
+        "scopeName": "source.vasp",
+        "path": "./syntaxes/vasp.tmLanguage.json"
+      },
+      {
+        "language": "quantumespresso",
+        "scopeName": "source.quantumespresso",
+        "path": "./syntaxes/qe.tmLanguage.json"
+      },
+      {
+        "language": "orca",
+        "scopeName": "source.orca",
+        "path": "./syntaxes/orca.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId == gaussian || editorLangId == vasp || editorLangId == quantumespresso || editorLangId == orca",
+          "command": "openqc.visualize",
+          "group": "openqc@1"
+        },
+        {
+          "when": "editorLangId == gaussian || editorLangId == vasp || editorLangId == quantumespresso || editorLangId == orca",
+          "command": "openqc.convert",
+          "group": "openqc@2"
+        },
+        {
+          "when": "editorLangId == gaussian || editorLangId == vasp || editorLangId == quantumespresso || editorLangId == orca",
+          "command": "openqc.aiAssist",
+          "group": "openqc@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "OpenQC",
+      "properties": {
+        "openqc.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python interpreter"
+        },
+        "openqc.defaultVisualizationBackend": {
+          "type": "string",
+          "enum": ["3dmol", "pymol", "avogadro"],
+          "default": "3dmol",
+          "description": "Default visualization backend"
+        },
+        "openqc.enableAI": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI-assisted features"
+        },
+        "openqc.mcpServerPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to OpenQC MCP server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "ssh2": "^1.15.0"
+  }
+}

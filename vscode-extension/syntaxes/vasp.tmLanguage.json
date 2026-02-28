@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "VASP",
+  "scopeName": "source.vasp",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#booleans"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "[#!].*$",
+          "name": "comment.line.vasp"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b[-+]?\\d+\\.\\d+(?:[eEdD][-+]?\\d+)?\\b",
+          "name": "constant.numeric.float.vasp"
+        },
+        {
+          "match": "\\b[-+]?\\d+\\b",
+          "name": "constant.numeric.integer.vasp"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(SYSTEM|ENCUT|ENAUG|EDIFF|EDIFFG|IBRION|ISIF|ISTART|ICHARG|INIWAV|IWAVPR|ISMEAR|SIGMA|LORBIT|LREAL|ROPT|NELM|NELMIN|NELMDL|ALGO|GGA|VOSKOWN|LDAU|LDAUTYPE|LDAUL|LDAUU|LDAUJ|LDAUPRINT|LMAXMIX|KPAR|NCORE|NSIM|NELM|BMIX|AMIX|AMIN|WEIMIN|EBREAK|DEPER|TIME|LWAVE|LCHARG|LPARD|LVTOT|LVHAR|LELF|LOPTICS|LPEAD|LORBIT|NUPDOWN|ISPIN|LNONCOLLINEAR|LSORBIT|SAXIS|MAGMOM|ICHARG|LMAXPAW|LMAXMIX|LDAU|PSTRESS|DOSTATIC|NBANDS|KPOINT|NKPOINTS|KGAMMA|KSPACING|LSCALAPACK|LSCALU|NSIM|NBLK|NCORE)\\b",
+          "name": "keyword.control.vasp"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "match": "(?i)\\.?(TRUE|FALSE|T|F|ON|OFF|YES|NO)\\.?",
+          "name": "constant.language.boolean.vasp"
+        }
+      ]
+    }
+  }
+}

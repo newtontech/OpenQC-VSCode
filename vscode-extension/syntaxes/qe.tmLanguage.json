@@ -1,0 +1,71 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Quantum ESPRESSO",
+  "scopeName": "source.quantumespresso",
+  "patterns": [
+    {
+      "include": "#namelist"
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#cards"
+    },
+    {
+      "include": "#booleans"
+    }
+  ],
+  "repository": {
+    "namelist": {
+      "patterns": [
+        {
+          "match": "(&)(CONTROL|SYSTEM|ELECTRONS|IONS|CELL|PRESS_AI|TDDFT|RISM|SOLVENTS|EWALD|FCP|CONSTRAINTS|ESM|INTERPOLATION)(\\s*|/)",
+          "captures": {
+            "1": { "name": "punctuation.definition.namelist.qe" },
+            "2": { "name": "entity.name.tag.namelist.qe" }
+          }
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "match": "[#!].*$",
+          "name": "comment.line.qe"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b[-+]?\\d+\\.\\d+(?:[eEdD][-+]?\\d+)?\\b",
+          "name": "constant.numeric.float.qe"
+        },
+        {
+          "match": "\\b[-+]?\\d+\\b",
+          "name": "constant.numeric.integer.qe"
+        }
+      ]
+    },
+    "cards": {
+      "patterns": [
+        {
+          "match": "^(ATOMIC_SPECIES|ATOMIC_POSITIONS|CELL_PARAMETERS|K_POINTS|CONSTRAINTS|OCCUPATIONS|ATOMIC_VELOCIES|ATOMIC_FORCES|CLIMBING_IMAGES|HUBBARD| starting_mag)(?:\\s*\\([^)]*\\))?",
+          "name": "keyword.control.card.qe"
+        }
+      ]
+    },
+    "booleans": {
+      "patterns": [
+        {
+          "match": "(?i)\\.?(TRUE|FALSE|T|F)\\.?",
+          "name": "constant.language.boolean.qe"
+        }
+      ]
+    }
+  }
+}
