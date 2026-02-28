@@ -1,0 +1,31 @@
+title "Silicon bulk PBC calculation"
+
+start si_bulk
+
+memory 8 gb
+
+geometry
+  system crystal
+    lat_a 5.43
+    lat_b 5.43
+    lat_c 5.43
+    alpha 90.0
+    beta  90.0
+    gamma 90.0
+  end
+  Si 0.000 0.000 0.000
+  Si 0.250 0.250 0.250
+end
+
+basis
+  Si library cc-pVTZ
+end
+
+nwpw
+  simulation_cell
+    SC 12.0
+  end
+  cutoff 50.0
+  xc PBE
+end
+task pspw energy

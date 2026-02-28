@@ -1,0 +1,16 @@
+! RHF CCSD(T) aug-cc-pVTZ TightSCF
+! MRCI
+
+%pal nprocs 8 end
+%maxcore 4000
+
+%basis
+  newgto O "aug-cc-pVTZ" end
+  newgto H "aug-cc-pVTZ" end
+end
+
+* xyz 0 1
+O   0.000000  0.000000  0.000000
+H   0.958400  0.000000  0.000000
+H  -0.240000  0.927000  0.000000
+*

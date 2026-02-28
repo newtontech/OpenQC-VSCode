@@ -1,0 +1,19 @@
+# VASP INCAR for molecular dynamics simulation
+SYSTEM = Water MD NVE
+
+# MD settings
+IBRION = 0
+NSW = 1000
+POTIM = 1.0
+TEBEG = 300
+SMASS = -3  # NVE ensemble
+
+# Electronic structure
+ENCUT = 400
+PREC = Normal
+ISMEAR = 0
+SIGMA = 0.1
+
+# Output
+LCHARG = .FALSE.
+LWAVE = .FALSE.
