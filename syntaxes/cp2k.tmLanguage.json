@@ -1,0 +1,44 @@
+{
+  "scopeName": "source.cp2k",
+  "patterns": [
+    {
+      "match": "^\\s*(#|!).*",
+      "name": "comment.line.number-sign.cp2k"
+    },
+    {
+      "match": "\\b(&[A-Z_]+)\\b",
+      "name": "keyword.control.cp2k"
+    },
+    {
+      "match": "\\b(&END)\\s*([A-Z_]+)",
+      "name": "keyword.control.cp2k"
+    },
+    {
+      "match": "\\b([A-Z_]+)\\s*=\\s*([^\\s]+)",
+      "captures": {
+        "1": { "name": "variable.parameter.cp2k" },
+        "2": { "name": "string.unquoted.cp2k" }
+      }
+    },
+    {
+      "match": "\\b(\\.TRUE\\.|\\.FALSE\\.|\\.YES\\.|\\.NO\\.)\\b",
+      "name": "constant.language.boolean.cp2k"
+    },
+    {
+      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
+      "name": "constant.numeric.float.cp2k"
+    },
+    {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.integer.cp2k"
+    },
+    {
+      "match": "\"([^\"]*)\"",
+      "name": "string.quoted.double.cp2k"
+    },
+    {
+      "match": "'([^']*)'",
+      "name": "string.quoted.single.cp2k"
+    }
+  ]
+}

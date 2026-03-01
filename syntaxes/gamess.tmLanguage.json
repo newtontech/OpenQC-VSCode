@@ -1,0 +1,40 @@
+{
+  "scopeName": "source.gamess",
+  "patterns": [
+    {
+      "match": "^\\s*!.*",
+      "name": "comment.line.exclamation.gamess"
+    },
+    {
+      "match": "^\\s*\\$(\\w+)",
+      "name": "keyword.control.gamess"
+    },
+    {
+      "match": "\\$END",
+      "name": "keyword.control.gamess"
+    },
+    {
+      "match": "\\b([A-Z][A-Z0-9_]*)\\s*=\\s*([^\\s]+)",
+      "captures": {
+        "1": { "name": "variable.parameter.gamess" },
+        "2": { "name": "string.unquoted.gamess" }
+      }
+    },
+    {
+      "match": "\\b\\.TRUE\\.|\\.FALSE\\.",
+      "name": "constant.language.boolean.gamess"
+    },
+    {
+      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
+      "name": "constant.numeric.float.gamess"
+    },
+    {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.integer.gamess"
+    },
+    {
+      "match": "^\\s*[A-Z][a-z]?(?:\\s+\\d+)?\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+",
+      "name": "entity.name.type.element.gamess"
+    }
+  ]
+}

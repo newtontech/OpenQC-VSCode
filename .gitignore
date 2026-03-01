@@ -1,93 +1,92 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Git Ignore for OpenQC-VSCode
 
-# Virtual environments
-venv/
-ENV/
-env/
-.venv/
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build outputs
+dist/
+out/
+build/
+*.vsix
+*.egg-info/
+.eggs/
+
+# Test coverage
+coverage/
+.coverage
+.pytest_cache/
+.nyc_output/
+coverage.lcov
+coverage.xml
+lcov.info
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
 
-# MyPy
-.mypy_cache/
-
-# Ruff
-.ruff_cache/
-
-# Node.js
-node_modules/
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# VSCode Extension
-vscode-extension/out/
-vscode-extension/.vscode-test/
-*.vsix
-
-# Build artifacts
-*.chk
-*.fchk
-*.log
-*.out
-*.err
-*.wfn
-*.wfx
-*.fch
-*.cube
-*.molden
-
-# OS files
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Temporary files
 tmp/
 temp/
 *.tmp
-*.bak
+*.temp
+
+# Python virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# VSCode extension development
+.vscode-test/
+.vscode extensions/
+
+# Package locks (keep package-lock.json)
+# package-lock.json
+# yarn.lock
 
 # Secrets
-.env
+secrets/
 *.pem
 *.key
+credentials.json
 
 # Documentation builds
 docs/_build/
 site/
 
-# Package files
-*.tar.gz
-*.zip
+# Test fixtures (generated)
+tests/fixtures/generated/

@@ -1,0 +1,14 @@
+SYSTEM = Si diamond structure calculation
+ENCUT = 520
+ISMEAR = 0
+SIGMA = 0.05
+KPAR = 4
+NCORE = 2
+EDIFF = 1E-6
+EDIFFG = -0.01
+NSW = 100
+IBRION = 2
+ISIF = 3
+POTIM = 0.5
+LCHARG = .TRUE.
+LWAVE = .FALSE.

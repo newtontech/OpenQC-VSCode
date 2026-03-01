@@ -1,0 +1,44 @@
+{
+  "scopeName": "source.gaussian",
+  "patterns": [
+    {
+      "match": "^[!]",
+      "name": "comment.line.exclamation.gaussian"
+    },
+    {
+      "match": "^(#[^\\n]*)",
+      "name": "keyword.control.route.gaussian"
+    },
+    {
+      "match": "%(\\w+)\\s*=\\s*(.+)",
+      "captures": {
+        "1": { "name": "variable.parameter.gaussian" },
+        "2": { "name": "string.unquoted.gaussian" }
+      }
+    },
+    {
+      "match": "\\b(HF|DFT|MP2|MP3|MP4|CCSD|CCSD\\(T\\)|B3LYP|PBE|BP86|M06|TPSS|WB97|CAM-B3LYP)\\b",
+      "name": "support.function.method.gaussian"
+    },
+    {
+      "match": "\\b(Opt|Freq|SP|IRC|TS|Polar|NMR|EPR|Solvation)\\b",
+      "name": "support.function.jobtype.gaussian"
+    },
+    {
+      "match": "\\b(6-31G\\*\\*|6-311\\+\\+G\\*\\*|cc-pVDZ|cc-pVTZ|aug-cc-pVTZ|def2-SVP|def2-TZVP)\\b",
+      "name": "support.function.basis.gaussian"
+    },
+    {
+      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
+      "name": "constant.numeric.float.gaussian"
+    },
+    {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.integer.gaussian"
+    },
+    {
+      "match": "^\\s*([A-Z][a-z]?)\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+\\s+\\d+\\.\\d+",
+      "name": "entity.name.type.element.gaussian"
+    }
+  ]
+}

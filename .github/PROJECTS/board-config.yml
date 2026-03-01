@@ -1,0 +1,246 @@
+# GitHub Projects Board Configuration
+# This file defines the structure and automation for the project board
+
+name: OpenQC-VSCode Development Board
+description: Track development tasks, bugs, and features for OpenQC-VSCode
+
+# Board columns with Work-In-Progress (WIP) limits
+columns:
+  - name: Backlog
+    description: Future tasks not yet prioritized
+    wip_limit: null
+    
+  - name: Ready
+    description: Prioritized tasks ready to start
+    wip_limit: 10
+    
+  - name: In Progress
+    description: Currently being worked on
+    wip_limit: 3
+    
+  - name: Review
+    description: PR submitted, awaiting review
+    wip_limit: 5
+    
+  - name: Testing
+    description: Feature complete, needs testing
+    wip_limit: 5
+    
+  - name: Done
+    description: Completed and merged
+    wip_limit: null
+
+# Automation rules
+automation:
+  # When issue is created
+  issue_created:
+    - action: add_to_column
+      column: Backlog
+    - action: apply_labels
+      labels:
+        - needs-triage
+        
+  # When issue is assigned
+  issue_assigned:
+    - action: move_to_column
+      column: In Progress
+    - action: remove_label
+      label: needs-triage
+      
+  # When PR is opened
+  pr_opened:
+    - action: move_to_column
+      column: Review
+    - action: link_issue
+      search_in: body
+      
+  # When PR is approved
+  pr_approved:
+    - action: move_to_column
+      column: Testing
+      
+  # When PR is merged
+  pr_merged:
+    - action: close_linked_issues
+    - action: move_to_column
+      column: Done
+      
+  # When issue is closed
+  issue_closed:
+    - action: move_to_column
+      column: Done
+
+# Default labels
+labels:
+  # Type labels
+  - name: type/bug
+    color: d73a4a
+    description: Something isn't working
+    
+  - name: type/feature
+    color: 0e8a16
+    description: New feature request
+    
+  - name: type/enhancement
+    color: 1d76db
+    description: Improvement to existing feature
+    
+  - name: type/documentation
+    color: fbca04
+    description: Documentation improvements
+    
+  - name: type/test
+    color: 5319e7
+    description: Testing-related tasks
+    
+  - name: type/refactor
+    color: d876e3
+    description: Code refactoring
+    
+  # Priority labels
+  - name: priority/critical
+    color: b60205
+    description: Blocks release or critical bug
+    
+  - name: priority/high
+    color: d93f0b
+    description: Important for current milestone
+    
+  - name: priority/medium
+    color: fbca04
+    description: Normal priority
+    
+  - name: priority/low
+    color: c5def5
+    description: Nice to have
+    
+  # Area labels
+  - name: area/parser
+    color: 0052cc
+    description: File parsing logic
+    
+  - name: area/visualization
+    color: 0e8a16
+    description: 3D rendering and UI
+    
+  - name: area/conversion
+    color: 5319e7
+    description: Format conversion
+    
+  - name: area/ai
+    color: d876e3
+    description: AI/ML features
+    
+  - name: area/testing
+    color: fbca04
+    description: Test infrastructure
+    
+  - name: area/docs
+    color: bfd4f2
+    description: Documentation
+    
+  - name: area/ci
+    color: 1d76db
+    description: CI/CD pipeline
+    
+  # Status labels
+  - name: needs-triage
+    color: fbca04
+    description: Needs initial review
+    
+  - name: blocked
+    color: d73a4a
+    description: Blocked by external dependency
+    
+  - name: help wanted
+    color: 008672
+    description: Extra attention needed
+    
+  - name: good first issue
+    color: 7057ff
+    description: Good for newcomers
+
+# Milestones
+milestones:
+  - title: v0.1.0 - Foundation
+    description: Basic parsing and syntax highlighting
+    due_date: "2026-03-28"
+    
+  - title: v0.2.0 - Visualization
+    description: 3D molecular visualization
+    due_date: "2026-04-25"
+    
+  - title: v0.3.0 - Conversion
+    description: Format conversion and integrations
+    due_date: "2026-05-23"
+    
+  - title: v0.4.0 - AI
+    description: AI-powered features
+    due_date: "2026-06-20"
+    
+  - title: v1.0.0 - Production
+    description: Production-ready release
+    due_date: "2026-07-18"
+
+# Project views
+views:
+  - name: Board View
+    type: board
+    group_by: status
+    
+  - name: By Priority
+    type: board
+    group_by: priority
+    filter: is:open
+    
+  - name: By Area
+    type: board
+    group_by: area
+    
+  - name: My Tasks
+    type: list
+    filter: assignee:@me is:open
+    
+  - name: Recent Activity
+    type: list
+    sort: updated
+    limit: 20
+
+# Custom fields
+custom_fields:
+  - name: Story Points
+    type: number
+    description: Effort estimation (Fibonacci: 1,2,3,5,8,13)
+    
+  - name: Phase
+    type: single_select
+    options:
+      - Phase 1 - Foundation
+      - Phase 2 - Visualization
+      - Phase 3 - Conversion
+      - Phase 4 - AI
+      - Phase 5 - Polish
+      
+  - name: Estimated Hours
+    type: number
+    
+  - name: Actual Hours
+    type: number
+
+# Reports and insights
+insights:
+  - name: Velocity
+    type: chart
+    metric: story_points_completed_per_sprint
+    
+  - name: Cycle Time
+    type: chart
+    metric: average_time_in_column
+    columns:
+      - In Progress
+      - Review
+      - Testing
+      
+  - name: Bug Rate
+    type: chart
+    metric: bugs_per_release

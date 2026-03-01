@@ -1,0 +1,298 @@
+{
+  "name": "openqc-vscode",
+  "displayName": "OpenQC-VSCode",
+  "description": "Universal VS Code extension for quantum chemistry software with multi-LSP support and visualization",
+  "version": "2.0.0",
+  "publisher": "newtontech",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "Debuggers",
+    "Machine Learning",
+    "Data Science"
+  ],
+  "keywords": [
+    "quantum chemistry",
+    "CP2K",
+    "VASP",
+    "Gaussian",
+    "ORCA",
+    "Quantum ESPRESSO",
+    "GAMESS",
+    "NWChem",
+    "molecular visualization",
+    "LSP"
+  ],
+  "activationEvents": [
+    "onLanguage:cp2k",
+    "onLanguage:vasp",
+    "onLanguage:gaussian",
+    "onLanguage:orca",
+    "onLanguage:qe",
+    "onLanguage:gamess",
+    "onLanguage:nwchem"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "cp2k",
+        "aliases": ["CP2K", "cp2k"],
+        "extensions": [".inp"],
+        "configuration": "./language-configurations/cp2k.json"
+      },
+      {
+        "id": "vasp",
+        "aliases": ["VASP", "vasp"],
+        "filenames": ["INCAR", "POSCAR", "KPOINTS", "POTCAR"],
+        "configuration": "./language-configurations/vasp.json"
+      },
+      {
+        "id": "gaussian",
+        "aliases": ["Gaussian", "gaussian"],
+        "extensions": [".gjf", ".com"],
+        "configuration": "./language-configurations/gaussian.json"
+      },
+      {
+        "id": "orca",
+        "aliases": ["ORCA", "orca"],
+        "extensions": [".inp"],
+        "configuration": "./language-configurations/orca.json"
+      },
+      {
+        "id": "qe",
+        "aliases": ["Quantum ESPRESSO", "QE", "quantum espresso"],
+        "extensions": [".in", ".pw.in", ".relax.in", ".vc-relax.in", ".scf.in", ".nscf.in", ".bands.in", ".ph.in", ".dos.in"],
+        "configuration": "./language-configurations/qe.json"
+      },
+      {
+        "id": "gamess",
+        "aliases": ["GAMESS", "gamess"],
+        "extensions": [".inp"],
+        "configuration": "./language-configurations/gamess.json"
+      },
+      {
+        "id": "nwchem",
+        "aliases": ["NWChem", "nwchem"],
+        "extensions": [".nw", ".nwinp"],
+        "configuration": "./language-configurations/nwchem.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cp2k",
+        "scopeName": "source.cp2k",
+        "path": "./syntaxes/cp2k.tmLanguage.json"
+      },
+      {
+        "language": "vasp",
+        "scopeName": "source.vasp",
+        "path": "./syntaxes/vasp.tmLanguage.json"
+      },
+      {
+        "language": "gaussian",
+        "scopeName": "source.gaussian",
+        "path": "./syntaxes/gaussian.tmLanguage.json"
+      },
+      {
+        "language": "orca",
+        "scopeName": "source.orca",
+        "path": "./syntaxes/orca.tmLanguage.json"
+      },
+      {
+        "language": "qe",
+        "scopeName": "source.qe",
+        "path": "./syntaxes/qe.tmLanguage.json"
+      },
+      {
+        "language": "gamess",
+        "scopeName": "source.gamess",
+        "path": "./syntaxes/gamess.tmLanguage.json"
+      },
+      {
+        "language": "nwchem",
+        "scopeName": "source.nwchem",
+        "path": "./syntaxes/nwchem.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "openqc.visualizeStructure",
+        "title": "OpenQC: Visualize Molecular Structure",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "openqc.plotData",
+        "title": "OpenQC: Plot Calculation Data",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "openqc.previewInput",
+        "title": "OpenQC: Preview Input File",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "openqc.startLSP",
+        "title": "OpenQC: Start Language Server",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "openqc.stopLSP",
+        "title": "OpenQC: Stop Language Server",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "openqc.restartLSP",
+        "title": "OpenQC: Restart Language Server",
+        "icon": "$(debug-restart)"
+      }
+    ],
+    "configuration": {
+      "title": "OpenQC",
+      "properties": {
+        "openqc.lsp.cp2k.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CP2K Language Server"
+        },
+        "openqc.lsp.cp2k.path": {
+          "type": "string",
+          "default": "cp2k-lsp-enhanced",
+          "description": "Path to CP2K Language Server executable"
+        },
+        "openqc.lsp.vasp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable VASP Language Server"
+        },
+        "openqc.lsp.vasp.path": {
+          "type": "string",
+          "default": "vasp-lsp",
+          "description": "Path to VASP Language Server executable"
+        },
+        "openqc.lsp.gaussian.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Gaussian Language Server"
+        },
+        "openqc.lsp.gaussian.path": {
+          "type": "string",
+          "default": "gaussian-lsp",
+          "description": "Path to Gaussian Language Server executable"
+        },
+        "openqc.lsp.orca.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ORCA Language Server"
+        },
+        "openqc.lsp.orca.path": {
+          "type": "string",
+          "default": "orca-lsp",
+          "description": "Path to ORCA Language Server executable"
+        },
+        "openqc.lsp.qe.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Quantum ESPRESSO Language Server"
+        },
+        "openqc.lsp.qe.path": {
+          "type": "string",
+          "default": "qe-lsp",
+          "description": "Path to Quantum ESPRESSO Language Server executable"
+        },
+        "openqc.lsp.gamess.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GAMESS Language Server"
+        },
+        "openqc.lsp.gamess.path": {
+          "type": "string",
+          "default": "gamess-lsp",
+          "description": "Path to GAMESS Language Server executable"
+        },
+        "openqc.lsp.nwchem.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable NWChem Language Server"
+        },
+        "openqc.lsp.nwchem.path": {
+          "type": "string",
+          "default": "nwchem-lsp",
+          "description": "Path to NWChem Language Server executable"
+        },
+        "openqc.visualization.moleculeRenderer": {
+          "type": "string",
+          "enum": ["3Dmol.js", "NGL", "VTK"],
+          "default": "3Dmol.js",
+          "description": "Default molecule renderer"
+        },
+        "openqc.visualization.plotLibrary": {
+          "type": "string",
+          "enum": ["Plotly.js", "Chart.js", "D3.js"],
+          "default": "Plotly.js",
+          "description": "Default plotting library"
+        },
+        "openqc.visualization.autoOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically open visualization on file open"
+        }
+      }
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "openqc.visualizeStructure",
+          "group": "navigation",
+          "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
+        },
+        {
+          "command": "openqc.plotData",
+          "group": "navigation",
+          "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "openqc.visualizeStructure",
+          "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
+        },
+        {
+          "command": "openqc.plotData",
+          "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile \u0026\u0026 npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "18.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/newtontech/OpenQC-VSCode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/newtontech/OpenQC-VSCode/issues"
+  },
+  "homepage": "https://github.com/newtontech/OpenQC-VSCode#readme",
+  "license": "MIT"
+}

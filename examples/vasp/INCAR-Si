@@ -1,0 +1,31 @@
+# VASP INCAR for Silicon band structure calculation
+SYSTEM = Si Band Structure Calculation
+
+# Electronic structure
+ISTART = 0
+ICHARG = 2
+ENCUT = 520
+PREC = Accurate
+
+# DFT functional
+GGA = PE
+
+# SCF convergence
+EDIFF = 1E-8
+NELM = 100
+NELMIN = 6
+
+# K-points
+KSPACING = 0.2
+KGAMMA = .TRUE.
+
+# Smearing
+ISMEAR = 0
+SIGMA = 0.05
+
+# Spin
+ISPIN = 1
+
+# Output
+LWAVE = .FALSE.
+LCHARG = .FALSE.

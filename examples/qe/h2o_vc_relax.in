@@ -1,0 +1,45 @@
+&CONTROL
+  calculation = 'vc-relax'
+  prefix = 'h2o_vc_relax'
+  outdir = './tmp/'
+  pseudo_dir = './pseudo/'
+  etot_conv_thr = 1.0d-5
+  forc_conv_thr = 1.0d-4
+/
+
+&SYSTEM
+  ibrav = 1
+  celldm(1) = 20.0
+  nat = 3
+  ntyp = 2
+  ecutwfc = 60
+  ecutrho = 480
+  input_dft = 'PBE'
+  occupations = 'fixed'
+/
+
+&ELECTRONS
+  conv_thr = 1.0d-8
+  mixing_beta = 0.7
+/
+
+&IONS
+  ion_dynamics = 'bfgs'
+/
+
+&CELL
+  cell_dynamics = 'bfgs'
+  press = 0.0
+  press_conv_thr = 0.5
+/
+
+ATOMIC_SPECIES
+ O 15.999 O.pbe-n-kjpaw_psl.0.1.UPF
+ H  1.008 H.pbe-kjpaw_psl.0.1.UPF
+
+ATOMIC_POSITIONS angstrom
+ O 0.000000 0.000000 0.000000
+ H 0.758602 0.000000 0.504284
+ H 0.758602 0.000000 -0.504284
+
+K_POINTS gamma

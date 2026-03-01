@@ -1,220 +1,418 @@
-# Contributing to OpenQC
+# Contributing to OpenQC-VSCode
 
-Thank you for your interest in contributing to OpenQC! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to OpenQC-VSCode! This document provides guidelines and instructions for contributing.
 
-## 🌟 Ways to Contribute
+## Table of Contents
 
-- **Bug Reports**: Submit issues for bugs you encounter
-- **Feature Requests**: Suggest new features or improvements
-- **Code Contributions**: Submit pull requests
-- **Documentation**: Improve or add documentation
-- **Examples**: Add example input files or workflows
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Setup](#development-setup)
+- [How to Contribute](#how-to-contribute)
+- [Pull Request Process](#pull-request-process)
+- [Coding Standards](#coding-standards)
+- [Testing Guidelines](#testing-guidelines)
+- [Documentation](#documentation)
 
-## 🛠️ Development Setup
+## Code of Conduct
+
+### Our Pledge
+
+We are committed to providing a welcoming and inspiring community for all. Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+### Our Standards
+
+- Be respectful and inclusive
+- Welcome newcomers
+- Focus on constructive criticism
+- Show empathy towards others
+
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.9+
-- Node.js 18+
-- VSCode
+- Node.js 18 or higher
+- Python 3.8 or higher
+- VSCode 1.85 or higher
+- Git
 
-### Setup Steps
+### Fork and Clone
 
-1. **Fork and Clone**
+1. Fork the repository on GitHub
+2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/OpenQC.git
-   cd OpenQC
+   git clone https://github.com/YOUR-USERNAME/OpenQC-VSCode.git
+   cd OpenQC-VSCode
+   ```
+3. Add upstream remote:
+   ```bash
+   git remote add upstream https://github.com/newtontech/OpenQC-VSCode.git
    ```
 
-2. **Python Development**
-   ```bash
-   cd core
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -e ".[dev]"
-   ```
+## Development Setup
 
-3. **VSCode Extension Development**
-   ```bash
-   cd ../vscode-extension
-   npm install
-   npm run watch
-   ```
-
-4. **Run Tests**
-   ```bash
-   # Python tests
-   cd core
-   pytest
-
-   # Extension tests
-   cd ../vscode-extension
-   npm test
-   ```
-
-## 📝 Coding Standards
-
-### Python
-
-- Follow PEP 8 style guide
-- Use type hints
-- Write docstrings for all functions
-- Maximum line length: 100 characters
-
-```python
-def parse_file(filepath: Path) -> ParsedInput:
-    """Parse a quantum chemistry input file.
-    
-    Args:
-        filepath: Path to the input file
-        
-    Returns:
-        ParsedInput object with structure and parameters
-    """
-    ...
-```
-
-### TypeScript
-
-- Use TypeScript strict mode
-- Follow VSCode extension guidelines
-- Document all public functions
-
-## 🧪 Testing
-
-### Running Tests
+### Install Dependencies
 
 ```bash
-# All tests
+# Node.js dependencies
+npm install
+
+# Python dependencies
+pip install -e .[dev]
+```
+
+### Build
+
+```bash
+# Compile TypeScript
+npm run compile
+
+# Watch mode
+npm run watch
+```
+
+### Run Tests
+
+```bash
+# TypeScript tests
+npm test
+
+# Python tests
 pytest
 
 # With coverage
-pytest --cov=openqc --cov-report=html
+npm run test:coverage
+pytest --cov=src
+```
 
-# Specific test file
-pytest tests/test_gaussian_parser.py
+### Debug Extension
+
+1. Open project in VSCode
+2. Press `F5` to launch Extension Development Host
+3. Test your changes in the new VSCode window
+
+## How to Contribute
+
+### Reporting Bugs
+
+1. Check if the bug has already been reported in [Issues](https://github.com/newtontech/OpenQC-VSCode/issues)
+2. If not, create a new issue using the **Bug Report** template
+3. Include:
+   - Clear description
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Environment details
+   - Screenshots (if applicable)
+
+### Suggesting Features
+
+1. Check existing [Issues](https://github.com/newtontech/OpenQC-VSCode/issues) for similar requests
+2. Create a new issue using the **Feature Request** template
+3. Describe:
+   - Problem it solves
+   - Proposed solution
+   - Use cases
+   - Alternatives considered
+
+### Working on Issues
+
+1. Look for issues labeled:
+   - `good first issue` - Good for newcomers
+   - `help wanted` - Community help needed
+   - `bug` - Bug fixes
+   - `feature` - New features
+
+2. Comment on the issue to indicate you're working on it
+
+3. Follow the [TDD Guidelines](TDD-GUIDELINES.md) for development
+
+## Pull Request Process
+
+### 1. Create a Branch
+
+```bash
+# Update main branch
+git checkout main
+git pull upstream main
+
+# Create feature branch
+git checkout -b feature/issue-123-vasp-parser
+```
+
+### 2. Make Changes
+
+- Follow [Coding Standards](#coding-standards)
+- Write tests first (TDD)
+- Update documentation
+- Keep commits focused
+
+### 3. Commit Changes
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add INCAR parser
+fix: correct POSCAR coordinate parsing
+docs: update installation instructions
+test: add tests for Gaussian parser
+refactor: simplify conversion logic
+style: format code with prettier
+chore: update dependencies
+```
+
+### 4. Push and Create PR
+
+```bash
+git push origin feature/issue-123-vasp-parser
+```
+
+Then create a Pull Request on GitHub.
+
+### 5. PR Checklist
+
+Before submitting, ensure:
+
+- [ ] Tests pass (`npm test`, `pytest`)
+- [ ] Coverage maintained (≥ 80%)
+- [ ] Linter passes (`npm run lint`)
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated
+- [ ] PR references issue (e.g., "Closes #123")
+- [ ] PR template filled out
+
+### 6. Code Review
+
+- Respond to all comments
+- Make requested changes
+- Push new commits (don't force push)
+- Request re-review when ready
+
+### 7. Merge
+
+A maintainer will merge your PR after:
+- All CI checks pass
+- At least one approval
+- All comments resolved
+
+## Coding Standards
+
+### TypeScript
+
+We use:
+- **ESLint** for linting
+- **Prettier** for formatting
+- **TypeScript strict mode**
+
+```bash
+# Check linting
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Format code
+npm run format
+```
+
+#### Code Style
+
+```typescript
+// Use interfaces for object shapes
+interface ParseResult {
+  success: boolean;
+  data: unknown;
+}
+
+// Use async/await over promises
+async function parseFile(path: string): Promise<ParseResult> {
+  const content = await fs.readFile(path, 'utf-8');
+  return parser.parse(content);
+}
+
+// Use descriptive names
+const numberOfAtoms = atoms.length; // Good
+const n = atoms.length; // Bad
+
+// Document public APIs
+/**
+ * Parse VASP INCAR file
+ * @param content - Raw file content
+ * @returns Parsed parameters
+ */
+export function parseIncar(content: string): Record<string, unknown> {
+  // ...
+}
+```
+
+### Python
+
+We follow PEP 8 with:
+- **Black** for formatting
+- **Flake8** for linting
+- **MyPy** for type checking
+
+```bash
+# Format code
+black src tests
+
+# Check linting
+flake8 src tests
+
+# Type check
+mypy src
+```
+
+#### Code Style
+
+```python
+from typing import Dict, List, Optional
+
+
+def parse_incar(content: str) -> Dict[str, any]:
+    """
+    Parse VASP INCAR file.
+    
+    Args:
+        content: Raw file content
+        
+    Returns:
+        Dictionary of parameters
+        
+    Raises:
+        ParseError: If content is invalid
+    """
+    # Use descriptive variable names
+    parameters = {}
+    
+    # Document complex logic
+    for line in content.split('\n'):
+        # Skip comments and empty lines
+        if line.startswith('#') or not line.strip():
+            continue
+            
+        # Parse parameter
+        key, value = parse_parameter(line)
+        parameters[key] = value
+    
+    return parameters
+```
+
+## Testing Guidelines
+
+We follow Test-Driven Development (TDD). See [TDD-GUIDELINES.md](TDD-GUIDELINES.md) for details.
+
+### Test Structure
+
+```
+tests/
+├── unit/           # Fast, isolated tests
+├── integration/    # Test component interactions
+├── e2e/            # Test complete workflows
+└── fixtures/       # Test data
 ```
 
 ### Writing Tests
 
-- Place tests in `tests/` directory
-- Name test files `test_*.py`
-- Use descriptive test names
+```typescript
+// tests/unit/parsers/incarParser.test.ts
+import { IncarParser } from '@/parsers/vasp';
 
-```python
-def test_gaussian_parser_parses_basic_input():
-    """Test that GaussianParser correctly parses a basic input file."""
-    parser = GaussianParser()
-    result = parser.parse(SAMPLE_INPUT)
-    assert result.structure is not None
-    assert result.structure.num_atoms == 3
+describe('IncarParser', () => {
+  describe('parse()', () => {
+    it('should parse basic parameters', () => {
+      const input = 'ENCUT = 520\nISMEAR = 0';
+      const result = IncarParser.parse(input);
+      
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        ENCUT: 520,
+        ISMEAR: 0
+      });
+    });
+
+    it('should throw error on invalid input', () => {
+      const input = 'INVALID = abc';
+      expect(() => IncarParser.parse(input)).toThrow(ParseError);
+    });
+  });
+});
 ```
 
-## 📚 Adding New Parsers
+### Coverage Requirements
 
-1. Create a new parser in `core/openqc/parsers/`
-2. Inherit from `BaseParser`
-3. Implement the `parse` method
-4. Add tests
-5. Update documentation
+- **Overall**: ≥ 80%
+- **Critical paths** (parsers, converters): ≥ 90%
+- **UI components**: ≥ 70%
 
-```python
-# core/openqc/parsers/myformat.py
-from openqc.parsers.base import BaseParser, ParsedInput
+## Documentation
 
-class MyFormatParser(BaseParser):
-    def parse(self, content: str) -> ParsedInput:
-        # Parse the content
-        ...
-        return ParsedInput(...)
-```
+### Code Documentation
 
-## 🔧 Adding MCP Tools
+- Document all public APIs
+- Use JSDoc/TSDoc for TypeScript
+- Use docstrings for Python
+- Include examples
 
-1. Add tool definition to `list_tools()` in `ai-protocols/mcp-server/server.py`
-2. Implement handler in `call_tool()`
-3. Add tests
-4. Update documentation
-
-## 📖 Documentation
+### User Documentation
 
 - Update README.md for user-facing changes
-- Add docstrings for new functions
-- Update API documentation for new features
-- Add examples for complex features
+- Update docs/ for detailed guides
+- Add examples to docs/examples/
 
-## 🐛 Bug Reports
+### Changelog
 
-When submitting a bug report, please include:
+Update CHANGELOG.md:
 
-1. OpenQC version
-2. Python/Node.js version
-3. Operating system
-4. Steps to reproduce
-5. Expected behavior
-6. Actual behavior
-7. Input file (if applicable, sanitized)
+```markdown
+## [Unreleased]
 
-## 🎯 Pull Request Process
+### Added
+- New INCAR parser with validation
 
-1. Create a feature branch
-   ```bash
-   git checkout -b feature/my-feature
-   ```
+### Changed
+- Improved POSCAR parsing performance
 
-2. Make your changes
-   - Follow coding standards
-   - Add tests
-   - Update documentation
-
-3. Run tests and linting
-   ```bash
-   pytest
-   npm run lint
-   ```
-
-4. Commit with descriptive message
-   ```bash
-   git commit -m "feat: add support for CP2K input files"
-   ```
-
-5. Push and create PR
-   ```bash
-   git push origin feature/my-feature
-   ```
-
-6. Wait for review and address feedback
-
-## 📋 Commit Message Format
-
-Follow conventional commits:
-
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation changes
-- `style:` Code style changes (formatting)
-- `refactor:` Code refactoring
-- `test:` Adding tests
-- `chore:` Maintenance tasks
-
-Examples:
-```
-feat: add CP2K input file parser
-fix: correct lattice vector parsing in VASP parser
-docs: update installation instructions
-test: add tests for ORCA parser
+### Fixed
+- Bug in Gaussian coordinate parsing
 ```
 
-## 🤝 Code of Conduct
+## Project Structure
 
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help others learn and grow
+```
+OpenQC-VSCode/
+├── .github/              # GitHub configs
+│   ├── ISSUE_TEMPLATE/   # Issue templates
+│   └── workflows/        # CI/CD pipelines
+├── docs/                 # Documentation
+│   ├── architecture/     # Architecture docs
+│   └── api/              # API reference
+├── src/                  # TypeScript source
+│   ├── parsers/          # File parsers
+│   ├── converters/       # Format converters
+│   ├── visualization/    # 3D rendering
+│   └── ai/               # AI features
+├── tests/                # Test suites
+│   ├── unit/
+│   ├── integration/
+│   ├── e2e/
+│   └── fixtures/
+├── PLAN.md               # Project roadmap
+├── TDD-GUIDELINES.md     # Testing guide
+├── TASK-MANAGEMENT.md    # Task management
+└── README.md             # This file
+```
 
-## 📞 Getting Help
+## Getting Help
 
-- Open an issue for questions
-- Join discussions in existing issues
-- Check documentation first
+- 💬 [GitHub Discussions](https://github.com/newtontech/OpenQC-VSCode/discussions)
+- 🐛 [GitHub Issues](https://github.com/newtontech/OpenQC-VSCode/issues)
+- 📧 Email: support@newtontech.com
+- 💬 Discord: [Join our community](https://discord.gg/openqc)
+
+## Recognition
+
+Contributors are recognized in:
+- README.md contributors section
+- Release notes
+- GitHub contributors page
 
 Thank you for contributing! 🎉

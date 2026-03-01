@@ -1,0 +1,32 @@
+{
+  "scopeName": "source.vasp",
+  "patterns": [
+    {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.vasp"
+    },
+    {
+      "match": "\\b([A-Z][A-Z]*)\\s*=\\s*(.+)",
+      "captures": {
+        "1": { "name": "keyword.control.vasp" },
+        "2": { "name": "string.unquoted.vasp" }
+      }
+    },
+    {
+      "match": "\\.TRUE\\.|\\.FALSE\\.",
+      "name": "constant.language.boolean.vasp"
+    },
+    {
+      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
+      "name": "constant.numeric.float.vasp"
+    },
+    {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.integer.vasp"
+    },
+    {
+      "match": "^\\s*[A-Z][a-z]?\\s+-?\\d+\\.\\d+\\s+-?\\d+\\.\\d+\\s+-?\\d+\\.\\d+",
+      "name": "entity.name.type.element.vasp"
+    }
+  ]
+}
