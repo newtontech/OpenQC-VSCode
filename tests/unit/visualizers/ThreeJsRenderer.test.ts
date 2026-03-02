@@ -78,9 +78,9 @@ describe('ThreeJsRenderer', () => {
     });
 
     it('should set default camera position', () => {
-      const camera = renderer.getCamera();
+      const camera = renderer.getCamera()!;
       expect(camera).toBeDefined();
-      expect(camera.position).toBeDefined();
+      expect(camera!.position).toBeDefined();
     });
 
     it('should create a scene with proper structure', () => {
@@ -211,9 +211,9 @@ describe('ThreeJsRenderer', () => {
 
   describe('camera controls', () => {
     it('should support camera rotation', () => {
-      const initialPosition = renderer.getCamera().position;
+      const initialPosition = renderer.getCamera()!.position;
       renderer.rotateCamera(45, 0);
-      const newPosition = renderer.getCamera().position;
+      const newPosition = renderer.getCamera()!.position;
       expect(newPosition).toBeDefined();
     });
 
@@ -225,15 +225,15 @@ describe('ThreeJsRenderer', () => {
     });
 
     it('should support camera panning', () => {
-      const initialPosition = renderer.getCamera().position;
+      const initialPosition = renderer.getCamera()!.position;
       renderer.panCamera(1, 0, 0);
-      expect(renderer.getCamera().position).toBeDefined();
+      expect(renderer.getCamera()!.position).toBeDefined();
     });
 
     it('should reset camera to default position', () => {
       renderer.rotateCamera(90, 45);
       renderer.resetCamera();
-      const position = renderer.getCamera().position;
+      const position = renderer.getCamera()!.position;
       expect(position).toBeDefined();
     });
   });

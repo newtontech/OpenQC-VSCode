@@ -16,6 +16,14 @@ export const window = {
     dispose: jest.fn(),
     visible: true,
   })),
+  createOutputChannel: jest.fn(() => ({
+    appendLine: jest.fn(),
+    append: jest.fn(),
+    clear: jest.fn(),
+    show: jest.fn(),
+    hide: jest.fn(),
+    dispose: jest.fn(),
+  })),
 };
 
 export const workspace = {
@@ -32,6 +40,14 @@ export const workspace = {
   })),
   onDidOpenTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
   onDidCloseTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
+  workspaceFolders: [],
+  getWorkspaceFolder: jest.fn(),
+  asRelativePath: jest.fn((path: string) => path),
+  fs: {
+    readFile: jest.fn(),
+    writeFile: jest.fn(),
+    stat: jest.fn(),
+  },
 };
 
 export const commands = {
