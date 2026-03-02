@@ -121,13 +121,20 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
    * Load molecules from workspace state
    */
   private loadMolecules(): void {
-    const saved = this.context.workspaceState.get<MoleculeItem[]>('openqc.molecules', []);
-    this.molecules = saved.map(
-      m => new MoleculeItem(m.id, m.label, m.formula, m.atomCount, m.filePath)
-    );
+    try {
+      const saved = this.context.workspaceState.get<MoleculeItem[]>('openqc.molecules', []);
+      this.molecules = saved
+        .filter(m => m && m.id)
+        .map(m => new MoleculeItem(m.id, m.label, m.formula, m.atomCount, m.filePath));
 
-    // If no saved molecules, add some sample data for demonstration
-    if (this.molecules.length === 0) {
+      // If no saved molecules, add some sample data for demonstration
+      if (this.molecules.length === 0) {
+        this.addSampleMolecules();
+      }
+    } catch (error) {
+      console.error('Failed to load molecules:', error);
+      this.molecules = [];
+      // Add sample molecules as fallback
       this.addSampleMolecules();
     }
   }

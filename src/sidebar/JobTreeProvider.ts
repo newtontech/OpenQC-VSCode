@@ -214,22 +214,31 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
    * Load jobs from workspace state
    */
   private loadJobs(): void {
-    const saved = this.context.workspaceState.get<any[]>('openqc.jobs', []);
-    this.jobs = saved.map(
-      j =>
-        new JobItem(
-          j.id,
-          j.label,
-          j.status,
-          j.progress,
-          j.software,
-          j.startTime ? new Date(j.startTime) : undefined,
-          j.endTime ? new Date(j.endTime) : undefined
-        )
-    );
+    try {
+      const saved = this.context.workspaceState.get<any[]>('openqc.jobs', []);
+      this.jobs = saved
+        .filter(j => j && j.id)
+        .map(
+          j =>
+            new JobItem(
+              j.id,
+              j.label,
+              j.status,
+              j.progress,
+              j.software,
+              j.startTime ? new Date(j.startTime) : undefined,
+              j.endTime ? new Date(j.endTime) : undefined
+            )
+        );
 
-    // If no saved jobs, add some sample data for demonstration
-    if (this.jobs.length === 0) {
+      // If no saved jobs, add some sample data for demonstration
+      if (this.jobs.length === 0) {
+        this.addSampleJobs();
+      }
+    } catch (error) {
+      console.error('Failed to load jobs:', error);
+      this.jobs = [];
+      // Add sample jobs as fallback
       this.addSampleJobs();
     }
   }
