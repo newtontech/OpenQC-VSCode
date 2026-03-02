@@ -33,7 +33,9 @@
     "onLanguage:orca",
     "onLanguage:qe",
     "onLanguage:gamess",
-    "onLanguage:nwchem"
+    "onLanguage:nwchem",
+    "onView:openqc.molecules",
+    "onView:openqc.jobs"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -202,8 +204,80 @@
         "command": "openqc.validate",
         "title": "OpenQC: Validate Input File",
         "icon": "$(check)"
+      },
+      {
+        "command": "openqc.sidebar.refreshMolecules",
+        "title": "Refresh Molecules",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "openqc.sidebar.refreshJobs",
+        "title": "Refresh Jobs",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "openqc.sidebar.openMolecule",
+        "title": "Open Molecule"
+      },
+      {
+        "command": "openqc.sidebar.deleteMolecule",
+        "title": "Delete Molecule",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "openqc.sidebar.runCalculation",
+        "title": "Run Calculation",
+        "icon": "$(play)"
+      },
+      {
+        "command": "openqc.sidebar.viewResults",
+        "title": "View Results",
+        "icon": "$(output)"
+      },
+      {
+        "command": "openqc.sidebar.exportData",
+        "title": "Export Data",
+        "icon": "$(export)"
+      },
+      {
+        "command": "openqc.sidebar.cancelJob",
+        "title": "Cancel Job",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "openqc.sidebar.restartJob",
+        "title": "Restart Job",
+        "icon": "$(debug-restart)"
       }
     ],
+    "views": {
+      "openqc-sidebar": [
+        {
+          "id": "openqc.molecules",
+          "name": "Molecules",
+          "when": "openqc.sidebar.enabled",
+          "icon": "$(symbol-structure)",
+          "contextualTitle": "OpenQC Molecules"
+        },
+        {
+          "id": "openqc.jobs",
+          "name": "Calculation Jobs",
+          "when": "openqc.sidebar.enabled",
+          "icon": "$(server-process)",
+          "contextualTitle": "OpenQC Jobs"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "openqc-sidebar",
+          "title": "OpenQC",
+          "icon": "$(beaker)",
+          "when": "openqc.sidebar.enabled"
+        }
+      ]
+    },
     "configuration": {
       "title": "OpenQC",
       "properties": {
@@ -277,6 +351,16 @@
           "default": "nwchem-lsp",
           "description": "Path to NWChem Language Server executable"
         },
+        "openqc.sidebar.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh sidebar views"
+        },
+        "openqc.sidebar.refreshInterval": {
+          "type": "number",
+          "default": 5000,
+          "description": "Refresh interval in milliseconds for sidebar views"
+        },
         "openqc.visualization.moleculeRenderer": {
           "type": "string",
           "enum": [
@@ -325,6 +409,55 @@
         {
           "command": "openqc.plotData",
           "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "openqc.sidebar.refreshMolecules",
+          "when": "view == openqc.molecules",
+          "group": "navigation"
+        },
+        {
+          "command": "openqc.sidebar.runCalculation",
+          "when": "view == openqc.molecules",
+          "group": "navigation"
+        },
+        {
+          "command": "openqc.sidebar.refreshJobs",
+          "when": "view == openqc.jobs",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "openqc.sidebar.openMolecule",
+          "when": "view == openqc.molecules && viewItem == molecule",
+          "group": "inline"
+        },
+        {
+          "command": "openqc.sidebar.deleteMolecule",
+          "when": "view == openqc.molecules && viewItem == molecule",
+          "group": "inline"
+        },
+        {
+          "command": "openqc.sidebar.viewResults",
+          "when": "view == openqc.jobs && viewItem =~ /^(completed|failed)$/",
+          "group": "inline"
+        },
+        {
+          "command": "openqc.sidebar.cancelJob",
+          "when": "view == openqc.jobs && viewItem == running",
+          "group": "inline"
+        },
+        {
+          "command": "openqc.sidebar.restartJob",
+          "when": "view == openqc.jobs && viewItem =~ /^(completed|failed|cancelled)$/",
+          "group": "inline"
+        },
+        {
+          "command": "openqc.sidebar.exportData",
+          "when": "view == openqc.jobs && viewItem == completed",
+          "group": "inline"
         }
       ]
     }
