@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 /**
  * Represents a molecule item in the tree view
@@ -136,8 +135,12 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
   /**
    * Save molecules to workspace state
    */
-  private saveMolecules(): void {
-    this.context.workspaceState.update('openqc.molecules', this.molecules);
+  private async saveMolecules(): Promise<void> {
+    try {
+      await this.context.workspaceState.update('openqc.molecules', this.molecules);
+    } catch (error) {
+      console.error('Failed to save molecules:', error);
+    }
   }
 
   /**
@@ -165,6 +168,7 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
 
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = undefined;
     }
 
     if (autoRefresh) {

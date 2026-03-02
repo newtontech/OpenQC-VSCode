@@ -133,8 +133,9 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
    * Update job status
    */
   updateJobStatus(id: string, status: JobStatus, progress: number): void {
-    const job = this.jobs.find(j => j.id === id);
-    if (job) {
+    const index = this.jobs.findIndex(j => j.id === id);
+    if (index >= 0) {
+      const job = this.jobs[index];
       // Create updated job with new status
       const updatedJob = new JobItem(
         job.id,
@@ -147,7 +148,6 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
           ? new Date()
           : undefined
       );
-      const index = this.jobs.findIndex(j => j.id === id);
       this.jobs[index] = updatedJob;
       this.saveJobs();
       this._onDidChangeTreeData.fire();
@@ -237,8 +237,12 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
   /**
    * Save jobs to workspace state
    */
-  private saveJobs(): void {
-    this.context.workspaceState.update('openqc.jobs', this.jobs);
+  private async saveJobs(): Promise<void> {
+    try {
+      await this.context.workspaceState.update('openqc.jobs', this.jobs);
+    } catch (error) {
+      console.error('Failed to save jobs:', error);
+    }
   }
 
   /**
@@ -305,6 +309,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
 
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = undefined;
     }
 
     if (autoRefresh) {
