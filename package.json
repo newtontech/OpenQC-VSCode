@@ -38,15 +38,7 @@
     "geometry optimization"
   ],
   "activationEvents": [
-    "onLanguage:cp2k",
-    "onLanguage:vasp",
-    "onLanguage:gaussian",
-    "onLanguage:orca",
-    "onLanguage:qe",
-    "onLanguage:gamess",
-    "onLanguage:nwchem",
-    "onView:openqc.molecules",
-    "onView:openqc.jobs"
+    "*"
   ],
   "main": "./out/extension.js",
   "contributes": {

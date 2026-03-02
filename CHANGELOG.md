@@ -5,23 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2026-03-02
+
+### Major Release - Universal Quantum Chemistry Platform
+
+OpenQC-VSCode is now a universal platform supporting 7 major quantum chemistry packages with automatic LSP detection and unified visualization.
 
 ### Added
-- Project structure and documentation
-- TDD guidelines and testing infrastructure
-- Task management system
-- CI/CD pipelines for TypeScript and Python
-- Issue templates for bugs, features, and documentation
-- Sample test files and fixtures
-- Architecture documentation
-- API reference documentation
+
+#### Core Features
+- **Universal LSP Support** - Automatic detection and management of language servers for CP2K, VASP, Gaussian, ORCA, Quantum ESPRESSO, GAMESS, and NWChem
+- **Molecular Visualization** - Interactive 3D structure rendering with 3Dmol.js
+  - Multiple visualization styles: stick, sphere, line, cartoon
+  - Spin and zoom controls
+  - Real-time structure preview from input files
+- **Data Visualization** - Plot SCF energies, convergence data with Plotly.js
+  - Energy convergence plots
+  - K-point grid visualization
+  - Automatic data extraction from output files
+- **Input Preview** - Structured display of input file parameters
+  - Section-based organization
+  - Parameter extraction and display
+- **VSCode Sidebar Panel** - Molecules and Calculation Jobs management
+  - Molecule library with formula and atom count display
+  - Job tracking with status icons and progress indicators
+  - Job management: run, cancel, restart, view results
+  - Data export to JSON/CSV format
+
+#### Language Support
+- Syntax highlighting for all 7 quantum chemistry formats
+- File type auto-detection
+- Language server management (start/stop/restart)
+- Error diagnostics from LSPs
+
+#### Developer Tools
+- Completion provider for all supported formats
+- Hover provider for parameter documentation
+- Definition provider for navigation
+- Diagnostics provider for validation
+- Auto-start LSP on document open
+
+#### Testing
+- Comprehensive unit tests for all major components
+- LSP Manager tests with full lifecycle coverage
+- Parser tests for VASP with TDD approach
+- Visualization flow tests
+- DataPlotter and StructureViewer tests
 
 ### Changed
-- Repository renamed from OpenQC to OpenQC-VSCode
+- Improved parser performance with better error handling
+- Enhanced file type detection with multi-layer confidence scoring
+- Better error messages throughout the extension
+- Refactored visualization architecture for better maintainability
 
 ### Fixed
-- Initial project setup
+- Memory leaks in visualization panels
+- Parser edge cases for various quantum chemistry formats
+- LSP client cleanup on document close
+- Sidebar state persistence
 
 ## [0.1.0] - TBD
 
