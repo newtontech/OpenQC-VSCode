@@ -76,6 +76,15 @@ Direct
       expect(result.atoms).toHaveLength(1);
       expect(result.atoms[0].element).toBe('H');
     });
+
+    it('uses default comment when not provided', () => {
+      const atoms = [{ elem: 'C', x: 0, y: 0, z: 0 }];
+      // Call without comment parameter to test default value branch
+      const result = StructureConverter.atomsToXYZ(atoms);
+
+      expect(result).toContain('molecule');
+      expect(result).toContain('C');
+    });
   });
 
   describe('XYZ conversion', () => {

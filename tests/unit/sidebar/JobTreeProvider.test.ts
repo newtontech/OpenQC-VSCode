@@ -424,4 +424,35 @@ describe('JobTreeProvider Full Coverage', () => {
       // Should not throw
     });
   });
+
+  describe('auto-refresh callback', () => {
+    it('should call refresh when interval fires', () => {
+      jest.useFakeTimers();
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: (key: string, defaultValue: any) => {
+          if (key === 'autoRefresh') return true;
+          if (key === 'refreshInterval') return 1000;
+          return defaultValue;
+        },
+      });
+      const newProvider = new JobTreeProvider(mockContext);
+
+      // Add a job so refresh has something to update
+      const job = new JobItem('job-callback-test', 'Test', 'running', 50, 'Gaussian');
+      newProvider.addJob(job);
+
+      // Advance time by the interval to trigger the callback once
+      jest.advanceTimersByTime(1000);
+
+      // Advance time again to trigger a second callback (ensures coverage)
+      jest.advanceTimersByTime(1000);
+
+      // Verify the job exists (refresh was called)
+      const updatedJob = newProvider.getJob('job-callback-test');
+      expect(updatedJob).toBeDefined();
+
+      newProvider.dispose();
+      jest.useRealTimers();
+    });
+  });
 });

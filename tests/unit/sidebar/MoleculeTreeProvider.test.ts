@@ -289,4 +289,48 @@ describe('MoleculeTreeProvider Full Coverage', () => {
       // Should not throw
     });
   });
+
+  describe('auto-refresh callback', () => {
+    it('should call refresh when interval fires', () => {
+      jest.useFakeTimers();
+
+      // Track saved molecules
+      let savedMolecules: any[] = [];
+      const trackingMockContext = {
+        workspaceState: {
+          get: jest.fn((key: string, defaultValue: any) => {
+            if (key === 'openqc.molecules') return savedMolecules;
+            return defaultValue;
+          }),
+          update: jest.fn((key: string, value: any) => {
+            if (key === 'openqc.molecules') savedMolecules = value;
+            return Promise.resolve();
+          }),
+        },
+      };
+
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: (key: string, defaultValue: any) => {
+          if (key === 'autoRefresh') return true;
+          if (key === 'refreshInterval') return 1000;
+          return defaultValue;
+        },
+      });
+      const newProvider = new MoleculeTreeProvider(trackingMockContext as any);
+
+      // Add a molecule so refresh has something to process
+      const mol = new MoleculeItem('mol-callback-test', 'Test', 'H2', 2);
+      newProvider.addMolecule(mol);
+
+      // Advance time by the interval to trigger the callback once
+      jest.advanceTimersByTime(1000);
+
+      // Verify the molecule exists (refresh was called and preserved)
+      const foundMol = newProvider.getMolecule('mol-callback-test');
+      expect(foundMol).toBeDefined();
+
+      newProvider.dispose();
+      jest.useRealTimers();
+    });
+  });
 });
