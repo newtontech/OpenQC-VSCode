@@ -1,0 +1,11 @@
+H2O molecule - Example for Three.js visualization
+1.0
+10.0 0.0 0.0
+0.0 10.0 0.0
+0.0 0.0 10.0
+H O
+2 1
+Cartesian
+0.0 0.0 0.0
+0.0 0.0 0.74
+0.5 0.5 0.5

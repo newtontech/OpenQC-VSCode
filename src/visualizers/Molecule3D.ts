@@ -1,11 +1,5 @@
 import { QuantumChemistrySoftware } from '../managers/FileTypeDetector';
-
-interface Atom {
-  elem: string;
-  x: number;
-  y: number;
-  z: number;
-}
+import { Atom } from './types';
 
 export class Molecule3D {
   parseAtoms(content: string, software: QuantumChemistrySoftware): Atom[] {
@@ -39,7 +33,7 @@ export class Molecule3D {
         const parts = line.trim().split(/\s+/);
         if (parts.length >= 4) {
           atoms.push({
-            elem: parts[0],
+            element: parts[0],
             x: parseFloat(parts[1]),
             y: parseFloat(parts[2]),
             z: parseFloat(parts[3]),
@@ -83,7 +77,7 @@ export class Molecule3D {
           const parts = line.trim().split(/\s+/);
           if (parts.length >= 3) {
             atoms.push({
-              elem,
+              element: elem,
               x: parseFloat(parts[0]),
               y: parseFloat(parts[1]),
               z: parseFloat(parts[2]),
@@ -126,7 +120,7 @@ export class Molecule3D {
 
           if (isElement) {
             atoms.push({
-              elem: firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase(),
+              element: firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase(),
               x: parseFloat(parts[1]),
               y: parseFloat(parts[2]),
               z: parseFloat(parts[3]),
@@ -136,7 +130,7 @@ export class Molecule3D {
             const atomicNumber = parseInt(firstPart);
             const element = this.atomicNumberToElement(atomicNumber);
             atoms.push({
-              elem: element,
+              element: element,
               x: parseFloat(parts[1]),
               y: parseFloat(parts[2]),
               z: parseFloat(parts[3]),
@@ -174,7 +168,7 @@ export class Molecule3D {
           const elem = parts[0];
           if (/^[A-Za-z]+$/.test(elem)) {
             atoms.push({
-              elem: elem.charAt(0).toUpperCase() + elem.slice(1).toLowerCase(),
+              element: elem.charAt(0).toUpperCase() + elem.slice(1).toLowerCase(),
               x: parseFloat(parts[1]),
               y: parseFloat(parts[2]),
               z: parseFloat(parts[3]),
@@ -200,7 +194,7 @@ export class Molecule3D {
         const parts = line.trim().split(/\s+/);
         if (parts.length >= 4) {
           atoms.push({
-            elem: parts[0],
+            element: parts[0],
             x: parseFloat(parts[1]),
             y: parseFloat(parts[2]),
             z: parseFloat(parts[3]),
@@ -240,7 +234,7 @@ export class Molecule3D {
         // GAMESS format: ELEMENT ATOM# ATOMIC# X Y Z
         if (parts.length >= 6 && /^[A-Za-z]+$/.test(parts[0])) {
           atoms.push({
-            elem: parts[0],
+            element: parts[0],
             x: parseFloat(parts[3]),
             y: parseFloat(parts[4]),
             z: parseFloat(parts[5]),
@@ -263,7 +257,7 @@ export class Molecule3D {
         const parts = line.trim().split(/\s+/);
         if (parts.length >= 4 && /^[A-Za-z]+$/.test(parts[0])) {
           atoms.push({
-            elem: parts[0],
+            element: parts[0],
             x: parseFloat(parts[1]),
             y: parseFloat(parts[2]),
             z: parseFloat(parts[3]),

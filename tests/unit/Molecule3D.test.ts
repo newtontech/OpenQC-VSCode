@@ -17,7 +17,7 @@ describe('Molecule3D', () => {
 &END COORD`;
       const atoms = visualizer.parseAtoms(content, 'CP2K' as QuantumChemistrySoftware);
       expect(atoms).toHaveLength(2);
-      expect(atoms[0].elem).toBe('H');
+      expect(atoms[0].element).toBe('H');
       expect(atoms[0].x).toBe(0.0);
       expect(atoms[0].y).toBe(0.0);
       expect(atoms[0].z).toBe(0.0);
@@ -36,7 +36,7 @@ H 0.0 0.0 0.74
 `;
       const atoms = visualizer.parseAtoms(content, 'Gaussian' as QuantumChemistrySoftware);
       expect(atoms).toHaveLength(2);
-      expect(atoms[0].elem).toBe('H');
+      expect(atoms[0].element).toBe('H');
     });
 
     it('should parse VASP POSCAR atoms', () => {
@@ -117,7 +117,7 @@ Test
       const atoms = visualizer.parseAtoms(content, 'Gaussian' as QuantumChemistrySoftware);
       expect(atoms.length).toBeGreaterThan(0);
       if (atoms.length > 0) {
-        expect(atoms[0].elem).toBe('H');
+        expect(atoms[0].element).toBe('H');
       }
     });
 
@@ -133,7 +133,7 @@ Test
       const atoms = visualizer.parseAtoms(content, 'Gaussian' as QuantumChemistrySoftware);
       expect(atoms.length).toBeGreaterThan(0);
       if (atoms.length > 0) {
-        expect(atoms[0].elem).toBe('X');
+        expect(atoms[0].element).toBe('X');
       }
     });
 
@@ -203,7 +203,7 @@ H 1 1 0.0 0.0 0.0
  $END`;
       const atoms = visualizer.parseAtoms(content, 'GAMESS' as QuantumChemistrySoftware);
       expect(atoms.length).toBeGreaterThan(0);
-      expect(atoms[0].elem).toBe('H');
+      expect(atoms[0].element).toBe('H');
     });
 
     it('should handle VASP without coordinate type line', () => {
@@ -219,7 +219,7 @@ H
 0.0 0.0 0.0`;
       const atoms = visualizer.parseAtoms(content, 'VASP' as QuantumChemistrySoftware);
       expect(atoms.length).toBe(1);
-      expect(atoms[0].elem).toBe('H');
+      expect(atoms[0].element).toBe('H');
     });
   });
 });
