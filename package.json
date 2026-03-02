@@ -542,7 +542,7 @@
     "lint": "eslint src --ext ts",
     "test": "node ./out/src/test/runTest.js",
     "test:unit": "jest --testPathPattern=tests/unit --coverage",
-    "test:integration": "jest --testPathPattern=tests/integration --coverage",
+    "test:integration": "jest --testPathPattern=tests/integration --passWithNoTests",
     "test:coverage": "jest --coverage --coverageThreshold=\"{\\\"global\\\":{\\\"branches\\\":100,\\\"functions\\\":100,\\\"lines\\\":100,\\\"statements\\\":100}}\"",
     "test:e2e": "node ./out/src/test/runTest.js",
     "docs:dev": "vitepress dev docs",

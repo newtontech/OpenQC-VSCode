@@ -3,8 +3,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>'],
-  testMatch: ['**/tests/unit/**/*.test.ts'],
-  testPathIgnorePatterns: ['<rootDir>/tests/unit/visualizers/ThreeJsRenderer.test.ts'],
+  testMatch: ['**/tests/**/*.test.ts'],
   moduleNameMapper: {
     '^vscode$': '<rootDir>/tests/mocks/vscode.ts',
   },
@@ -29,6 +28,14 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 90,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+  },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 };
