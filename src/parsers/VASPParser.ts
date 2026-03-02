@@ -217,26 +217,10 @@ export class VASPParser extends BaseParser {
     }
 
     // Parse header line: "PAW_PBE H 01Jan2001"
-    const headerLine = this.lines[0].trim();
-    const headerParts = headerLine.split(/\s+/);
-    if (headerParts.length >= 3) {
-      parameters.push({ name: 'POTCARType', value: headerParts[0], line: 0 });
-      parameters.push({ name: 'Element', value: headerParts[1], line: 0 });
-      parameters.push({ name: 'Date', value: headerParts[2], line: 0 });
-    }
+    this.parsePOTCARHeader(parameters);
 
-    // Parse ENMAX and other parameters
-    for (let i = 1; i < this.lines.length; i++) {
-      const line = this.lines[i];
-      const enmaxMatch = line.match(/ENMAX\s*=\s*([\d.]+)/);
-      if (enmaxMatch) {
-        parameters.push({ name: 'ENMAX', value: parseFloat(enmaxMatch[1]), line: i });
-      }
-      const enminMatch = line.match(/ENMIN\s*=\s*([\d.]+)/);
-      if (enminMatch) {
-        parameters.push({ name: 'ENMIN', value: parseFloat(enminMatch[1]), line: i });
-      }
-    }
+    // Parse energy cutoffs and other parameters
+    this.parsePOTCAREnergyParameters(parameters);
 
     sections.push({
       name: 'POTCAR',
@@ -247,6 +231,42 @@ export class VASPParser extends BaseParser {
 
     this.parsedResult = { sections, parameters, errors, warnings };
     return this.parsedResult;
+  }
+
+  /**
+   * Parse POTCAR header line containing type, element, and date
+   * Format: "PAW_PBE H 01Jan2001"
+   */
+  private parsePOTCARHeader(parameters: ParsedParameter[]): void {
+    const headerLine = this.lines[0].trim();
+    const headerParts = headerLine.split(/\s+/);
+
+    if (headerParts.length >= 3) {
+      const [potcarType, element, date] = headerParts;
+      parameters.push({ name: 'POTCARType', value: potcarType, line: 0 });
+      parameters.push({ name: 'Element', value: element, line: 0 });
+      parameters.push({ name: 'Date', value: date, line: 0 });
+    }
+  }
+
+  /**
+   * Parse energy cutoff parameters from POTCAR
+   * Extracts ENMAX and ENMIN values
+   */
+  private parsePOTCAREnergyParameters(parameters: ParsedParameter[]): void {
+    const energyParamRegex = /(ENMAX|ENMIN)\s*=\s*([\d.]+)/;
+
+    for (let i = 1; i < this.lines.length; i++) {
+      const match = this.lines[i].match(energyParamRegex);
+      if (match) {
+        const [, paramName, paramValue] = match;
+        parameters.push({
+          name: paramName,
+          value: parseFloat(paramValue),
+          line: i,
+        });
+      }
+    }
   }
 
   private convertValue(value: string): string | number | boolean {
