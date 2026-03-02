@@ -137,11 +137,14 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     // Sidebar: Open molecule
-    vscode.commands.registerCommand('openqc.sidebar.openMolecule', (item: MoleculeItem) => {
+    vscode.commands.registerCommand('openqc.sidebar.openMolecule', async (item: MoleculeItem) => {
       if (item.filePath) {
-        vscode.workspace.openTextDocument(item.filePath).then(doc => {
-          vscode.window.showTextDocument(doc);
-        });
+        try {
+          const doc = await vscode.workspace.openTextDocument(item.filePath);
+          await vscode.window.showTextDocument(doc);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to open file: ${error}`);
+        }
       } else {
         vscode.window.showInformationMessage(`Selected molecule: ${item.label} (${item.formula})`);
       }
@@ -162,9 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
         })
         .then(name => {
           if (name) {
-            jobProvider.addJob(
-              new (JobItem as any)(`job-${Date.now()}`, name, 'queued', 0, 'Gaussian')
-            );
+            jobProvider.addJob(new JobItem(`job-${Date.now()}`, name, 'queued', 0, 'Gaussian'));
             vscode.window.showInformationMessage(`Started calculation: ${name}`);
           }
         });
@@ -204,17 +205,6 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage(`Restarted job: ${item.label}`);
     }),
 
-    // Register tree views
-    vscode.window.createTreeView('openqc.molecules', {
-      treeDataProvider: moleculeProvider,
-      showCollapseAll: true,
-    }),
-
-    vscode.window.createTreeView('openqc.jobs', {
-      treeDataProvider: jobProvider,
-      showCollapseAll: true,
-    }),
-
     // Auto-start LSP on document open
     vscode.workspace.onDidOpenTextDocument(async document => {
       await lspManager.startLSPForDocument(document);
@@ -235,6 +225,20 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(diagnosticsProvider);
   context.subscriptions.push(moleculeProvider);
   context.subscriptions.push(jobProvider);
+
+  // Register tree views
+  const moleculeTreeView = vscode.window.createTreeView('openqc.molecules', {
+    treeDataProvider: moleculeProvider,
+    showCollapseAll: true,
+  });
+
+  const jobTreeView = vscode.window.createTreeView('openqc.jobs', {
+    treeDataProvider: jobProvider,
+    showCollapseAll: true,
+  });
+
+  context.subscriptions.push(moleculeTreeView);
+  context.subscriptions.push(jobTreeView);
 
   // Start LSP and validate for already open documents
   vscode.window.visibleTextEditors.forEach(async editor => {

@@ -87,7 +87,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
     this._onDidChangeTreeData.event;
 
   private jobs: JobItem[] = [];
-  private autoRefreshInterval: NodeJS.Timeout | undefined;
+  private autoRefreshInterval: ReturnType<typeof setInterval> | undefined;
 
   constructor(private context: vscode.ExtensionContext) {
     this.loadJobs();
@@ -288,6 +288,8 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
         const newProgress = Math.min(job.progress + increment, 100);
         if (newProgress >= 100) {
           this.updateJobStatus(job.id, 'completed', 100);
+        } else {
+          this.updateJobStatus(job.id, 'running', Math.floor(newProgress));
         }
       }
     });
@@ -318,6 +320,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
   dispose(): void {
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = undefined;
     }
   }
 }

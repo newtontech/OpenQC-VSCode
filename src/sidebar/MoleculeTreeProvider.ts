@@ -48,7 +48,7 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
     this._onDidChangeTreeData.event;
 
   private molecules: MoleculeItem[] = [];
-  private autoRefreshInterval: NodeJS.Timeout | undefined;
+  private autoRefreshInterval: ReturnType<typeof setInterval> | undefined;
 
   constructor(private context: vscode.ExtensionContext) {
     this.loadMolecules();
@@ -180,6 +180,7 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
   dispose(): void {
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = undefined;
     }
   }
 }
