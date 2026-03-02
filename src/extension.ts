@@ -10,6 +10,10 @@ import {
 } from './providers/lsp';
 import { FileTypeDetector } from './managers/FileTypeDetector';
 import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
+import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
+import { StructureConverter } from './visualizers/StructureConverter';
+import { Molecule3D } from './visualizers/Molecule3D';
+import { createParser } from './parsers';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -81,8 +85,42 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     // Visualization commands
-    vscode.commands.registerCommand('openqc.visualizeStructure', () => {
-      structureViewer.show(vscode.window.activeTextEditor);
+    vscode.commands.registerCommand('openqc.visualizeStructure', async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage('No active text editor');
+        return;
+      }
+
+      const document = editor.document;
+      const software = fileTypeDetector.detectSoftware(document);
+      if (!software) {
+        vscode.window.showErrorMessage('Unsupported file type for visualization');
+        return;
+      }
+
+      try {
+        // Parse the file content
+        const content = document.getText();
+        const parser = createParser(software, content, document.fileName);
+
+        // Extract atoms using Molecule3D
+        const molecule3D = new Molecule3D();
+        const atoms = molecule3D.parseAtoms(content, software);
+
+        if (atoms.length === 0) {
+          vscode.window.showErrorMessage('No molecular structure found in file');
+          return;
+        }
+
+        // Convert to XYZ format
+        const xyzContent = StructureConverter.atomsToXYZ(atoms, document.fileName);
+
+        // Show the 3D viewer
+        MoleculeViewerPanel.createOrShow(context.extensionUri, xyzContent, document.fileName);
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to visualize structure: ${error}`);
+      }
     }),
 
     vscode.commands.registerCommand('openqc.plotData', () => {

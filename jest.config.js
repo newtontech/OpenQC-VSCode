@@ -21,6 +21,7 @@ module.exports = {
     '!src/managers/LSPManager.ts',
     '!src/providers/DataPlotter.ts',
     '!src/providers/StructureViewer.ts',
+    '!src/visualizers/MoleculeViewerPanel.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
