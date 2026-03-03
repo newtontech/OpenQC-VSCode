@@ -5,6 +5,134 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-03-04
+
+### Added - ASE Calculator Integration (Issue #12 - Phase 3)
+
+#### ASE Calculator Interface
+- **ASECalculator.ts** - TypeScript interface to ASE calculators
+  - Calculator factory pattern for code-agnostic interface
+  - Support for VASP, CP2K, and Quantum ESPRESSO calculators
+  - Input file generation via ASE backend
+  - Calculation execution capabilities
+  - Result reading and parsing
+  - VSCode configuration integration
+
+- **calculatorCommands.ts** - VSCode commands for calculator operations
+  - Generate calculator input files
+  - Run calculations from VSCode
+  - Read and display calculation results
+  - Quick calculation presets for VASP, CP2K, QE
+  - Calculator availability checker
+
+#### Python Backend for Calculators
+- **python/openqc/ase/calculator.py** - ASE calculator backend
+  - VASP input generation (INCAR, POSCAR, KPOINTS, POTCAR)
+  - CP2K input generation with complete FORCE_EVAL section
+  - Quantum ESPRESSO input generation with all namelists
+  - Calculation execution via subprocess
+  - Result reading from OUTCAR, vasprun.xml, etc.
+  - Energy, forces, and stress extraction
+
+### Added - Migration Validation Suite (Issue #12 - Phase 3.5)
+
+#### Migration Validation Tests
+- **tests/integration/migrationValidation.test.ts** - Comprehensive validation tests
+  - Round-trip conversion tests (VASP↔CP2K↔QE)
+  - Structure preservation validation
+  - Position deviation checks (< 0.01 Å tolerance)
+  - Cell parameter validation
+  - PBC (periodic boundary conditions) consistency checks
+  - Chemical symbol validation
+  - Parameter consistency checks
+  - Validation report generation in JSON format
+
+- **validateStructurePreservation()** - Structure comparison utility
+  - Calculates position deviations between structures
+  - Validates cell parameters within tolerance
+  - Checks chemical symbol consistency
+  - PBC flag comparison
+
+- **generateValidationReport()** - Report generation
+  - JSON format validation reports
+  - Migration path tracking
+  - Timestamps and metadata
+  - Structure validation results
+
+### Added - Complex Property Handling (Issue #12 - Phase 4)
+
+#### Complex Property Mapper
+- **ComplexPropertyMapper.ts** - Property mapping between codes
+  - Hubbard U parameter mapping (VASP, CP2K, QE)
+  - DFT+U parameter conversion with Dudarev scheme support
+  - Atom constraint mapping (selective dynamics, fixed atoms)
+  - Excited state method mapping (TDDFT, GW, BSE)
+  - Pseudopotential strategy mapping
+  - Basis set strategy mapping
+  - Code-specific parameter generation
+
+#### Python Backend for Complex Properties
+- **python/openqc/ase/complex_properties.py** - Property conversion backend
+  - HubbardUConverter - DFT+U parameter conversion
+  - ConstraintConverter - Atom constraint conversion
+  - PseudopotentialConverter - Pseudopotential name mapping
+  - BasisSetConverter - Basis set and cutoff recommendations
+  - Support for VASP LDAUU/LDAUJ/LDAUL parameters
+  - CP2K DFT_PLUS_U section generation
+  - QE Hubbard_U card generation
+
+#### Property Mapping Features
+- **Hubbard U Parameters**
+  - Angular momentum (s, p, d, f) support
+  - U and J parameter mapping
+  - Per-element configuration
+  - Code-specific output formats
+
+- **Atom Constraints**
+  - Selective dynamics (VASP)
+  - Fixed atoms (CP2K)
+  - if_pos constraints (QE)
+  - Partial coordinate constraints
+
+- **Excited State Methods**
+  - TDDFT configuration mapping
+  - GW approximation support
+  - BSE (Bethe-Salpeter Equation)
+  - Tamm-Dancoff approximation (TDA)
+  - Singlet/triplet state specification
+
+- **Pseudopotential Strategies**
+  - Norm-conserving pseudopotentials
+  - Ultrasoft pseudopotentials
+  - PAW (Projector Augmented Wave)
+  - HGH (Hartwigner-Goedecker-Hutter)
+  - Functional-specific recommendations
+
+- **Basis Set Strategies**
+  - Plane wave cutoffs (VASP, QE)
+  - Gaussian basis sets (CP2K)
+  - Quality levels: minimal, DZVP, TZVP, QZVP
+  - Custom basis set support
+
+### Technical Details
+
+#### Architecture
+- TypeScript interfaces for all property types
+- Factory pattern for property mappers
+- Code-agnostic property definitions
+- Extensible mapping framework
+
+#### Testing
+- Unit tests for property mapping functions
+- Integration tests for round-trip conversions
+- Structure validation with tolerance checks
+- Report generation verification
+
+#### Documentation
+- Comprehensive JSDoc comments
+- Type definitions for all interfaces
+- Usage examples in test files
+
 ## [2.5.1] - 2026-03-03
 
 ### Fixed - MD Workflow Test Failures
