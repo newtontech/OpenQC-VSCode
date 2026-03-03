@@ -30,7 +30,9 @@ describe('MDWorkflowConverter', () => {
   describe('VASP MD Workflow Extraction', () => {
     it('should extract MD parameters from VASP INCAR', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `# VASP MD INCAR
+      fs.writeFileSync(
+        incarPath,
+        `# VASP MD INCAR
 ENCUT = 520
 POTIM = 1.0
 NSW = 1000
@@ -39,7 +41,8 @@ TEBEG = 300
 TEEND = 400
 PSTRESS = 0.0
 SMASS = 0
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
 
@@ -57,12 +60,15 @@ SMASS = 0
 
     it('should detect NPT ensemble from ISIF=3', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `POTIM = 1.0
+      fs.writeFileSync(
+        incarPath,
+        `POTIM = 1.0
 NSW = 1000
 ISIF = 3
 TEBEG = 300
 PSTRESS = 1.0
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
 
@@ -73,11 +79,14 @@ PSTRESS = 1.0
 
     it('should detect Berendsen thermostat from SMASS=2', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `POTIM = 1.0
+      fs.writeFileSync(
+        incarPath,
+        `POTIM = 1.0
 NSW = 1000
 IBRION = 0
 SMASS = 2
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
 
@@ -86,14 +95,17 @@ SMASS = 2
 
     it('should extract optimization parameters from VASP INCAR', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `# VASP Optimization
+      fs.writeFileSync(
+        incarPath,
+        `# VASP Optimization
 ENCUT = 520
 IBRION = 2
 NSW = 100
 EDIFF = 1E-5
 EDIFFG = -0.02
 ISIF = 2
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
 
@@ -102,15 +114,18 @@ ISIF = 2
       expect(workflow.optimization).toBeDefined();
       expect(workflow.optimization?.algorithm).toBe('CG');
       expect(workflow.optimization?.maxSteps).toBe(100);
-      expect(workflow.optimization?.energyConv).toBe(1E-5);
+      expect(workflow.optimization?.energyConv).toBe(1e-5);
       expect(workflow.optimization?.forceConv).toBe(0.02);
     });
 
     it('should detect BFGS algorithm from IBRION=5', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `IBRION = 5
+      fs.writeFileSync(
+        incarPath,
+        `IBRION = 5
 NSW = 100
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
 
@@ -121,7 +136,9 @@ NSW = 100
   describe('QE MD Workflow Extraction', () => {
     it('should extract MD parameters from QE input', () => {
       const qePath = path.join(tempDir, 'md.in');
-      fs.writeFileSync(qePath, `&CONTROL
+      fs.writeFileSync(
+        qePath,
+        `&CONTROL
   dt = 1.0
   nstep = 1000
   calculation = 'md'
@@ -133,7 +150,8 @@ NSW = 100
 &CELL
   press = 0.0
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
 
@@ -147,7 +165,9 @@ NSW = 100
 
     it('should detect NVT ensemble with Nose thermostat', () => {
       const qePath = path.join(tempDir, 'md.in');
-      fs.writeFileSync(qePath, `&CONTROL
+      fs.writeFileSync(
+        qePath,
+        `&CONTROL
   dt = 1.0
   nstep = 1000
 /
@@ -156,7 +176,8 @@ NSW = 100
   ion_temperature = 'nose'
   tempw = 300
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
 
@@ -166,12 +187,15 @@ NSW = 100
 
     it('should detect Langevin thermostat', () => {
       const qePath = path.join(tempDir, 'md.in');
-      fs.writeFileSync(qePath, `&IONS
+      fs.writeFileSync(
+        qePath,
+        `&IONS
   ion_dynamics = 'langevin'
   ion_temperature = 'langevin'
   tempw = 300
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
 
@@ -180,7 +204,9 @@ NSW = 100
 
     it('should extract optimization parameters from QE input', () => {
       const qePath = path.join(tempDir, 'relax.in');
-      fs.writeFileSync(qePath, `&CONTROL
+      fs.writeFileSync(
+        qePath,
+        `&CONTROL
   calculation = 'relax'
 /
 &IONS
@@ -190,22 +216,26 @@ NSW = 100
 &ELECTRONS
   conv_thr = 1E-6
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
 
       expect(workflow.type).toBe('optimization');
       expect(workflow.optimization?.algorithm).toBe('BFGS');
       expect(workflow.optimization?.maxSteps).toBe(100);
-      expect(workflow.optimization?.energyConv).toBe(1E-6);
+      expect(workflow.optimization?.energyConv).toBe(1e-6);
     });
 
     it('should detect CG algorithm', () => {
       const qePath = path.join(tempDir, 'relax.in');
-      fs.writeFileSync(qePath, `&IONS
+      fs.writeFileSync(
+        qePath,
+        `&IONS
   ion_dynamics = 'cg'
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
 
@@ -216,7 +246,9 @@ NSW = 100
   describe('CP2K MD Workflow Extraction', () => {
     it('should extract MD parameters from CP2K input', () => {
       const cp2kPath = path.join(tempDir, 'md.inp');
-      fs.writeFileSync(cp2kPath, `&MOTION
+      fs.writeFileSync(
+        cp2kPath,
+        `&MOTION
   &MD
     ENSEMBLE NVT
     TIMESTEP 1.0
@@ -227,7 +259,8 @@ NSW = 100
     &END THERMOSTAT
   &END MD
 &END MOTION
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(cp2kPath);
 
@@ -237,12 +270,14 @@ NSW = 100
       expect(workflow.md?.nSteps).toBe(1000);
       expect(workflow.md?.ensemble).toBe('NVT');
       expect(workflow.md?.temperature).toBe(300);
-      expect(workflow.md?.thermostat).toBe('NOOSE_HOOVER');
+      expect(workflow.md?.thermostat).toBe('NOSE_HOOVER');
     });
 
     it('should extract NPT ensemble', () => {
       const cp2kPath = path.join(tempDir, 'md.inp');
-      fs.writeFileSync(cp2kPath, `&MOTION
+      fs.writeFileSync(
+        cp2kPath,
+        `&MOTION
   &MD
     ENSEMBLE NPT
     TIMESTEP 1.0
@@ -253,18 +288,21 @@ NSW = 100
     &END BAROSTAT
   &END MD
 &END MOTION
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(cp2kPath);
 
       expect(workflow.md?.ensemble).toBe('NPT');
       expect(workflow.md?.pressure).toBe(1.0);
-      expect(workflow.md?.barostat).toBe('NOOSE_HOOVER');
+      expect(workflow.md?.barostat).toBe('NOSE_HOOVER');
     });
 
     it('should extract optimization parameters from CP2K input', () => {
       const cp2kPath = path.join(tempDir, 'opt.inp');
-      fs.writeFileSync(cp2kPath, `&MOTION
+      fs.writeFileSync(
+        cp2kPath,
+        `&MOTION
   &GEO_OPT
     OPTIMIZER BFGS
     MAX_ITER 100
@@ -274,27 +312,31 @@ NSW = 100
     &END CONVERGENCE
   &END GEO_OPT
 &END MOTION
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(cp2kPath);
 
       expect(workflow.type).toBe('optimization');
       expect(workflow.optimization?.algorithm).toBe('BFGS');
       expect(workflow.optimization?.maxSteps).toBe(100);
-      expect(workflow.optimization?.energyConv).toBe(1E-6);
-      expect(workflow.optimization?.forceConv).toBe(1E-4);
+      expect(workflow.optimization?.energyConv).toBe(1e-6);
+      expect(workflow.optimization?.forceConv).toBe(1e-4);
     });
   });
 
   describe('MD Workflow Conversion', () => {
     it('should convert VASP MD to QE MD', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `POTIM = 1.0
+      fs.writeFileSync(
+        incarPath,
+        `POTIM = 1.0
 NSW = 1000
 ISIF = 2
 TEBEG = 300
 SMASS = 0
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
       const result = converter.convertWorkflow(workflow, 'qe');
@@ -309,23 +351,28 @@ SMASS = 0
 
     it('should convert VASP MD to CP2K MD with unit conversion', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `POTIM = 1.0
+      fs.writeFileSync(
+        incarPath,
+        `POTIM = 1.0
 NSW = 1000
 ISIF = 3
 TEBEG = 300
 PSTRESS = 1.0  # kbar
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
       const result = converter.convertWorkflow(workflow, 'cp2k');
 
       expect(result.success).toBe(true);
-      expect(result.target?.md?.pressure).toBe(1000);  // kbar to bar
+      expect(result.target?.md?.pressure).toBe(1000); // kbar to bar
     });
 
     it('should convert QE MD to VASP MD', () => {
       const qePath = path.join(tempDir, 'md.in');
-      fs.writeFileSync(qePath, `&CONTROL
+      fs.writeFileSync(
+        qePath,
+        `&CONTROL
   dt = 1.0
   nstep = 1000
 /
@@ -334,7 +381,8 @@ PSTRESS = 1.0  # kbar
   ion_temperature = 'nose'
   tempw = 300
 /
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(qePath);
       const result = converter.convertWorkflow(workflow, 'vasp');
@@ -348,10 +396,13 @@ PSTRESS = 1.0  # kbar
 
     it('should convert VASP optimization to QE optimization', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `IBRION = 2
+      fs.writeFileSync(
+        incarPath,
+        `IBRION = 2
 NSW = 100
 EDIFF = 1E-5
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
       const result = converter.convertWorkflow(workflow, 'qe');
@@ -361,18 +412,21 @@ EDIFF = 1E-5
       expect(result.target?.optimization?.algorithm).toBe('CG');
       expect(result.target?.optimization?.maxSteps).toBe(100);
       // eV to Ry conversion
-      expect(result.target?.optimization?.energyConv).toBeCloseTo(1E-5 * 0.0734986, 10);
+      expect(result.target?.optimization?.energyConv).toBeCloseTo(1e-5 * 0.0734986, 10);
     });
 
     it('should convert VASP optimization to CP2K optimization with unit conversion', () => {
       const incarPath = path.join(tempDir, 'INCAR');
-      fs.writeFileSync(incarPath, `IBRION = 5
+      fs.writeFileSync(
+        incarPath,
+        `IBRION = 5
 NSW = 100
 EDIFF = 1E-5
 EDIFFG = -0.02
 ISIF = 3
 PSTRESS = 1.0
-`);
+`
+      );
 
       const workflow = converter.extractWorkflow(incarPath);
       const result = converter.convertWorkflow(workflow, 'cp2k');
@@ -380,7 +434,7 @@ PSTRESS = 1.0
       expect(result.success).toBe(true);
       expect(result.target?.optimization?.algorithm).toBe('BFGS');
       // eV to hartree
-      expect(result.target?.optimization?.energyConv).toBeCloseTo(1E-5 * 0.0367493, 10);
+      expect(result.target?.optimization?.energyConv).toBeCloseTo(1e-5 * 0.0367493, 10);
       // eV/Å to hartree/bohr
       expect(result.target?.optimization?.forceConv).toBeCloseTo(0.02 * 0.01943, 10);
       // kbar to bar
@@ -427,7 +481,7 @@ PSTRESS = 1.0
       const optParams = {
         algorithm: 'BFGS' as OptimizationAlgorithm,
         maxSteps: 100,
-        energyConv: 1E-5,
+        energyConv: 1e-5,
         forceConv: 0.02,
         optimizeCell: false,
       };
@@ -445,7 +499,7 @@ PSTRESS = 1.0
       const optParams = {
         algorithm: 'CG' as OptimizationAlgorithm,
         maxSteps: 100,
-        energyConv: 1E-5,
+        energyConv: 1e-5,
         optimizeCell: true,
         cellPressure: 1.0,
       };
@@ -497,7 +551,7 @@ PSTRESS = 1.0
       const optParams = {
         algorithm: 'BFGS' as OptimizationAlgorithm,
         maxSteps: 100,
-        energyConv: 1E-6,
+        energyConv: 1e-6,
         optimizeCell: false,
       };
 
@@ -565,8 +619,8 @@ PSTRESS = 1.0
       const optParams = {
         algorithm: 'BFGS' as OptimizationAlgorithm,
         maxSteps: 100,
-        energyConv: 1E-6,
-        forceConv: 1E-4,
+        energyConv: 1e-6,
+        forceConv: 1e-4,
         optimizeCell: false,
       };
 
@@ -623,7 +677,7 @@ PSTRESS = 1.0
       const optParams = {
         algorithm: 'BFGS' as OptimizationAlgorithm,
         maxSteps: 100,
-        energyConv: 1E-5,
+        energyConv: 1e-5,
         forceConv: 0.02,
         optimizeCell: false,
       };

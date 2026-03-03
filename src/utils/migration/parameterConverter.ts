@@ -7,11 +7,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  ParameterMapping,
-  getParameterMappings,
-  convertParameterValue,
-} from './params';
+import { ParameterMapping, getParameterMappings, convertParameterValue } from './params';
 
 /**
  * Extracted parameters from a quantum chemistry input file
@@ -430,7 +426,7 @@ export class ParameterConverter {
     Object.entries(sourceParams.parameters).forEach(([key, value]) => {
       // Try full key first
       let mapping = mappingLookup.get(key.toUpperCase());
-      
+
       // If not found, try base parameter name (for QE/CP2K)
       if (!mapping) {
         const baseKey = this.getBaseParamName(key, sourceParams.format);
@@ -442,9 +438,7 @@ export class ParameterConverter {
           const convertedValue = convertParameterValue(mapping, value);
           result.parameters[mapping.targetParam] = convertedValue;
         } catch (error: any) {
-          result.warnings.push(
-            `Failed to convert ${key}: ${error.message}`
-          );
+          result.warnings.push(`Failed to convert ${key}: ${error.message}`);
         }
       } else {
         result.unmapped.push(key);
@@ -454,7 +448,9 @@ export class ParameterConverter {
     // Add warnings for unmapped parameters
     if (result.unmapped.length > 0) {
       result.warnings.push(
-        `${result.unmapped.length} parameters could not be mapped: ${result.unmapped.slice(0, 5).join(', ')}${result.unmapped.length > 5 ? '...' : ''}`
+        `${result.unmapped.length} parameters could not be mapped: ${result.unmapped
+          .slice(0, 5)
+          .join(', ')}${result.unmapped.length > 5 ? '...' : ''}`
       );
     }
 
@@ -464,10 +460,7 @@ export class ParameterConverter {
   /**
    * Full conversion workflow
    */
-  public async convertFile(
-    sourcePath: string,
-    targetFormat: string
-  ): Promise<ConversionResult> {
+  public async convertFile(sourcePath: string, targetFormat: string): Promise<ConversionResult> {
     const result: ConversionResult = {
       success: false,
       warnings: [],
@@ -486,10 +479,7 @@ export class ParameterConverter {
     result.warnings.push(...extraction.warnings);
 
     // Convert parameters
-    const conversion = this.convertParameters(
-      extraction.data,
-      targetFormat
-    );
+    const conversion = this.convertParameters(extraction.data, targetFormat);
 
     result.target = conversion;
     result.warnings.push(...conversion.warnings);
@@ -501,10 +491,7 @@ export class ParameterConverter {
   /**
    * Get parameter mapping suggestions
    */
-  public getMappingSuggestions(
-    sourceFormat: string,
-    targetFormat: string
-  ): ParameterMapping[] {
+  public getMappingSuggestions(sourceFormat: string, targetFormat: string): ParameterMapping[] {
     return getParameterMappings(sourceFormat, targetFormat);
   }
 }

@@ -10,17 +10,21 @@ export interface KpointGrid {
 }
 
 export function parseVASP_KPOINTS(content: string): KpointGrid {
-  const lines = content.trim().split('\n').map(l => l.trim()).filter(l => l);
-  
+  const lines = content
+    .trim()
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l);
+
   if (lines.length < 4) {
     throw new Error('Invalid VASP KPOINTS format');
   }
-  
+
   const comment = lines[0];
   const scheme = lines[2]?.toLowerCase() || 'gamma';
   const grid = lines[3]?.split(/\s+/).map(Number) || [4, 4, 4];
   const shift = lines[4]?.split(/\s+/).map(Number) || [0, 0, 0];
-  
+
   return {
     grid: [grid[0], grid[1], grid[2]],
     type: scheme.includes('gamma') ? 'Gamma-centered' : 'Monkhorst-Pack',
@@ -38,9 +42,12 @@ export function generateVASP_KPOINTS(grid: KpointGrid): string {
 }
 
 export function parseQE_KPOINTS(content: string): KpointGrid {
-  const lines = content.trim().split('\n').filter(l => l);
+  const lines = content
+    .trim()
+    .split('\n')
+    .filter(l => l);
   const firstLine = lines[0]?.toLowerCase() || '';
-  
+
   if (firstLine.includes('gamma')) {
     return {
       grid: [1, 1, 1],
@@ -48,10 +55,10 @@ export function parseQE_KPOINTS(content: string): KpointGrid {
       shift: [0, 0, 0],
     };
   }
-  
+
   const gridLine = lines[1]?.split(/\s+/).map(Number) || [4, 4, 4];
   const shiftLine = lines[2]?.split(/\s+/).map(Number) || [0, 0, 0];
-  
+
   return {
     grid: [gridLine[0], gridLine[1], gridLine[2]],
     type: 'Monkhorst-Pack',
@@ -60,7 +67,11 @@ export function parseQE_KPOINTS(content: string): KpointGrid {
 }
 
 export function generateQE_KPOINTS(grid: KpointGrid): string {
-  return ['K_POINTS AUTOMATIC', `${grid.grid[0]} ${grid.grid[1]} ${grid.grid[2]}`, `${grid.shift[0]} ${grid.shift[1]} ${grid.shift[2]}`].join('\n');
+  return [
+    'K_POINTS AUTOMATIC',
+    `${grid.grid[0]} ${grid.grid[1]} ${grid.grid[2]}`,
+    `${grid.shift[0]} ${grid.shift[1]} ${grid.shift[2]}`,
+  ].join('\n');
 }
 
 export function monkhorstToGamma(grid: [number, number, number]): [number, number, number] {
@@ -89,19 +100,23 @@ export function generateKpoints(grid: KpointGrid, format: 'vasp' | 'qe'): string
 
 export class KpointMigration {
   constructor(private _context: any) {}
-  
+
   isSupported(source: string, target: string): boolean {
     const supported = ['vasp', 'qe'];
     return supported.includes(source) && supported.includes(target);
   }
-  
+
   static migrate(content: string, targetFormat: 'vasp' | 'qe'): string {
     return generateKpoints(parseKpoints(content), targetFormat);
   }
 }
 
 // For migrationCommands.ts compatibility - supports both signatures
-export function quickMigrateKpoints(contextOrContent: any, contentOrTarget?: string, targetFormat?: 'vasp' | 'qe'): any {
+export function quickMigrateKpoints(
+  contextOrContent: any,
+  contentOrTarget?: string,
+  targetFormat?: 'vasp' | 'qe'
+): any {
   if (typeof contentOrTarget === 'string' && targetFormat) {
     return KpointMigration.migrate(contentOrTarget, targetFormat);
   }

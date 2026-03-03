@@ -5,7 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2026-03-03
+
+### Fixed - MD Workflow Test Failures
+
+#### Number Formatting Fixes
+- **CP2K Output Generation** - Fixed number formatting for consistency
+  - TIMESTEP now uses `toFixed(1)` to ensure decimal display (e.g., `1.0`)
+  - PRESSURE now uses `toFixed(1)` for consistent formatting
+  - EPS_ENERGY now uses `toExponential(0).replace('e-', 'e-0')` for scientific notation
+  - EPS_FORCE now uses `toExponential(0).replace('e-', 'e-0')` for scientific notation
+
+#### Extraction Logic Fixes
+- **VASP Pressure Extraction** - Fixed extraction of `PSTRESS = 0.0`
+  - Changed from truthy check to `!== undefined` check
+  - Now correctly extracts zero pressure values
+
+- **QE Ensemble Detection** - Fixed NVT ensemble detection
+  - Added check for `ion_temperature` parameter
+  - Correctly identifies NVT when `ion_temperature = 'nose'` with `ion_dynamics = 'verlet'`
+
+#### Test Fixes
+- Fixed test expectations for thermostat type (`NOOSE_HOOVER` → `NOSE_HOOVER` typo)
+
+#### Code Quality
+- All 593 tests now passing (34 test suites)
+- Prettier formatting applied
+- ESLint warnings reviewed (pre-existing)
+
 ## [2.5.0] - 2026-03-03
+
 
 ### Added - MD/Optimization Workflow Migration (Issue #12 - Phase 3.4)
 

@@ -258,10 +258,7 @@ export const MD_MAPPINGS: ParameterMapping[] = [
 /**
  * Get all parameter mappings for a source-target pair
  */
-export function getParameterMappings(
-  source: string,
-  target: string
-): ParameterMapping[] {
+export function getParameterMappings(source: string, target: string): ParameterMapping[] {
   const allMappings = [
     ...ENERGY_CUTOFF_MAPPINGS,
     ...XC_FUNCTIONAL_MAPPINGS,
@@ -272,8 +269,9 @@ export function getParameterMappings(
   ];
 
   return allMappings.filter(
-    m => m.source.toLowerCase() === source.toLowerCase() && 
-         m.target.toLowerCase() === target.toLowerCase()
+    m =>
+      m.source.toLowerCase() === source.toLowerCase() &&
+      m.target.toLowerCase() === target.toLowerCase()
   );
 }
 
@@ -292,10 +290,7 @@ export function getParameterMapping(
 /**
  * Convert parameter value using mapping
  */
-export function convertParameterValue(
-  mapping: ParameterMapping,
-  value: any
-): any {
+export function convertParameterValue(mapping: ParameterMapping, value: any): any {
   if (mapping.conversion) {
     return mapping.conversion(value);
   }
@@ -331,9 +326,7 @@ export function isMigrationSupported(source: string, target: string): boolean {
     ['cif', 'qe'],
   ];
 
-  return supportedPairs.some(
-    ([s, t]) => s === source.toLowerCase() && t === target.toLowerCase()
-  );
+  return supportedPairs.some(([s, t]) => s === source.toLowerCase() && t === target.toLowerCase());
 }
 
 /**
