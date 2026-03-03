@@ -150,3 +150,62 @@ OpenQC-VSCode is now a universal platform supporting 7 major quantum chemistry p
 [0.3.0]: https://github.com/newtontech/OpenQC-VSCode/releases/tag/v0.3.0
 [0.4.0]: https://github.com/newtontech/OpenQC-VSCode/releases/tag/v0.4.0
 [1.0.0]: https://github.com/newtontech/OpenQC-VSCode/releases/tag/v1.0.0
+
+## [2.1.0] - 2026-03-03 (ASE Integration Phase 1)
+
+### Added
+
+#### ASE Integration (Issue #12 - Phase 3)
+- **ASE Converter Backend** - Python module for format conversion
+  - Support for 11 quantum chemistry formats
+  - ASE Atoms object as universal intermediate layer
+  - Validation and utility functions
+- **TypeScript Interface** - VSCode integration for ASE backend
+  - ASEConverter class with subprocess communication
+  - 4 new VSCode commands:
+    - `OpenQC: Convert to ASE Atoms`
+    - `OpenQC: Convert from ASE Atoms`
+    - `OpenQC: Migrate Format (ASE)`
+    - `OpenQC: Quick Convert (ASE)`
+- **Quick Convert Presets** - Common format conversions
+  - VASP → CP2K, VASP → QE, CP2K → VASP
+  - Gaussian → ORCA, ORCA → Gaussian
+  - XYZ → VASP, CIF → VASP
+- **Configuration** - Python path setting for ASE backend
+- **Documentation** - Comprehensive ASE_INTEGRATION.md guide
+
+### Changed
+- Updated extension.ts to register ASE commands
+- Enhanced package.json with ASE command categories
+
+### Testing
+- Python test suite for ASE converter (pytest)
+- TypeScript test suite for VSCode integration (Jest)
+- Test fixtures: H2O.xyz, Si.POSCAR, CH4.gjf
+
+### Technical Details
+- Backend: Python 3.8+ with ASE>=3.22.0
+- Format support: VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS, LAMMPS, XYZ, PDB, CIF
+- Bidirectional conversion via ASE Atoms objects
+- Error handling and progress notifications
+
+### Phase 3 Progress
+- ✅ Week 10-11: ASE Core Integration - COMPLETE
+  - ASE Atoms Converter Module
+  - Format conversions for all 8 quantum chemistry codes
+  - Calculator interface wrapper
+  - Structure validation utilities
+
+### Next Steps (Phase 2 - Week 12-13)
+- Structure Migration Tool with code selection
+- k-Point Grid Migration (Monkhorst-Pack ↔ Gamma-centered)
+- Electronic Structure Parameter Mapping
+- MD/Optimization Workflow Migration
+
+### Known Limitations
+- Calculator execution (Phase 3) not yet implemented
+- Complex features (Hubbard U, constraints) require manual adjustment
+- Pseudopotential mapping is code-specific
+
+---
+
