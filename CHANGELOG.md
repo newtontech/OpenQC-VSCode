@@ -355,3 +355,90 @@ OpenQC-VSCode is now a universal platform supporting 7 major quantum chemistry p
 
 ---
 
+
+## [2.4.0] - 2026-03-03
+
+### Added - Electronic Structure Parameter Migration (Issue #12 - Phase 3.3)
+
+#### Parameter Conversion Module
+- **Parameter Converter Engine** - Full-featured parameter extraction and conversion
+  - VASP INCAR parameter extraction with full parsing support
+  - Quantum ESPRESSO namelist parameter extraction (CONTROL, SYSTEM, ELECTRONS sections)
+  - CP2K parameter extraction with section-aware parsing
+  - Gaussian route section parameter extraction
+  - Automatic format detection from file extension and content
+  - Comprehensive error handling and validation
+
+#### Parameter Conversion Features
+- **Bi-directional Conversion** - Convert parameters between quantum chemistry codes
+  - VASP ↔ CP2K parameter conversion
+  - VASP ↔ Quantum ESPRESSO parameter conversion
+  - VASP ↔ Gaussian parameter conversion
+  - CP2K ↔ VASP, QE parameter conversion
+  - QE ↔ VASP, CP2K, Gaussian parameter conversion
+
+- **Intelligent Parameter Mapping**
+  - Energy cutoff mappings (ENCUT/CUTOFF/ecutwfc)
+  - Exchange-correlation functional mappings (PBE, RPBE, etc.)
+  - k-Point grid mappings
+  - Convergence parameter mappings (EDIFF/EPS_SCF/conv_thr)
+  - MD parameter mappings (POTIM/dt/TIMESTEP)
+
+- **Section-Aware Parsing**
+  - Handles QE/CP2K section prefixes (CONTROL., SYSTEM., ELECTRONS.)
+  - Supports nested parameter lookup for format conversion
+  - Preserves parameter metadata and line numbers
+
+#### VSCode Integration
+- **Parameter Migration Command** (`OpenQC: Migrate Parameters`)
+  - Extract parameters from active editor
+  - Show extracted parameters summary
+  - Convert to target format with interactive UI
+  - Display converted parameters with unmapped warnings
+  - Copy parameters to clipboard
+  - View parameters in output channel
+
+- **MD Parameter Migration** (`OpenQC: Migrate MD Parameters`)
+  - Extract MD-related parameters (POTIM, TEBEG, PRESS, etc.)
+  - Convert MD parameters between codes
+  - Filter and display only MD-specific parameters
+
+#### Technical Details
+- Full TypeScript type safety with comprehensive interfaces
+- Modular architecture for easy extension
+- Error handling with detailed error messages
+- Warnings for unmapped parameters
+- Extensive test coverage with 16 test cases
+
+#### Testing
+- Unit tests for VASP parameter extraction
+- Unit tests for QE parameter extraction
+- Unit tests for CP2K parameter extraction
+- Unit tests for Gaussian parameter extraction
+- Parameter conversion tests (VASP→QE, VASP→CP2K, QE→VASP)
+- Functional conversion tests (GGA→input_dft)
+- Unmapped parameter warning tests
+- Error handling tests
+- **Code Coverage: 74.86% for parameterConverter.ts**
+
+### Phase 3 Progress Update
+- ✅ Week 12-13 Task 1: Structure Migration Tool - COMPLETE
+- ✅ Week 12-13 Task 2: k-Point Grid Migration - COMPLETE
+- ✅ Week 12-13 Task 3: Electronic Structure Parameter Migration - COMPLETE
+- ⏳ Week 12-13 Task 4: MD/Optimization Workflow Migration - IN PROGRESS
+
+#### Next Steps (Phase 3.4)
+- Complete MD/Optimization parameter conversion with UI
+- Add automatic MD workflow generation
+- Implement optimization criteria migration
+- Add MD trajectory analysis tools
+
+### Changed
+- Enhanced migrationCommands.ts with real parameter conversion implementation
+- Improved error reporting for parameter conversion failures
+- Better user feedback during parameter extraction
+
+### Fixed
+- Section-prefix handling for QE/CP2K parameters
+- Test failures related to nested parameter names
+- Temporary file handling in tests
