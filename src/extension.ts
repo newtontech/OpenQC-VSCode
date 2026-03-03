@@ -9,6 +9,7 @@ import {
   DefinitionProvider,
 } from './providers/lsp';
 import { registerASECommands } from './ase/commands';
+import { registerMigrationCommands } from './commands/migrationCommands';
 import { FileTypeDetector } from './managers/FileTypeDetector';
 import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
 import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
@@ -322,6 +323,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register ASE commands
   registerASECommands(context);
+  // Register migration commands
+  registerMigrationCommands(context);
 
   context.subscriptions.push(...disposables);
   context.subscriptions.push(diagnosticsProvider);
