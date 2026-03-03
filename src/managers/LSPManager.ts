@@ -338,6 +338,30 @@ export class LSPManager {
   }
 
   /**
+   * Dynamically discover available LSPs from OpenQuantumChemistry GitHub organization
+   */
+  async discoverAvailableLSPs(): Promise<LSPServerDefinition[]> {
+    try {
+      return await this.discovery.fetchLSPRepositories();
+    } catch (error) {
+      console.error('[LSPManager] Failed to discover LSPs:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Force refresh LSP list from GitHub
+   */
+  async refreshLSPList(): Promise<void> {
+    try {
+      await this.discovery.fetchLSPRepositories(true);
+      vscode.window.showInformationMessage('LSP list refreshed successfully');
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to refresh LSP list: ${error}`);
+    }
+  }
+
+  /**
    * Stop all managed LSP clients and clear their records.
    */
   async dispose(): Promise<void> {
