@@ -279,6 +279,26 @@
       {
         "command": "openqc.checkConverterBackend",
         "title": "OpenQC: Check Format Converter Backend"
+      },
+      {
+        "command": "openqc.convertToASE",
+        "title": "OpenQC: Convert to ASE Atoms",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.convertFromASE",
+        "title": "OpenQC: Convert from ASE Atoms",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.migrateFormat",
+        "title": "OpenQC: Migrate Format (ASE)",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.quickConvert",
+        "title": "OpenQC: Quick Convert (ASE)",
+        "category": "ASE Integration"
       }
     ],
     "views": {
@@ -426,6 +446,11 @@
           "type": "boolean",
           "default": true,
           "description": "Preserve metadata during format conversion"
+        },
+        "openqc.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Path to Python executable for ASE backend"
         }
       }
     },

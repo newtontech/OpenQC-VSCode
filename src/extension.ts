@@ -8,6 +8,7 @@ import {
   HoverProvider,
   DefinitionProvider,
 } from './providers/lsp';
+import { registerASECommands } from './ase/commands';
 import { FileTypeDetector } from './managers/FileTypeDetector';
 import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
 import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
@@ -318,6 +319,9 @@ export function activate(context: vscode.ExtensionContext) {
       diagnosticsProvider.clearDiagnostics(document);
     }),
   ];
+
+  // Register ASE commands
+  registerASECommands(context);
 
   context.subscriptions.push(...disposables);
   context.subscriptions.push(diagnosticsProvider);
