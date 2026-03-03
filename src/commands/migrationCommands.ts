@@ -1,4 +1,3 @@
-import * as path from 'path';
 /**
  * Migration Commands - VSCode Extension Commands
  *
@@ -6,10 +5,12 @@ import * as path from 'path';
  * parameter migration, and MD workflow migration.
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { StructureMigration, quickMigrateStructure } from '../utils/migration/structure';
 import { KpointMigration, quickMigrateKpoints } from '../utils/migration/kpoints';
 import { ASEFormat } from '../ase/ASEConverter';
+import { ParameterConverter } from '../utils/migration/parameterConverter';
 
 /**
  * Register migration commands
@@ -212,6 +213,7 @@ async function migrateStructureWithOptions(
 async function migrateKpoints(context: vscode.ExtensionContext): Promise<void> {
   await quickMigrateKpoints(context);
 }
+
 /**
  * Migrate electronic structure parameters
  */
@@ -223,59 +225,99 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
   }
 
   const sourcePath = editor.document.uri.fsPath;
-  const migration = new StructureMigration(context);
+  const converter = new ParameterConverter();
 
-  // Detect format from file
-  const ext = sourcePath.split('.').pop()?.toLowerCase() || '';
-  const formatMap: Record<string, string> = {
-    'incar': 'vasp',
-    'inp': 'cp2k',
-    'in': 'qe',
-    'com': 'gaussian',
-    'gjf': 'gaussian',
-    'nw': 'nwchem',
-  };
-  const sourceFormat = formatMap[ext] || ext;
-
-  // Select target format
-  const targetFormat = await vscode.window.showQuickPick(
-    ['vasp', 'cp2k', 'qe', 'gaussian'].map(code => ({
-      label: code.toUpperCase(),
-      value: code,
-    })),
+  // Show progress
+  await vscode.window.withProgress(
     {
-      placeHolder: 'Select target format',
+      location: vscode.ProgressLocation.Notification,
+      title: 'Analyzing input file...',
+      cancellable: false,
+    },
+    async () => {
+      // Extract parameters
+      const extraction = converter.extractParameters(sourcePath);
+
+      if (!extraction.success || !extraction.data) {
+        vscode.window.showErrorMessage(
+          `Failed to extract parameters: ${extraction.error}`
+        );
+        return;
+      }
+
+      // Show extracted parameters
+      const paramsList = Object.entries(extraction.data.parameters)
+        .map(([key, value]) => `${key} = ${value}`)
+        .join('\n');
+
+      const action = await vscode.window.showInformationMessage(
+        `Extracted ${Object.keys(extraction.data.parameters).length} parameters from ${extraction.data.format.toUpperCase()} file`,
+        'Convert to Target Format',
+        'View Parameters',
+        'Copy to Clipboard'
+      );
+
+      if (action === 'Convert to Target Format') {
+        // Select target format
+        const targetFormat = await vscode.window.showQuickPick(
+          ['vasp', 'cp2k', 'qe', 'gaussian'].map(code => ({
+            label: code.toUpperCase(),
+            value: code,
+          })),
+          {
+            placeHolder: 'Select target format',
+          }
+        );
+
+        if (!targetFormat) {
+          return;
+        }
+
+        // Convert parameters
+        const conversion = await converter.convertFile(
+          sourcePath,
+          targetFormat.value
+        );
+
+        if (!conversion.success || !conversion.target) {
+          vscode.window.showErrorMessage(
+            `Conversion failed: ${conversion.error}`
+          );
+          return;
+        }
+
+        // Show converted parameters
+        const convertedList = Object.entries(conversion.target.parameters)
+          .map(([key, value]) => `${key} = ${value}`)
+          .join('\n');
+
+        const resultAction = await vscode.window.showInformationMessage(
+          `Converted to ${targetFormat.label}:\n${convertedList}${conversion.target.unmapped.length > 0 ? `\n\nUnmapped: ${conversion.target.unmapped.join(', ')}` : ''}`,
+          'Copy Converted Parameters',
+          'View Warnings'
+        );
+
+        if (resultAction === 'Copy Converted Parameters') {
+          vscode.env.clipboard.writeText(convertedList);
+          vscode.window.showInformationMessage('Parameters copied to clipboard');
+        } else if (resultAction === 'View Warnings' && conversion.warnings.length > 0) {
+          vscode.window.showWarningMessage(conversion.warnings.join('\n'));
+        }
+      } else if (action === 'View Parameters') {
+        // Create output channel to show parameters
+        const channel = vscode.window.createOutputChannel('OpenQC Parameters');
+        channel.clear();
+        channel.appendLine(`Extracted Parameters (${extraction.data.format.toUpperCase()})`);
+        channel.appendLine('='.repeat(50));
+        channel.appendLine(paramsList);
+        channel.appendLine('');
+        channel.appendLine(`Total: ${Object.keys(extraction.data.parameters).length} parameters`);
+        channel.show();
+      } else if (action === 'Copy to Clipboard') {
+        vscode.env.clipboard.writeText(paramsList);
+        vscode.window.showInformationMessage('Parameters copied to clipboard');
+      }
     }
-  );
-
-  if (!targetFormat) {
-    return;
-  }
-
-  // Get parameter mappings
-  const mappings = migration.getParameterMappings(
-    sourceFormat,
-    targetFormat.value
-  );
-
-  if (mappings.length === 0) {
-    vscode.window.showInformationMessage(
-      `No parameter mappings found for ${sourceFormat} -> ${targetFormat.label}`
-    );
-    return;
-  }
-
-  // Show mappings
-  const mappingsText = mappings
-    .map(
-      m =>
-        `${m.sourceParam} -> ${m.targetParam}\n  ${m.description}`
-    )
-    .join('\n\n');
-
-  vscode.window.showInformationMessage(
-    `Parameter Mappings (${sourceFormat} -> ${targetFormat.label}):\n\n${mappingsText}`,
-    'Close'
   );
 }
 
@@ -283,16 +325,100 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
  * Migrate MD parameters
  */
 async function migrateMDParameters(context: vscode.ExtensionContext): Promise<void> {
-  vscode.window.showInformationMessage(
-    'MD/Optimization Parameter Migration\n\n' +
-    'This tool converts MD and optimization parameters:\n' +
-    '- Time step (POTIM/dt/TIMESTEP)\n' +
-    '- Temperature (TEBEG/TEMP/T)\n' +
-    '- Pressure (PSTRESS/PRESS)\n' +
-    '- Convergence criteria (EDIFF/conv_thr)\n\n' +
-    'Note: MD parameter migration will be implemented in Phase 3.4',
-    'OK'
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  const sourcePath = editor.document.uri.fsPath;
+  const converter = new ParameterConverter();
+
+  // Extract parameters
+  const extraction = converter.extractParameters(sourcePath);
+
+  if (!extraction.success || !extraction.data) {
+    vscode.window.showErrorMessage(
+      `Failed to extract parameters: ${extraction.error}`
+    );
+    return;
+  }
+
+  // Filter MD-related parameters
+  const mdParams: Record<string, any> = {};
+  const mdKeywords = ['POTIM', 'TIMESTEP', 'DT', 'TEBEG', 'TEMP', 'T', 'PSTRESS', 'PRESS', 'NSW', 'MD'];
+
+  Object.entries(extraction.data.parameters).forEach(([key, value]) => {
+    if (mdKeywords.some(kw => key.toUpperCase().includes(kw))) {
+      mdParams[key] = value;
+    }
+  });
+
+  if (Object.keys(mdParams).length === 0) {
+    vscode.window.showInformationMessage(
+      'No MD parameters found in this file'
+    );
+    return;
+  }
+
+  const mdList = Object.entries(mdParams)
+    .map(([key, value]) => `${key} = ${value}`)
+    .join('\n');
+
+  const action = await vscode.window.showInformationMessage(
+    `Found ${Object.keys(mdParams).length} MD parameters:\n${mdList}`,
+    'Convert to Target Format',
+    'Copy to Clipboard'
   );
+
+  if (action === 'Convert to Target Format') {
+    // Select target format
+    const targetFormat = await vscode.window.showQuickPick(
+      ['vasp', 'cp2k', 'qe'].map(code => ({
+        label: code.toUpperCase(),
+        value: code,
+      })),
+      {
+        placeHolder: 'Select target format',
+      }
+    );
+
+    if (!targetFormat) {
+      return;
+    }
+
+    // Convert parameters
+    const conversion = await converter.convertFile(
+      sourcePath,
+      targetFormat.value
+    );
+
+    if (!conversion.success || !conversion.target) {
+      vscode.window.showErrorMessage(
+        `Conversion failed: ${conversion.error}`
+      );
+      return;
+    }
+
+    // Show converted MD parameters
+    const convertedMD: Record<string, any> = {};
+    Object.entries(conversion.target.parameters).forEach(([key, value]) => {
+      if (mdKeywords.some(kw => key.toUpperCase().includes(kw))) {
+        convertedMD[key] = value;
+      }
+    });
+
+    const convertedList = Object.entries(convertedMD)
+      .map(([key, value]) => `${key} = ${value}`)
+      .join('\n');
+
+    vscode.window.showInformationMessage(
+      `Converted MD parameters to ${targetFormat.label}:\n${convertedList}`
+    );
+  } else if (action === 'Copy to Clipboard') {
+    vscode.env.clipboard.writeText(mdList);
+    vscode.window.showInformationMessage('MD parameters copied to clipboard');
+  }
 }
 
 /**
