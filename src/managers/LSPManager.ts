@@ -6,6 +6,7 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
+import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
 
 interface LSPServerConfig {
   name: string;
@@ -18,10 +19,12 @@ export class LSPManager {
   private clients: Map<string, LanguageClient> = new Map();
   private fileTypeDetector: FileTypeDetector;
   private config: vscode.WorkspaceConfiguration;
+  private lspDiscovery: LSPDiscovery;
 
-  constructor() {
+  constructor(context?: vscode.ExtensionContext) {
     this.fileTypeDetector = new FileTypeDetector();
     this.config = vscode.workspace.getConfiguration('openqc.lsp');
+    this.lspDiscovery = new LSPDiscovery(context);
   }
 
   async startLSPForDocument(document: vscode.TextDocument): Promise<void> {
@@ -177,6 +180,30 @@ export class LSPManager {
       NWChem: ['nw'],
     };
     return mapping[software];
+  }
+
+  /**
+   * Dynamically discover available LSPs from OpenQuantumChemistry GitHub organization
+   */
+  async discoverAvailableLSPs(): Promise<LSPServerDefinition[]> {
+    try {
+      return await this.lspDiscovery.fetchLSPRepositories();
+    } catch (error) {
+      console.error('[LSPManager] Failed to discover LSPs:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Force refresh LSP list from GitHub
+   */
+  async refreshLSPList(): Promise<void> {
+    try {
+      await this.lspDiscovery.fetchLSPRepositories(true);
+      vscode.window.showInformationMessage('LSP list refreshed successfully');
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to refresh LSP list: ${error}`);
+    }
   }
 
   dispose(): void {

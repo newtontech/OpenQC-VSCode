@@ -151,6 +151,39 @@ OpenQC-VSCode is now a universal platform supporting 7 major quantum chemistry p
 [0.4.0]: https://github.com/newtontech/OpenQC-VSCode/releases/tag/v0.4.0
 [1.0.0]: https://github.com/newtontech/OpenQC-VSCode/releases/tag/v1.0.0
 
+## [2.2.0] - 2026-03-03 (Dynamic LSP Discovery - Issue #13)
+
+### Added
+
+#### Dynamic LSP Discovery (Issue #13 - Phase 2.5)
+- **LSPDiscovery Module** (`src/utils/LSPDiscovery.ts`)
+  - GitHub API integration for fetching LSP repositories from OpenQuantumChemistry org
+  - Automatic discovery of 7+ LSP servers: VASP, Gaussian, ORCA, CP2K, Quantum ESPRESSO, GAMESS, NWChem
+  - Smart caching with 1-hour TTL to avoid API rate limits
+  - Graceful error handling with hardcoded fallback definitions
+  - Cache persistence via VSCode global state
+
+- **LSPManager Integration**
+  - `discoverAvailableLSPs()` - async method to fetch available LSPs dynamically
+  - `refreshLSPList()` - force refresh LSP list from GitHub API
+  - Constructor now accepts optional VSCode ExtensionContext for cache storage
+
+- **Update Script** (`scripts/update-lsp-list.sh`)
+  - Manual refresh script for debugging and validation
+  - Supports JSON, raw, and pretty output formats
+
+- **Testing**
+  - Comprehensive Jest test suite (`tests/unit/utils/LSPDiscovery.test.ts`)
+  - 8 tests covering API failures, caching, and fallback behavior
+  - ~81% code coverage for LSPDiscovery module
+
+### Technical Details
+- GitHub API: `https://api.github.com/orgs/OpenQuantumChemistry/repos`
+- Cache TTL: 60 minutes
+- Fallback definitions for offline operation
+- Rate limit handling with informative error messages
+
+
 ## [2.1.0] - 2026-03-03 (ASE Integration Phase 1)
 
 ### Added
