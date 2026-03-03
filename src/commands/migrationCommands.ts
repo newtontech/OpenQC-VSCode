@@ -16,9 +16,7 @@ import { MDWorkflowConverter, quickMigrateMDWorkflow } from '../utils/migration/
 /**
  * Register migration commands
  */
-export function registerMigrationCommands(
-  context: vscode.ExtensionContext
-): void {
+export function registerMigrationCommands(context: vscode.ExtensionContext): void {
   // Structure migration command
   const migrateStructureCommand = vscode.commands.registerCommand(
     'OpenQC.migrateStructure',
@@ -86,9 +84,7 @@ export function registerMigrationCommands(
 /**
  * Migrate structure with advanced options
  */
-async function migrateStructureWithOptions(
-  context: vscode.ExtensionContext
-): Promise<void> {
+async function migrateStructureWithOptions(context: vscode.ExtensionContext): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showErrorMessage('No active editor');
@@ -171,9 +167,8 @@ async function migrateStructureWithOptions(
     const uri = await vscode.window.showSaveDialog({
       defaultUri: vscode.Uri.file(sourcePath),
       filters: {
-        [targetFormat.label]: targetFormat.value === 'vasp' 
-          ? ['POSCAR', 'CONTCAR'] 
-          : [`*${path.extname(sourcePath)}`],
+        [targetFormat.label]:
+          targetFormat.value === 'vasp' ? ['POSCAR', 'CONTCAR'] : [`*${path.extname(sourcePath)}`],
       },
     });
     if (uri) {
@@ -197,21 +192,23 @@ async function migrateStructureWithOptions(
       });
 
       if (result.success) {
-        vscode.window.showInformationMessage(
-          `Migration successful!\nOutput: ${result.targetPath}\nAtoms: ${result.metadata.natoms}${result.metadata.formula ? `\nFormula: ${result.metadata.formula}` : ''}`,
-          'Open File',
-          'Copy Path'
-        ).then(selection => {
-          if (selection === 'Open File' && result.targetPath) {
-            vscode.workspace.openTextDocument(result.targetPath);
-          } else if (selection === 'Copy Path' && result.targetPath) {
-            vscode.env.clipboard.writeText(result.targetPath);
-          }
-        });
+        vscode.window
+          .showInformationMessage(
+            `Migration successful!\nOutput: ${result.targetPath}\nAtoms: ${result.metadata.natoms}${
+              result.metadata.formula ? `\nFormula: ${result.metadata.formula}` : ''
+            }`,
+            'Open File',
+            'Copy Path'
+          )
+          .then(selection => {
+            if (selection === 'Open File' && result.targetPath) {
+              vscode.workspace.openTextDocument(result.targetPath);
+            } else if (selection === 'Copy Path' && result.targetPath) {
+              vscode.env.clipboard.writeText(result.targetPath);
+            }
+          });
       } else {
-        vscode.window.showErrorMessage(
-          `Migration failed:\n${result.errors.join('\n')}`
-        );
+        vscode.window.showErrorMessage(`Migration failed:\n${result.errors.join('\n')}`);
       }
     }
   );
@@ -249,9 +246,7 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
       const extraction = converter.extractParameters(sourcePath);
 
       if (!extraction.success || !extraction.data) {
-        vscode.window.showErrorMessage(
-          `Failed to extract parameters: ${extraction.error}`
-        );
+        vscode.window.showErrorMessage(`Failed to extract parameters: ${extraction.error}`);
         return;
       }
 
@@ -261,7 +256,9 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
         .join('\n');
 
       const action = await vscode.window.showInformationMessage(
-        `Extracted ${Object.keys(extraction.data.parameters).length} parameters from ${extraction.data.format.toUpperCase()} file`,
+        `Extracted ${
+          Object.keys(extraction.data.parameters).length
+        } parameters from ${extraction.data.format.toUpperCase()} file`,
         'Convert to Target Format',
         'View Parameters',
         'Copy to Clipboard'
@@ -284,15 +281,10 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
         }
 
         // Convert parameters
-        const conversion = await converter.convertFile(
-          sourcePath,
-          targetFormat.value
-        );
+        const conversion = await converter.convertFile(sourcePath, targetFormat.value);
 
         if (!conversion.success || !conversion.target) {
-          vscode.window.showErrorMessage(
-            `Conversion failed: ${conversion.error}`
-          );
+          vscode.window.showErrorMessage(`Conversion failed: ${conversion.error}`);
           return;
         }
 
@@ -302,7 +294,11 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
           .join('\n');
 
         const resultAction = await vscode.window.showInformationMessage(
-          `Converted to ${targetFormat.label}:\n${convertedList}${conversion.target.unmapped.length > 0 ? `\n\nUnmapped: ${conversion.target.unmapped.join(', ')}` : ''}`,
+          `Converted to ${targetFormat.label}:\n${convertedList}${
+            conversion.target.unmapped.length > 0
+              ? `\n\nUnmapped: ${conversion.target.unmapped.join(', ')}`
+              : ''
+          }`,
           'Copy Converted Parameters',
           'View Warnings'
         );
@@ -349,15 +345,24 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
   const extraction = converter.extractParameters(sourcePath);
 
   if (!extraction.success || !extraction.data) {
-    vscode.window.showErrorMessage(
-      `Failed to extract parameters: ${extraction.error}`
-    );
+    vscode.window.showErrorMessage(`Failed to extract parameters: ${extraction.error}`);
     return;
   }
 
   // Filter MD-related parameters
   const mdParams: Record<string, any> = {};
-  const mdKeywords = ['POTIM', 'TIMESTEP', 'DT', 'TEBEG', 'TEMP', 'T', 'PSTRESS', 'PRESS', 'NSW', 'MD'];
+  const mdKeywords = [
+    'POTIM',
+    'TIMESTEP',
+    'DT',
+    'TEBEG',
+    'TEMP',
+    'T',
+    'PSTRESS',
+    'PRESS',
+    'NSW',
+    'MD',
+  ];
 
   Object.entries(extraction.data.parameters).forEach(([key, value]) => {
     if (mdKeywords.some(kw => key.toUpperCase().includes(kw))) {
@@ -366,9 +371,7 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
   });
 
   if (Object.keys(mdParams).length === 0) {
-    vscode.window.showInformationMessage(
-      'No MD parameters found in this file'
-    );
+    vscode.window.showInformationMessage('No MD parameters found in this file');
     return;
   }
 
@@ -387,11 +390,11 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
     // Suggest using the comprehensive MD workflow migration
     vscode.window.showInformationMessage(
       'MD Workflow Migration provides:\n' +
-      '- Ensemble type detection (NVE/NVT/NPT/NPH)\n' +
-      '- Thermostat and barostat conversion\n' +
-      '- Optimization algorithm mapping\n' +
-      '- Comprehensive parameter generation\n\n' +
-      'Use: OpenQC: Migrate MD Workflow command'
+        '- Ensemble type detection (NVE/NVT/NPT/NPH)\n' +
+        '- Thermostat and barostat conversion\n' +
+        '- Optimization algorithm mapping\n' +
+        '- Comprehensive parameter generation\n\n' +
+        'Use: OpenQC: Migrate MD Workflow command'
     );
   } else if (action === 'Convert to Target Format') {
     // Select target format
@@ -410,15 +413,10 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
     }
 
     // Convert parameters
-    const conversion = await converter.convertFile(
-      sourcePath,
-      targetFormat.value
-    );
+    const conversion = await converter.convertFile(sourcePath, targetFormat.value);
 
     if (!conversion.success || !conversion.target) {
-      vscode.window.showErrorMessage(
-        `Conversion failed: ${conversion.error}`
-      );
+      vscode.window.showErrorMessage(`Conversion failed: ${conversion.error}`);
       return;
     }
 
@@ -446,21 +444,19 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
 /**
  * Show migration validation report
  */
-async function showMigrationValidation(
-  context: vscode.ExtensionContext
-): Promise<void> {
+async function showMigrationValidation(context: vscode.ExtensionContext): Promise<void> {
   vscode.window.showInformationMessage(
     'Migration Validation\n\n' +
-    'Validation checks include:\n' +
-    '- Atom count consistency\n' +
-    '- Element composition\n' +
-    '- Cell vector preservation\n' +
-    '- Position accuracy\n\n' +
-    'To validate a migration, run the migration with validation enabled.\n\n' +
-    'For MD/Opt workflows:\n' +
-    '- Ensemble type correctness\n' +
-    '- Thermostat/barostat parameter mapping\n' +
-    '- Convergence criteria units',
+      'Validation checks include:\n' +
+      '- Atom count consistency\n' +
+      '- Element composition\n' +
+      '- Cell vector preservation\n' +
+      '- Position accuracy\n\n' +
+      'To validate a migration, run the migration with validation enabled.\n\n' +
+      'For MD/Opt workflows:\n' +
+      '- Ensemble type correctness\n' +
+      '- Thermostat/barostat parameter mapping\n' +
+      '- Convergence criteria units',
     'OK'
   );
 }

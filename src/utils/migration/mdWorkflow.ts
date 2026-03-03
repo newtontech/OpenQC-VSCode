@@ -20,7 +20,12 @@ export type EnsembleType = 'NVE' | 'NVT' | 'NPT' | 'NPH';
 /**
  * Thermostat types
  */
-export type ThermostatType = 'NOSE_HOOVER' | 'BERENDSEN' | 'LANGEVIN' | 'VELOCITY_SCALING' | 'ANDERSEN';
+export type ThermostatType =
+  | 'NOSE_HOOVER'
+  | 'BERENDSEN'
+  | 'LANGEVIN'
+  | 'VELOCITY_SCALING'
+  | 'ANDERSEN';
 
 /**
  * Barostat types
@@ -30,7 +35,14 @@ export type BarostatType = 'NOSE_HOOVER' | 'BERENDSEN' | 'PARRINELLO_RAHMAN' | '
 /**
  * Optimization algorithm types
  */
-export type OptimizationAlgorithm = 'CG' | 'BFGS' | 'LBFGS' | 'FIRE' | 'MD' | 'RMMDIIS' | 'DAMPED_MD';
+export type OptimizationAlgorithm =
+  | 'CG'
+  | 'BFGS'
+  | 'LBFGS'
+  | 'FIRE'
+  | 'MD'
+  | 'RMMDIIS'
+  | 'DAMPED_MD';
 
 /**
  * MD Parameters for a specific code
@@ -188,8 +200,8 @@ export class MDWorkflowConverter {
       metadata: {
         filepath,
         warnings,
-        unsupported
-      }
+        unsupported,
+      },
     };
 
     if (isMD) {
@@ -224,7 +236,7 @@ export class MDWorkflowConverter {
     if (params.TEEND) md.temperatureEnd = params.TEEND;
 
     // Pressure
-    if (params.PSTRESS) md.pressure = params.PSTRESS;
+    if (params.PSTRESS !== undefined) md.pressure = params.PSTRESS;
 
     // Thermostat
     if (params.SMASS !== undefined) {
@@ -313,15 +325,16 @@ export class MDWorkflowConverter {
 
     // Detect workflow type
     const ionDynamics = params['IONS.ion_dynamics'] || '';
-    const isMD = ionDynamics.toLowerCase().includes('verlet') ||
-                 ionDynamics.toLowerCase().includes('langevin');
-    const isOptimization = ionDynamics.toLowerCase().includes('bfgs') ||
-                          ionDynamics.toLowerCase().includes('cg');
+    const isMD =
+      ionDynamics.toLowerCase().includes('verlet') ||
+      ionDynamics.toLowerCase().includes('langevin');
+    const isOptimization =
+      ionDynamics.toLowerCase().includes('bfgs') || ionDynamics.toLowerCase().includes('cg');
 
     const workflow: MDWorkflow = {
       type: isMD ? 'md' : 'optimization',
       sourceFormat: 'qe',
-      metadata: { filepath, warnings, unsupported }
+      metadata: { filepath, warnings, unsupported },
     };
 
     if (isMD) {
@@ -346,7 +359,9 @@ export class MDWorkflowConverter {
     // Ensemble
     if (params['IONS.ion_dynamics']) {
       const dyn = params['IONS.ion_dynamics'].toLowerCase();
-      if (dyn === 'verlet') md.ensemble = 'NVE';
+      const ionTemp = params['IONS.ion_temperature']?.toLowerCase() || '';
+      const hasThermostat = ionTemp && ionTemp !== 'not_controlled';
+      if (dyn === 'verlet' && !hasThermostat) md.ensemble = 'NVE';
       else if (dyn === 'langevin') md.ensemble = 'NVT';
       else md.ensemble = 'NVT';
     }
@@ -443,9 +458,9 @@ export class MDWorkflowConverter {
     const hasOpt = params['MOTION.GEO_OPT.OPTIMIZER'] || params['MOTION.GEO_OPT.MAX_ITER'];
 
     const workflow: MDWorkflow = {
-      type: hasMD ? 'md' : (hasOpt ? 'optimization' : 'md'),
+      type: hasMD ? 'md' : hasOpt ? 'optimization' : 'md',
       sourceFormat: 'cp2k',
-      metadata: { filepath, warnings, unsupported }
+      metadata: { filepath, warnings, unsupported },
     };
 
     if (hasMD || !hasOpt) {
@@ -572,8 +587,8 @@ export class MDWorkflowConverter {
           metadata: {
             filepath,
             warnings: [],
-            unsupported: [`Unsupported format: ${format}`]
-          }
+            unsupported: [`Unsupported format: ${format}`],
+          },
         };
     }
   }
@@ -645,13 +660,13 @@ export class MDWorkflowConverter {
     // Algorithm mapping
     if (opt.algorithm) {
       const algoMap: Record<OptimizationAlgorithm, OptimizationAlgorithm> = {
-        'CG': 'CG',
-        'BFGS': 'BFGS',
-        'LBFGS': 'LBFGS',
-        'FIRE': 'BFGS',
-        'MD': 'MD',
-        'RMMDIIS': 'BFGS',
-        'DAMPED_MD': 'DAMPED_MD'
+        CG: 'CG',
+        BFGS: 'BFGS',
+        LBFGS: 'LBFGS',
+        FIRE: 'BFGS',
+        MD: 'MD',
+        RMMDIIS: 'BFGS',
+        DAMPED_MD: 'DAMPED_MD',
       };
       target.algorithm = algoMap[opt.algorithm] || 'BFGS';
     }
@@ -674,13 +689,13 @@ export class MDWorkflowConverter {
 
     if (opt.algorithm) {
       const algoMap: Record<OptimizationAlgorithm, OptimizationAlgorithm> = {
-        'CG': 'CG',
-        'BFGS': 'BFGS',
-        'LBFGS': 'LBFGS',
-        'FIRE': 'BFGS',
-        'MD': 'CG',
-        'RMMDIIS': 'BFGS',
-        'DAMPED_MD': 'CG'
+        CG: 'CG',
+        BFGS: 'BFGS',
+        LBFGS: 'LBFGS',
+        FIRE: 'BFGS',
+        MD: 'CG',
+        RMMDIIS: 'BFGS',
+        DAMPED_MD: 'CG',
       };
       target.algorithm = algoMap[opt.algorithm] || 'BFGS';
     }
@@ -705,13 +720,13 @@ export class MDWorkflowConverter {
 
     if (opt.algorithm) {
       const algoMap: Record<OptimizationAlgorithm, OptimizationAlgorithm> = {
-        'CG': 'CG',
-        'BFGS': 'BFGS',
-        'LBFGS': 'BFGS',
-        'FIRE': 'CG',
-        'MD': 'MD',
-        'RMMDIIS': 'RMMDIIS',
-        'DAMPED_MD': 'DAMPED_MD'
+        CG: 'CG',
+        BFGS: 'BFGS',
+        LBFGS: 'BFGS',
+        FIRE: 'CG',
+        MD: 'MD',
+        RMMDIIS: 'RMMDIIS',
+        DAMPED_MD: 'DAMPED_MD',
       };
       target.algorithm = algoMap[opt.algorithm] || 'CG';
     }
@@ -729,14 +744,11 @@ export class MDWorkflowConverter {
   /**
    * Convert workflow from source to target format
    */
-  public convertWorkflow(
-    source: MDWorkflow,
-    targetFormat: string
-  ): MDWorkflowConversionResult {
+  public convertWorkflow(source: MDWorkflow, targetFormat: string): MDWorkflowConversionResult {
     const result: MDWorkflowConversionResult = {
       success: false,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     result.source = source;
@@ -748,8 +760,8 @@ export class MDWorkflowConverter {
       metadata: {
         filepath: '',
         warnings: [],
-        unsupported: []
-      }
+        unsupported: [],
+      },
     };
 
     // Convert based on type
@@ -769,7 +781,9 @@ export class MDWorkflowConverter {
           if (target.md.pressure) target.md.pressure = target.md.pressure / 1000;
           break;
         default:
-          result.warnings.push(`Direct conversion ${source.sourceFormat}->${targetFormat} not fully supported, using generic mapping`);
+          result.warnings.push(
+            `Direct conversion ${source.sourceFormat}->${targetFormat} not fully supported, using generic mapping`
+          );
           target.md = { ...source.md };
       }
     } else if (source.type === 'optimization' && source.optimization) {
@@ -784,7 +798,9 @@ export class MDWorkflowConverter {
           target.optimization = this.convertQEtoVASPOpt(source.optimization);
           break;
         default:
-          result.warnings.push(`Direct conversion ${source.sourceFormat}->${targetFormat} not fully supported, using generic mapping`);
+          result.warnings.push(
+            `Direct conversion ${source.sourceFormat}->${targetFormat} not fully supported, using generic mapping`
+          );
           target.optimization = { ...source.optimization };
       }
     }
@@ -805,7 +821,7 @@ export class MDWorkflowConverter {
     if (md.timeStep) lines.push(`POTIM = ${md.timeStep.toFixed(1)}`);
     if (md.nSteps) lines.push(`NSW = ${md.nSteps}`);
 
-    lines.push('IBRION = 0');  // MD
+    lines.push('IBRION = 0'); // MD
 
     // ISIF for ensemble
     if (md.ensemble === 'NVT') {
@@ -842,17 +858,17 @@ export class MDWorkflowConverter {
     const lines: string[] = [];
 
     lines.push('&CONTROL');
-    if (md.timeStep) lines.push(`  dt = ${md.timeStep}`);
+    if (md.timeStep) lines.push(`  dt = ${md.timeStep.toFixed(1)}`);
     if (md.nSteps) lines.push(`  nstep = ${md.nSteps}`);
     lines.push('/');
 
     lines.push('&IONS');
     if (md.ensemble === 'NVE') {
-      lines.push('  ion_dynamics = \'verlet\'');
+      lines.push("  ion_dynamics = 'verlet'");
     } else if (md.thermostat === 'LANGEVIN') {
-      lines.push('  ion_dynamics = \'langevin\'');
+      lines.push("  ion_dynamics = 'langevin'");
     } else {
-      lines.push('  ion_dynamics = \'verlet\'');
+      lines.push("  ion_dynamics = 'verlet'");
     }
 
     if (md.temperature) lines.push(`  tempw = ${md.temperature}`);
@@ -861,13 +877,13 @@ export class MDWorkflowConverter {
     if (md.thermostat && md.ensemble !== 'NVE') {
       switch (md.thermostat) {
         case 'NOSE_HOOVER':
-          lines.push('  ion_temperature = \'nose\'');
+          lines.push("  ion_temperature = 'nose'");
           break;
         case 'BERENDSEN':
-          lines.push('  ion_temperature = \'berendsen\'');
+          lines.push("  ion_temperature = 'berendsen'");
           break;
         case 'LANGEVIN':
-          lines.push('  ion_temperature = \'langevin\'');
+          lines.push("  ion_temperature = 'langevin'");
           break;
       }
     }
@@ -875,8 +891,8 @@ export class MDWorkflowConverter {
 
     if (md.ensemble === 'NPT' && md.pressure) {
       lines.push('&CELL');
-      lines.push(`  press = ${md.pressure}`);
-      lines.push('  cell_dynamics = \'pr\'');
+      lines.push(`  press = ${md.pressure.toFixed(1)}`);
+      lines.push("  cell_dynamics = 'pr'");
       lines.push('/');
     }
 
@@ -893,7 +909,7 @@ export class MDWorkflowConverter {
     lines.push('  &MD');
 
     if (md.ensemble) lines.push(`    ENSEMBLE ${md.ensemble}`);
-    if (md.timeStep) lines.push(`    TIMESTEP ${md.timeStep}`);
+    if (md.timeStep) lines.push(`    TIMESTEP ${md.timeStep.toFixed(1)}`);
     if (md.nSteps) lines.push(`    STEPS ${md.nSteps}`);
     if (md.temperature) lines.push(`    TEMPERATURE ${md.temperature}`);
 
@@ -916,7 +932,7 @@ export class MDWorkflowConverter {
     if (md.ensemble === 'NPT') {
       lines.push('    &BAROSTAT');
       lines.push('      TYPE NOSE');
-      if (md.pressure) lines.push(`      PRESSURE ${md.pressure}`);
+      if (md.pressure) lines.push(`      PRESSURE ${md.pressure.toFixed(1)}`);
       lines.push('    &END BAROSTAT');
     }
 
@@ -936,24 +952,25 @@ export class MDWorkflowConverter {
 
     if (opt.algorithm) {
       const algoMap: Record<OptimizationAlgorithm, number> = {
-        'CG': 2,
-        'BFGS': 5,
-        'LBFGS': 5,
-        'FIRE': 2,
-        'MD': 7,
-        'RMMDIIS': 1,
-        'DAMPED_MD': 3
+        CG: 2,
+        BFGS: 5,
+        LBFGS: 5,
+        FIRE: 2,
+        MD: 7,
+        RMMDIIS: 1,
+        DAMPED_MD: 3,
       };
       lines.push(`IBRION = ${algoMap[opt.algorithm] || 2}`);
     }
 
     if (opt.maxSteps) lines.push(`NSW = ${opt.maxSteps}`);
-    if (opt.energyConv) lines.push(`EDIFF = ${opt.energyConv.toExponential(1)}`);
+    if (opt.energyConv)
+      lines.push(`EDIFF = ${opt.energyConv.toExponential(0).replace('e-', 'e-0')}`);
     if (opt.forceConv) lines.push(`EDIFFG = -${opt.forceConv.toFixed(2)}`);
 
     if (opt.optimizeCell) {
       lines.push('ISIF = 3');
-      if (opt.cellPressure) lines.push(`PSTRESS = ${opt.cellPressure}`);
+      if (opt.cellPressure) lines.push(`PSTRESS = ${opt.cellPressure.toFixed(1)}`);
     } else {
       lines.push('ISIF = 2');
     }
@@ -970,13 +987,13 @@ export class MDWorkflowConverter {
     lines.push('&IONS');
     if (opt.algorithm) {
       const algoMap: Record<OptimizationAlgorithm, string> = {
-        'CG': 'cg',
-        'BFGS': 'bfgs',
-        'LBFGS': 'lbfgs',
-        'FIRE': 'fire',
-        'MD': 'verlet',
-        'RMMDIIS': 'bfgs',
-        'DAMPED_MD': 'damp'
+        CG: 'cg',
+        BFGS: 'bfgs',
+        LBFGS: 'lbfgs',
+        FIRE: 'fire',
+        MD: 'verlet',
+        RMMDIIS: 'bfgs',
+        DAMPED_MD: 'damp',
       };
       lines.push(`  ion_dynamics = '${algoMap[opt.algorithm] || 'bfgs'}'`);
     }
@@ -985,8 +1002,8 @@ export class MDWorkflowConverter {
 
     if (opt.optimizeCell) {
       lines.push('&CELL');
-      lines.push('  cell_dynamics = \'bfgs\'');
-      if (opt.cellPressure) lines.push(`  press = ${opt.cellPressure}`);
+      lines.push("  cell_dynamics = 'bfgs'");
+      if (opt.cellPressure) lines.push(`  press = ${opt.cellPressure.toFixed(1)}`);
       lines.push('/');
     }
 
@@ -1004,7 +1021,7 @@ export class MDWorkflowConverter {
       lines.push('  &CELL_OPT');
       if (opt.algorithm) lines.push(`    OPTIMIZER ${opt.algorithm}`);
       if (opt.maxSteps) lines.push(`    MAX_ITER ${opt.maxSteps}`);
-      if (opt.cellPressure) lines.push(`    PRESSURE ${opt.cellPressure}`);
+      if (opt.cellPressure) lines.push(`    PRESSURE ${opt.cellPressure.toFixed(1)}`);
       lines.push('  &END CELL_OPT');
       lines.push('&END MOTION');
     } else {
@@ -1013,8 +1030,10 @@ export class MDWorkflowConverter {
       if (opt.algorithm) lines.push(`    OPTIMIZER ${opt.algorithm}`);
       if (opt.maxSteps) lines.push(`    MAX_ITER ${opt.maxSteps}`);
       lines.push('    &CONVERGENCE');
-      if (opt.energyConv) lines.push(`      EPS_ENERGY ${opt.energyConv}`);
-      if (opt.forceConv) lines.push(`      EPS_FORCE ${opt.forceConv}`);
+      if (opt.energyConv)
+        lines.push(`      EPS_ENERGY ${opt.energyConv.toExponential(0).replace('e-', 'e-0')}`);
+      if (opt.forceConv)
+        lines.push(`      EPS_FORCE ${opt.forceConv.toExponential(0).replace('e-', 'e-0')}`);
       lines.push('    &END CONVERGENCE');
       lines.push('  &END GEO_OPT');
       lines.push('&END MOTION');
@@ -1061,9 +1080,7 @@ export class MDWorkflowConverter {
 /**
  * Quick MD workflow migration command handler
  */
-export async function quickMigrateMDWorkflow(
-  context: vscode.ExtensionContext
-): Promise<void> {
+export async function quickMigrateMDWorkflow(context: vscode.ExtensionContext): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showErrorMessage('No active editor');
@@ -1147,7 +1164,7 @@ export async function quickMigrateMDWorkflow(
   } else if (action === 'View Output' || action === 'Open Preview') {
     const doc = await vscode.workspace.openTextDocument({
       content: output,
-      language: targetFormat.value === 'vasp' ? 'vasp' : 'plaintext'
+      language: targetFormat.value === 'vasp' ? 'vasp' : 'plaintext',
     });
     await vscode.window.showTextDocument(doc);
   }
