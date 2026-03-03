@@ -19,12 +19,11 @@ export {
 export { registerCalculatorCommands } from './calculatorCommands';
 export {
   ComplexPropertyMapper,
-  PropertyMapperFactory,
-  HubbardUParams,
-  AtomConstraint,
-  ExcitedStateConfig,
-  PseudopotentialStrategy,
-  BasisSetStrategy,
-  PropertyMappingResult,
-  getSupportedComplexProperties,
+  HubbardParameters,
+  ConstraintInfo,
+  ExcitedStateInfo,
+  PseudopotentialInfo,
+  QuantumCode,
+  initializeComplexPropertyMapper,
+  complexPropertyMapper,
 } from './ComplexPropertyMapper';
