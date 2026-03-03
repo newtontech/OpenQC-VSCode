@@ -1,6 +1,6 @@
 /**
  * ASE Integration Module
- * 
+ *
  * Exports for ASE (Atomic Simulation Environment) integration
  * providing cross-code workflow migration and structure conversion.
  */

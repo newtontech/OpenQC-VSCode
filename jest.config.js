@@ -28,6 +28,7 @@ module.exports = {
     '!src/visualizers/ThreeJsWebview.ts',
     '!src/commands/**',
     '!src/visualizers/types.ts',
+    '!src/ase/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
