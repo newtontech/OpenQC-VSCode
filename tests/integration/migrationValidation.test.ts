@@ -10,34 +10,61 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { ASEConverter, ASEFormat } from '../../src/ase/ASEConverter';
 
-// Simple mock for vscode.ExtensionContext that only includes what ASEConverter needs
-class MockExtensionContext implements vscode.ExtensionContext {
+// Minimal mock for vscode.ExtensionContext with only required properties
+class MockExtensionContext {
   subscriptions: vscode.Disposable[] = [];
   extensionPath: string;
   storageUri: vscode.Uri;
   globalStorageUri: vscode.Uri;
   logPath: string;
+  secrets: any;
+  environmentVariableCollection: any;
+  storagePath: string | undefined;
+  globalStoragePath: string;
+  extensionMode: any;
+  extension: any;
+  workspaceState: any;
+  globalState: any;
+  extensionUri: vscode.Uri;
+  logUri: vscode.Uri;
+  languageModelAccessInformation: any;
 
   constructor(extensionPath: string) {
     this.extensionPath = extensionPath;
+    this.extensionUri = vscode.Uri.file(extensionPath);
+    this.logUri = vscode.Uri.file(path.join(extensionPath, 'logs'));
     this.storageUri = vscode.Uri.file(extensionPath);
     this.globalStorageUri = vscode.Uri.file(extensionPath);
     this.logPath = extensionPath;
+    this.storagePath = extensionPath;
+    this.globalStoragePath = extensionPath;
+    this.extensionMode = 2; // Test mode
+    this.extension = {};
+    this.secrets = {};
+    this.languageModelAccessInformation = {};
+    
+    const mementoGet = (key: string, defaultValue?: any) => defaultValue;
+    const mementoUpdate = (key: string, value: any) => Promise.resolve();
+    const mementoKeys = () => [];
+    const setKeysForSync = (keys: readonly string[]) => {};
+
+    this.globalState = {
+      get: mementoGet,
+      update: mementoUpdate,
+      keys: mementoKeys,
+      setKeysForSync: setKeysForSync,
+    };
+
+    this.workspaceState = {
+      get: mementoGet,
+      update: mementoUpdate,
+      keys: mementoKeys,
+    };
+    
+    this.environmentVariableCollection = {
+      getScoped: () => ({}),
+    };
   }
-
-  globalState: vscode.Memento = {
-    get: (key) => Promise.resolve(undefined),
-    update: (key, value) => Promise.resolve(undefined),
-    keys: () => Promise.resolve([]),
-    setKeysForSync: (keys) => Promise.resolve(undefined),
-  };
-
-  workspaceState: vscode.Memento = {
-    get: (key) => Promise.resolve(undefined),
-    update: (key, value) => Promise.resolve(undefined),
-    keys: () => Promise.resolve([]),
-    setKeysForSync: (keys) => Promise.resolve(undefined),
-  };
 
   asAbsolutePathUri(relativePath: string): vscode.Uri {
     return vscode.Uri.file(path.join(this.extensionPath, relativePath));
@@ -46,8 +73,6 @@ class MockExtensionContext implements vscode.ExtensionContext {
   asAbsolutePath(relativePath: string): string {
     return path.join(this.extensionPath, relativePath);
   }
-
-  extensionUri: vscode.Uri = vscode.Uri.file(this.extensionPath);
 }
 
 describe('Migration Validation Integration Tests', () => {
@@ -56,22 +81,19 @@ describe('Migration Validation Integration Tests', () => {
   const outputDir = path.join(__dirname, '../temp/migration');
 
   beforeAll(async () => {
-    const mockContext = new MockExtensionContext(__dirname);
+    const mockContext = new MockExtensionContext(__dirname) as any;
     converter = new ASEConverter(mockContext);
 
-    // Check if backend is available
     const backendAvailable = await converter.isAvailable();
     if (!backendAvailable) {
       console.warn('Python backend not available. Skipping integration tests.');
       return;
     }
 
-    // Create output directory
     fs.mkdirSync(outputDir, { recursive: true });
   });
 
   afterAll(() => {
-    // Clean up output directory
     if (fs.existsSync(outputDir)) {
       fs.rmSync(outputDir, { recursive: true, force: true });
     }
@@ -89,7 +111,6 @@ describe('Migration Validation Integration Tests', () => {
       const intermediateFile = path.join(outputDir, 'roundtrip.xyz');
       const finalFile = path.join(outputDir, 'roundtrip.POSCAR');
 
-      // VASP → XYZ
       const result1 = await converter.convertFormat(
         inputFile,
         intermediateFile,
@@ -98,7 +119,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result1.success).toBe(true);
 
-      // XYZ → VASP
       const result2 = await converter.convertFormat(
         intermediateFile,
         finalFile,
@@ -107,7 +127,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result2.success).toBe(true);
 
-      // Validate structure preservation
       const readOriginal = await converter.readToAtoms(inputFile, ASEFormat.VASP);
       const readFinal = await converter.readToAtoms(finalFile, ASEFormat.VASP);
 
@@ -125,7 +144,6 @@ describe('Migration Validation Integration Tests', () => {
       const intermediateFile = path.join(outputDir, 'roundtrip_cp2k.inp');
       const finalFile = path.join(outputDir, 'roundtrip_cp2k.POSCAR');
 
-      // VASP → CP2K
       const result1 = await converter.convertFormat(
         inputFile,
         intermediateFile,
@@ -134,7 +152,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result1.success).toBe(true);
 
-      // CP2K → VASP
       const result2 = await converter.convertFormat(
         intermediateFile,
         finalFile,
@@ -143,7 +160,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result2.success).toBe(true);
 
-      // Validate structure preservation
       const readOriginal = await converter.readToAtoms(inputFile, ASEFormat.VASP);
       const readFinal = await converter.readToAtoms(finalFile, ASEFormat.VASP);
 
@@ -161,7 +177,6 @@ describe('Migration Validation Integration Tests', () => {
       const intermediateFile = path.join(outputDir, 'roundtrip_qe.in');
       const finalFile = path.join(outputDir, 'roundtrip_qe.POSCAR');
 
-      // VASP → QE
       const result1 = await converter.convertFormat(
         inputFile,
         intermediateFile,
@@ -170,7 +185,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result1.success).toBe(true);
 
-      // QE → VASP
       const result2 = await converter.convertFormat(
         intermediateFile,
         finalFile,
@@ -179,7 +193,6 @@ describe('Migration Validation Integration Tests', () => {
       );
       expect(result2.success).toBe(true);
 
-      // Validate structure preservation
       const readOriginal = await converter.readToAtoms(inputFile, ASEFormat.VASP);
       const readFinal = await converter.readToAtoms(finalFile, ASEFormat.VASP);
 
@@ -213,7 +226,6 @@ describe('Migration Validation Integration Tests', () => {
       expect(original.success).toBe(true);
       expect(converted.success).toBe(true);
 
-      // Check positions
       const originalPos = original.atoms?.positions || [];
       const convertedPos = converted.atoms?.positions || [];
 
@@ -247,7 +259,6 @@ describe('Migration Validation Integration Tests', () => {
       expect(original.success).toBe(true);
       expect(converted.success).toBe(true);
 
-      // Check cell
       const originalCell = original.atoms?.cell;
       const convertedCell = converted.atoms?.cell;
 
@@ -281,8 +292,6 @@ describe('Migration Validation Integration Tests', () => {
       expect(original.success).toBe(true);
       expect(converted.success).toBe(true);
 
-      // PBC should be preserved (XYZ is non-periodic, so PBC may be lost)
-      // This test documents the behavior
       expect(original.atoms?.pbc).toBeDefined();
       expect(converted.atoms?.pbc).toBeDefined();
     });
@@ -290,7 +299,6 @@ describe('Migration Validation Integration Tests', () => {
 
   describe('Parameter Consistency Checks', () => {
     it('should validate parameter mapping consistency', async () => {
-      // Test parameter mapping for VASP → QE
       const vaspParams = {
         encut: 520,
         kpts: [4, 4, 4],
@@ -298,16 +306,14 @@ describe('Migration Validation Integration Tests', () => {
         sigma: 0.2,
       };
 
-      // Expected QE equivalents
       const expectedQEParams = {
-        ecutwfc: 520 / 2, // Rough conversion
-        ecutrho: 520 * 4, // 4x ecutwfc
+        ecutwfc: 520 / 2,
+        ecutrho: 520 * 4,
         kpts: [4, 4, 4],
         occupations: 'smearing',
         degauss: 0.02,
       };
 
-      // This test validates: parameter mapping logic
       expect(vaspParams.encut).toBeGreaterThan(0);
       expect(expectedQEParams.ecutwfc).toBe(vaspParams.encut / 2);
     });
@@ -315,13 +321,8 @@ describe('Migration Validation Integration Tests', () => {
     it('should handle missing parameters gracefully', async () => {
       if (!(await getBackendAvailable())) return;
 
-      // Create a minimal input file
       const minimalInput = path.join(outputDir, 'minimal.xyz');
-      const content = `2
-Minimal molecule
-C 0 0 0
-H 1 0 0
-`;
+      const content = '2\nMinimal molecule\nC 0 0 0\nH 1 0 0\n';
       fs.writeFileSync(minimalInput, content);
 
       const result = await converter.readToAtoms(minimalInput, ASEFormat.XYZ);
@@ -347,7 +348,6 @@ H 1 0 0
 
       expect(result.success).toBe(true);
 
-      // Generate validation report
       const report = {
         sourceFile: inputFile,
         targetFile: outputFile,
@@ -398,7 +398,6 @@ H 1 0 0
       const inputFile = path.join(fixturesDir, 'POSCAR');
       const outputFile = path.join(outputDir, 'unsupported.xyz');
 
-      // This should still work, but may produce warnings
       const result = await converter.convertFormat(
         inputFile,
         outputFile,
