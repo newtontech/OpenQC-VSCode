@@ -316,6 +316,12 @@
         "category": "Migration"
       },
       {
+        "command": "openqc.migrateMDWorkflow",
+        "title": "OpenQC: Migrate MD/Optimization Workflow",
+        "category": "Migration",
+        "description": "Comprehensive MD and optimization workflow migration (ensembles, thermostats, algorithms)"
+      },
+      {
         "command": "openqc.showMigrationValidation",
         "title": "OpenQC: Show Migration Validation",
         "category": "Migration"

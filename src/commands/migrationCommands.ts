@@ -11,6 +11,7 @@ import { StructureMigration, quickMigrateStructure } from '../utils/migration/st
 import { KpointMigration, quickMigrateKpoints } from '../utils/migration/kpoints';
 import { ASEFormat } from '../ase/ASEConverter';
 import { ParameterConverter } from '../utils/migration/parameterConverter';
+import { MDWorkflowConverter, quickMigrateMDWorkflow } from '../utils/migration/mdWorkflow';
 
 /**
  * Register migration commands
@@ -54,7 +55,16 @@ export function registerMigrationCommands(
   );
   context.subscriptions.push(migrateParametersCommand);
 
-  // MD parameters migration
+  // MD/Optimization workflow migration (Phase 3.4)
+  const migrateMDWorkflowCommand = vscode.commands.registerCommand(
+    'OpenQC.migrateMDWorkflow',
+    async () => {
+      await quickMigrateMDWorkflow(context);
+    }
+  );
+  context.subscriptions.push(migrateMDWorkflowCommand);
+
+  // Legacy MD parameters migration (for backward compatibility)
   const migrateMDParametersCommand = vscode.commands.registerCommand(
     'OpenQC.migrateMDParameters',
     async () => {
@@ -322,7 +332,8 @@ async function migrateParameters(context: vscode.ExtensionContext): Promise<void
 }
 
 /**
- * Migrate MD parameters
+ * Legacy MD parameters migration (for backward compatibility)
+ * Use OpenQC.migrateMDWorkflow for comprehensive MD/Opt workflow migration
  */
 async function migrateMDParameters(context: vscode.ExtensionContext): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -368,10 +379,21 @@ async function migrateMDParameters(context: vscode.ExtensionContext): Promise<vo
   const action = await vscode.window.showInformationMessage(
     `Found ${Object.keys(mdParams).length} MD parameters:\n${mdList}`,
     'Convert to Target Format',
-    'Copy to Clipboard'
+    'Copy to Clipboard',
+    'Use MD Workflow Migration'
   );
 
-  if (action === 'Convert to Target Format') {
+  if (action === 'Use MD Workflow Migration') {
+    // Suggest using the comprehensive MD workflow migration
+    vscode.window.showInformationMessage(
+      'MD Workflow Migration provides:\n' +
+      '- Ensemble type detection (NVE/NVT/NPT/NPH)\n' +
+      '- Thermostat and barostat conversion\n' +
+      '- Optimization algorithm mapping\n' +
+      '- Comprehensive parameter generation\n\n' +
+      'Use: OpenQC: Migrate MD Workflow command'
+    );
+  } else if (action === 'Convert to Target Format') {
     // Select target format
     const targetFormat = await vscode.window.showQuickPick(
       ['vasp', 'cp2k', 'qe'].map(code => ({
@@ -434,7 +456,11 @@ async function showMigrationValidation(
     '- Element composition\n' +
     '- Cell vector preservation\n' +
     '- Position accuracy\n\n' +
-    'To validate a migration, run the migration with validation enabled.',
+    'To validate a migration, run the migration with validation enabled.\n\n' +
+    'For MD/Opt workflows:\n' +
+    '- Ensemble type correctness\n' +
+    '- Thermostat/barostat parameter mapping\n' +
+    '- Convergence criteria units',
     'OK'
   );
 }
