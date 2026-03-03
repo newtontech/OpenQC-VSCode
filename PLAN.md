@@ -90,28 +90,65 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 
 ---
 
-## Phase 3: Conversion & Integration (Weeks 9-12)
+## Phase 3: ASE Integration & Cross-Code Migration (Weeks 9-14)
 
 ### Objectives
-- Seamless format conversion
-- Integration with external tools
-- Automated workflow support
+- **Primary**: Full ASE integration as the "universal intermediate layer"
+- Cross-code workflow migration (VASP ↔ CP2K ↔ QE ↔ Gaussian ↔ ORCA)
+- Seamless format conversion with ASE Atoms as the bridge
+- Integration with external tools and automated workflows
+
+### Why ASE?
+ASE (Atomic Simulation Environment) provides:
+- **Unified Atoms object**: Single representation for all chemical structures
+- **Calculator abstraction**: Code-agnostic interface to DFT/MD/force-field engines
+- **Multi-backend support**: VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS, LAMMPS, etc.
+- **Workflow capabilities**: Structure manipulation, running jobs, reading results
+
+### GitHub Issue
+**#12**: [feat(ase): Integrate ASE for cross-code workflow migration](https://github.com/newtontech/OpenQC-VSCode/issues/12)
 
 ### Deliverables
 
-#### Week 9-10: Format Conversion
-- [ ] Integrate dpdata for format conversions
-- [ ] Support conversion matrix:
-  - VASP ↔ Gaussian ↔ ORCA
-  - Export to XYZ, PDB, CIF
-- [ ] Preserve metadata and calculation parameters
-- [ ] Batch conversion for multiple files
+#### Week 9-10: ASE Core Integration
+- [ ] **ASE Atoms Converter Module** (Issue #12 - Phase 1)
+  - [ ] VASP POSCAR ↔ ASE Atoms
+  - [ ] CP2K input ↔ ASE Atoms
+  - [ ] QE input ↔ ASE Atoms
+  - [ ] Gaussian input ↔ ASE Atoms
+  - [ ] ORCA input ↔ ASE Atoms
+  - [ ] NWChem input ↔ ASE Atoms
+  - [ ] GAMESS input ↔ ASE Atoms
+  - [ ] LAMMPS data ↔ ASE Atoms
+- [ ] ASE Calculator interface wrapper
+- [ ] Unified structure validation via ASE
 
-#### Week 11-12: External Integrations
-- [ ] ASE (Atomic Simulation Environment) integration
-- [ ] PyMOL export for publication-quality images
-- [ ] Optional: CASTEP support via ASE
-- [ ] Optional: Quantum ESPRESSO support
+#### Week 11-12: Cross-Code Migration Tools
+- [ ] **Structure Migration Tool** (Issue #12 - Phase 2)
+  - VASP→CP2K, QE→Gaussian, etc.
+  - Preserve unit cells, atomic positions, constraints
+  - Handle periodic boundary conditions
+- [ ] **k-Point Grid Migration**
+  - Convert between Monkhorst-Pack and Gamma-centered
+  - Maintain density of k-points across codes
+- [ ] **Electronic Structure Parameter Migration**
+  - Map common parameters (ENCUT ↔ cutoff, etc.)
+- [ ] **MD/Optimization Workflow Migration**
+  - Convert MD parameters, optimization criteria
+
+#### Week 13-14: Advanced ASE Features
+- [ ] **ASE Calculator Integration** (Issue #12 - Phase 3)
+  - Direct job execution via ASE
+  - Generate inputs and run calculations
+  - Read results back into OpenQC-VSCode
+- [ ] **Complex Property Handling** (Issue #12 - Phase 4)
+  - Hubbard U parameters with per-code mapping
+  - Special constraints and frozen atoms
+  - Excited state methods
+  - Pseudopotential/basis set strategies
+- [ ] **Migration Validation Suite**
+  - Automated tests for round-trip conversions
+  - Energy/force consistency checks
 
 ### Technology Stack
 - **Conversion**: dpdata (Python backend)
