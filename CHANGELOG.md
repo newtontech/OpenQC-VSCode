@@ -5,6 +5,128 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-03-03
+
+### Added - MD/Optimization Workflow Migration (Issue #12 - Phase 3.4)
+
+#### MD/Optimization Workflow Migration Module
+- **Comprehensive MD Parameter Extraction** - Extract MD parameters from VASP, QE, and CP2K inputs
+  - Time step and number of steps
+  - Ensemble types: NVE, NVT, NPT, NPH
+  - Temperature and temperature ramping
+  - Pressure for NPT ensembles
+  - Thermostat types: Nose-Hoover, Berendsen, Langevin, Velocity Scaling, Andersen
+  - Barostat types: Nose-Hoover, Berendsen, Parrinello-Rahman, MTTK
+  - Damping times for thermostats/barostats
+  - Chain length for Nose-Hoover thermostats
+  - Print and trajectory frequencies
+
+#### Optimization Parameter Extraction
+- **Optimization Algorithm Detection** - Automatic detection of optimization algorithms
+  - VASP IBRION mapping (0=MD, 1=RMMDIIS, 2=CG, 3=DampedMD, 5=BFGS, 7=MD)
+  - QE ion_dynamics mapping (bfgs, cg, lbfgs, fire, verlet, damp)
+  - CP2K optimizer selection (BFGS, LBFGS, CG)
+
+- **Convergence Parameters** - Extract convergence criteria
+  - Energy convergence (eV, Ry, hartree)
+  - Force convergence (eV/Å, hartree/bohr)
+  - Stress convergence (kbar)
+
+- **Cell Optimization** - Detect and extract cell optimization parameters
+  - VASP ISIF configuration (2=ions only, 3=ions+cell, 7=cell+stress)
+  - QE CELL dynamics
+  - CP2K CELL_OPT and GEO_OPT sections
+  - Cell pressure for variable-cell optimization
+
+#### Workflow Conversion
+- **Cross-Code MD Parameter Conversion** - Convert MD parameters between codes
+  - VASP → QE: NVT/NPT, thermostats, pressures
+  - VASP → CP2K: Pressure unit conversion (kbar→bar)
+  - QE → VASP: Thermostat mapping (Langevin→Nose-Hoover fallback)
+  - QE → CP2K: Ensemble and thermostat conversion
+  - CP2K → VASP: Pressure unit conversion (bar→kbar)
+  - CP2K → QE: Ensemble and thermostat conversion
+
+- **Optimization Algorithm Mapping** - Map algorithms across codes
+  - VASP ↔ QE: CG↔cg, BFGS↔bfgs, LBFGS↔lbfgs
+  - VASP ↔ CP2K: Algorithm and convergence unit conversion
+  - QE ↔ VASP: Algorithm mapping and Ry→eV conversion
+
+- **Unit Conversions**
+  - Energy: eV ↔ Ry (1 eV = 0.0734986 Ry)
+  - Energy: eV ↔ hartree (1 eV = 0.0367493 hartree)
+  - Force: eV/Å ↔ hartree/bohr (1 eV/Å = 0.01943 hartree/bohr)
+  - Pressure: kbar ↔ bar (1 kbar = 1000 bar)
+
+#### Output Generation
+- **VASP Output Generation** - Generate VASP INCAR MD and optimization sections
+  - MD: POTIM, NSW, IBRION=0, ISIF, TEBEG, TEEND, PSTRESS, SMASS
+  - Optimization: IBRION, NSW, EDIFF, EDIFFG, ISIF, PSTRESS
+  - Number formatting: toFixed(1) for floats, toExponential(1) for EDIFF
+
+- **QE Output Generation** - Generate QE namelists for MD and optimization
+  - CONTROL section: dt, nstep
+  - IONS section: ion_dynamics, tempw, templ, ion_temperature
+  - CELL section: press, cell_dynamics
+  - Algorithm mapping: CG, BFGS, LBFGS → ion_dynamics
+
+- **CP2K Output Generation** - Generate CP2K input sections
+  - MOTION/MD section: ENSEMBLE, TIMESTEP, STEPS, TEMPERATURE
+  - MOTION/MD/THERMOSTAT section: TYPE, TIMECON, NOSE.LENGTH
+  - MOTION/MD/BAROSTAT section: TYPE, PRESSURE, TIMECON
+  - MOTION/GEO_OPT section: OPTIMIZER, MAX_ITER, CONVERGENCE
+  - MOTION/CELL_OPT section: OPTIMIZER, MAX_ITER, PRESSURE
+
+#### VSCode Integration
+- **New Command**: `OpenQC: Migrate MD/Optimization Workflow`
+  - Comprehensive MD and optimization workflow migration
+  - Auto-detect workflow type (MD vs optimization)
+  - Extract ensemble, thermostat, barostat, algorithm parameters
+  - Convert between VASP, QE, CP2K, LAMMPS
+  - Generate formatted output for target code
+  - Copy to clipboard or open preview
+
+- **Enhanced Legacy Command**: `OpenQC: Migrate MD Parameters`
+  - Improved with workflow migration suggestion
+  - Better user guidance for comprehensive migration
+
+#### Technical Details
+- Modular architecture with separate extractors for each code
+- Type-safe TypeScript interfaces for all parameters
+- Comprehensive error handling and validation
+- 71.96% code coverage for mdWorkflow.ts
+- 34 unit tests covering extraction, conversion, and generation
+
+### Phase 3 Progress Update
+- ✅ Week 12-13 Task 1: Structure Migration Tool - COMPLETE
+- ✅ Week 12-13 Task 2: k-Point Grid Migration - COMPLETE
+- ✅ Week 12-13 Task 3: Electronic Structure Parameter Migration - COMPLETE
+- ✅ Week 12-13 Task 4: MD/Optimization Workflow Migration - COMPLETE
+
+#### Next Steps (Phase 3.5)
+- Migration Validation Suite
+- Automated round-trip conversion tests
+- Energy/force consistency checks
+- Integration test with real research workflows
+
+### Changed
+- Extended migrationCommands.ts with MD workflow migration command
+- Improved legacy MD parameters migration with better user guidance
+- Enhanced parameter conversion with workflow-level context
+
+### Fixed
+- VASP IBRION workflow type detection (added IBRION=5,7 support)
+- CP2K parameter extraction (THERMOSTAT.TYPE, BAROSTAT.TYPE)
+- Number formatting in output generation
+- TypeScript compilation errors
+
+### Known Limitations
+- Some ensemble/thermostat combinations may not have direct equivalents
+- Complex parameter combinations may require manual review
+- Integration testing with real files recommended
+
+
+
 ## [2.0.0] - 2026-03-02
 
 ## [2.2.0] - 2026-03-03
