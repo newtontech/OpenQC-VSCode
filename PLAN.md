@@ -214,11 +214,11 @@ ASE (Atomic Simulation Environment) provides:
   - Convert MD parameters, optimization criteria
 
 #### Week 14-15: Advanced ASE Features
-- [ ] **ASE Calculator Integration** (Issue #12 - Phase 3)
+- [x] **ASE Calculator Integration** (Issue #12 - Phase 3)
   - Direct job execution via ASE
   - Generate inputs and run calculations
   - Read results back into OpenQC-VSCode
-- [ ] **Complex Property Handling** (Issue #12 - Phase 4)
+- [x] **Complex Property Handling** (Issue #12 - Phase 4)
   - Hubbard U parameters with per-code mapping
   - Special constraints and frozen atoms
   - Excited state methods
