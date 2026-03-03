@@ -240,3 +240,30 @@ H 1.48 0.0 0.0`;
     });
   });
 });
+
+/**
+ * Additional tests for 100% coverage
+ */
+
+describe('Error Handling Coverage', () => {
+  let converter: StructureConverter;
+
+  beforeEach(() => {
+    converter = new StructureConverter();
+  });
+  describe('fromPOSCAR error handling', () => {
+    it('should throw error on invalid POSCAR content', () => {
+      const invalidContent = 'not a valid POSCAR file at all';
+
+      expect(() => converter.fromPOSCAR(invalidContent)).toThrow();
+    });
+
+    it('should throw error on malformed POSCAR with missing lattice', () => {
+      const malformed = `Bad POSCAR
+1.0
+incomplete lattice data`;
+
+      expect(() => converter.fromPOSCAR(malformed)).toThrow();
+    });
+  });
+});

@@ -92,6 +92,18 @@ describe('FormatConverter', () => {
         expect(result.confidence).toBe(1.0);
       });
 
+      it('should detect VASP KPOINTS files by name', () => {
+        const result = FormatConverter.detectFormat('/path/to/KPOINTS');
+        expect(result.format).toBe(SupportedFormat.VASP);
+        expect(result.confidence).toBe(1.0);
+      });
+
+      it('should detect VASP POTCAR files by name', () => {
+        const result = FormatConverter.detectFormat('/path/to/POTCAR');
+        expect(result.format).toBe(SupportedFormat.VASP);
+        expect(result.confidence).toBe(1.0);
+      });
+
       it('should detect XYZ files by extension', () => {
         const result = FormatConverter.detectFormat('/path/to/molecule.xyz');
         expect(result.format).toBe(SupportedFormat.XYZ);
