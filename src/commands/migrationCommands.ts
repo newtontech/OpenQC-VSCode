@@ -1,3 +1,4 @@
+import * as path from 'path';
 /**
  * Migration Commands - VSCode Extension Commands
  *
@@ -7,6 +8,7 @@
 
 import * as vscode from 'vscode';
 import { StructureMigration, quickMigrateStructure } from '../utils/migration/structure';
+import { KpointMigration, quickMigrateKpoints } from '../utils/migration/kpoints';
 import { ASEFormat } from '../ase/ASEConverter';
 
 /**
@@ -208,43 +210,8 @@ async function migrateStructureWithOptions(
  * Migrate k-point grid
  */
 async function migrateKpoints(context: vscode.ExtensionContext): Promise<void> {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    vscode.window.showErrorMessage('No active editor');
-    return;
-  }
-
-  // Show info about k-point migration
-  vscode.window.showInformationMessage(
-    'k-Point Grid Migration\n\n' +
-    'This tool converts k-point grids between different codes:\n' +
-    '- Monkhorst-Pack ↔ Gamma-centered\n' +
-    '- Automatic k-point generation based on cell size\n' +
-    '- Maintain k-point density across migrations\n\n' +
-    'Note: Select target code to continue.',
-    'Continue',
-    'Cancel'
-  ).then(selection => {
-    if (selection === 'Continue') {
-      vscode.window.showQuickPick(
-        ['vasp', 'cp2k', 'qe'].map(code => ({
-          label: code.toUpperCase(),
-          value: code,
-        })),
-        {
-          placeHolder: 'Select target code',
-        }
-      ).then(targetFormat => {
-        if (targetFormat) {
-          vscode.window.showInformationMessage(
-            `k-point migration to ${targetFormat.label} will be implemented in Phase 3.2`
-          );
-        }
-      });
-    }
-  });
+  await quickMigrateKpoints(context);
 }
-
 /**
  * Migrate electronic structure parameters
  */

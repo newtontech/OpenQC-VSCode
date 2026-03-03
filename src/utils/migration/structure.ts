@@ -293,11 +293,7 @@ export class StructureMigration {
     warnings: string[];
     errors: string[];
   }> {
-    const result = {
-      success: true,
-      warnings: [],
-      errors: [],
-    };
+    const result: { success: boolean; warnings: string[]; errors: string[]; } = { success: true, warnings: [], errors: [] };
 
     try {
       // Read both structures

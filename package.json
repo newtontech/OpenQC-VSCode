@@ -299,6 +299,26 @@
         "command": "openqc.quickConvert",
         "title": "OpenQC: Quick Convert (ASE)",
         "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.migrateKpoints",
+        "title": "OpenQC: Migrate k-Point Grid",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateParameters",
+        "title": "OpenQC: Migrate Electronic Parameters",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateMDParameters",
+        "title": "OpenQC: Migrate MD Parameters",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.showMigrationValidation",
+        "title": "OpenQC: Show Migration Validation",
+        "category": "Migration"
       }
     ],
     "views": {
