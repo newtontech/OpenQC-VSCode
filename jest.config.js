@@ -29,6 +29,7 @@ module.exports = {
     '!src/commands/**',
     '!src/visualizers/types.ts',
     '!src/ase/**',
+    '!src/performance/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
