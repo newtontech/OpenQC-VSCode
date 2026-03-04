@@ -8,3 +8,5 @@
 export * from './lazyLoading';
 export * from './computeWorker';
 export * from './workerManager';
+export * from './cache';
+export * from './largeFileHandler';
