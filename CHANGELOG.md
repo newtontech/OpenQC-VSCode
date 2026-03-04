@@ -1,3 +1,29 @@
+## [3.0.3] - 2026-03-05
+
+### Added - Test Coverage Improvements
+
+#### OpenQCConverterProvider Tests
+- Complete test suite with 17 tests added
+- Constructor tests for view type and extension URI
+- Webview initialization tests (options, HTML content, message handlers)
+- Message handling tests for all message types
+- HTML content verification tests (CSP nonce, format tags, CSS variables)
+- JavaScript message passing tests
+
+#### Coverage Improvements
+- sidebar module: 85.84% → 98.17% (+12.33%)
+- OpenQCConverterProvider.ts: 0% → 100% (+100%)
+- Overall Statements: 83.69% → 85.35% (+1.66%)
+- Overall Branches: 76.41% → 77.05% (+0.64%)
+- Overall Lines: 85.55% → 87.34% (+1.79%)
+- Overall Functions: 88.29% → 90.73% (+2.44%)
+
+#### Test Results
+- All 729 tests passing (17 new tests added)
+- Test suites: 43 passed
+
+---
+
 ## [3.0.2] - 2026-03-05
 
 ### Fixed - Test Suite Improvements
