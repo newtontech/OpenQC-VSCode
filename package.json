@@ -325,6 +325,36 @@
         "command": "openqc.showMigrationValidation",
         "title": "OpenQC: Show Migration Validation",
         "category": "Migration"
+      },
+      {
+        "command": "openqc.aiOptimizeInput",
+        "title": "OpenQC: AI Optimize Input",
+        "category": "AI",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "openqc.aiGenerateInput",
+        "title": "OpenQC: AI Generate Input",
+        "category": "AI",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "openqc.aiExplainParameters",
+        "title": "OpenQC: AI Explain Parameters",
+        "category": "AI",
+        "icon": "$(question)"
+      },
+      {
+        "command": "openqc.aiDebugCalculation",
+        "title": "OpenQC: AI Debug Calculation",
+        "category": "AI",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "openqc.aiSettings",
+        "title": "OpenQC: AI Settings",
+        "category": "AI",
+        "icon": "$(gear)"
       }
     ],
     "views": {
@@ -477,6 +507,47 @@
           "type": "string",
           "default": "python3",
           "description": "Path to Python executable for ASE backend"
+        },
+        "openqc.ai.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable AI-powered features"
+        },
+        "openqc.ai.provider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "ollama"
+          ],
+          "default": "ollama",
+          "description": "AI provider (OpenAI or Ollama)"
+        },
+        "openqc.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key (only used with OpenAI provider)"
+        },
+        "openqc.ai.model": {
+          "type": "string",
+          "default": "llama2",
+          "description": "AI model name (gpt-4 for OpenAI, llama2 for Ollama)"
+        },
+        "openqc.ai.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server URL"
+        },
+        "openqc.ai.maxTokens": {
+          "type": "number",
+          "default": 2048,
+          "description": "Maximum tokens in AI response"
+        },
+        "openqc.ai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "AI temperature (creativity vs determinism)"
         }
       }
     },

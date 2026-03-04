@@ -1,3 +1,69 @@
+## [4.0.0] - 2026-03-04
+
+### Major Release - AI Assistance (Phase 4)
+
+OpenQC-VSCode now features AI-powered assistance for quantum chemistry input files.
+Leverage LLM capabilities to optimize, generate, explain, and debug your calculations.
+
+### Added - Phase 4: AI Assistance
+
+#### AI Core Module (Issue #14 - Phase 4)
+- **AICore.ts** - TypeScript interface for LLM integration
+  - Support for OpenAI API (GPT-4, GPT-3.5)
+  - Support for Ollama (local models: llama2, codellama, mistral)
+  - Configurable temperature, max tokens, model selection
+  - Environment-based configuration
+  - Factory pattern for singleton management
+
+#### AI Commands (Issue #14 - Phase 4)
+- **aiCommands.ts** - VSCode commands for AI features
+  - `openqc.aiOptimizeInput` - Optimize input file parameters with AI
+  - `openqc.aiGenerateInput` - Generate input from natural language description
+  - `openqc.aiExplainParameters` - Explain parameters in plain English
+  - `openqc.aiDebugCalculation` - Debug failed calculations with AI
+  - `openqc.aiSettings` - Configure AI settings
+
+#### Python AI Backend (Issue #14 - Phase 4)
+- **python/openqc/ai/** module with:
+  - `client.py` - LLM client for OpenAI and Ollama
+  - `prompts.py` - Quantum chemistry-specific prompt templates
+  - `parser.py` - Response parsing and validation
+  - Support for 7 quantum chemistry codes (VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS)
+
+#### AI Configuration
+- VSCode settings for AI:
+  - `openqc.ai.enabled` - Enable/disable AI features
+  - `openqc.ai.provider` - Select provider (openai/ollama)
+  - `openqc.ai.apiKey` - OpenAI API key
+  - `openqc.ai.model` - Model name
+  - `openqc.ai.ollamaUrl` - Ollama server URL
+  - `openqc.ai.maxTokens` - Maximum response tokens
+  - `openqc.ai.temperature` - Response creativity
+
+#### Testing
+- **AICore.test.ts** - Comprehensive unit tests (100% coverage)
+  - Configuration loading and validation
+  - Provider switching (OpenAI/Ollama)
+  - Error handling
+  - Mock LLM responses
+
+### Phase Completion Status
+- ✅ Phase 1: Foundation (100%)
+- ✅ Phase 2: Visualization (75% - Three.js complete)
+- ✅ Phase 2.5: Dynamic LSP Discovery (100%)
+- ✅ Phase 3: ASE Integration (100%)
+- ✅ Phase 4: AI Assistance (100%) - **COMPLETE**
+- ⏳ Phase 5: Advanced Features & Polish (Next)
+
+### Next Steps
+Phase 5 will focus on:
+- Performance optimization
+- User experience refinement
+- Extension marketplace listing
+- Community features
+
+---
+
 
 ## [3.0.0] - 2026-03-04
 
