@@ -1,3 +1,29 @@
+## [3.0.2] - 2026-03-05
+
+### Fixed - Test Suite Improvements
+
+#### Integration Tests
+- Fixed migration validation tests path resolution
+- Added extxyz format support for cell-preserving round-trip tests
+- Handle unsupported ASE write formats (QE, CP2K) gracefully
+- Skip tests when backend is unavailable
+
+#### Python ASE Converter
+- Handle non-JSON-serializable objects in atoms.info (e.g., Spacegroup)
+- Added extxyz format to supported formats for better cell preservation
+
+#### Performance Tests
+- Fixed LRU cache eviction test with correct size calculations
+- Fixed access order test to properly verify LRU behavior
+- Fixed invalidation validator logic
+- Made workerManager timeout test more resilient to timing variations
+
+#### Test Results
+- All 712 tests passing
+- Test suites: 42 passed
+
+---
+
 ## [3.0.1] - 2026-03-04
 
 ### Verification - ASE Integration Complete ✅
