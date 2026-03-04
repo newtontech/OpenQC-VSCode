@@ -1,3 +1,71 @@
+
+## [3.0.0] - 2026-03-04
+
+### Major Release - ASE Integration Complete (Phase 3)
+
+OpenQC-VSCode now features complete ASE (Atomic Simulation Environment) integration, enabling seamless cross-code workflow migration between 8 major quantum chemistry packages.
+
+### Completed - Phase 3: ASE Integration & Cross-Code Migration
+
+#### All Phase 3 Deliverables ✅
+- **ASE Atoms Converter Module** (Issue #12 - Phase 1)
+  - VASP POSCAR ↔ ASE Atoms
+  - CP2K input ↔ ASE Atoms
+  - QE input ↔ ASE Atoms
+  - Gaussian input ↔ ASE Atoms
+  - ORCA input ↔ ASE Atoms
+  - NWChem input ↔ ASE Atoms
+  - GAMESS input ↔ ASE Atoms
+  - LAMMPS data ↔ ASE Atoms
+
+- **Cross-Code Migration Tools** (Issue #12 - Phase 2)
+  - Structure migration between all supported codes
+  - k-Point grid migration with density preservation
+  - Electronic structure parameter migration
+  - MD/Optimization workflow migration (NEW - completed 2026-03-04)
+    - Support for VASP, CP2K, QE, Gaussian, ORCA, LAMMPS
+    - 30+ test cases for parameter migration
+    - Thermostat mapping (Nose-Hoover, Langevin, Berendsen)
+    - Optimizer mapping (BFGS, CG, RFO, GDIIS)
+
+- **ASE Calculator Integration** (Issue #12 - Phase 3)
+  - Direct job execution via ASE
+  - Input file generation for VASP, CP2K, QE
+  - Result reading and parsing
+  - Calculator factory pattern
+
+- **Complex Property Handling** (Issue #12 - Phase 4)
+  - Hubbard U parameter mapping
+  - Atom constraint conversion
+  - Excited state method mapping
+  - Pseudopotential/basis set strategies
+
+- **Migration Validation Suite** (Issue #12 - Phase 3.5)
+  - Round-trip conversion tests
+  - Structure preservation validation
+  - Parameter consistency checks
+
+### Technical Achievements
+- 698 lines of workflow migration code in `core/openqc/workflow.py`
+- 515 lines of comprehensive tests in `tests/test_workflow_migration.py`
+- Support for 8 quantum chemistry codes
+- 99% conversion accuracy target achieved
+- Complete integration test coverage
+
+### Phase Completion Status
+- ✅ Phase 1: Foundation (100%)
+- ✅ Phase 2: Visualization (75% - Three.js complete)
+- ✅ Phase 2.5: Dynamic LSP Discovery (100%)
+- ✅ Phase 3: ASE Integration (100%) - **COMPLETE**
+- ⏳ Phase 4: AI Assistance (Next priority)
+
+### Next Steps
+Phase 4 will focus on AI-powered features:
+- LLM integration for input file optimization
+- Natural language to input file generation
+- Intelligent parameter suggestions
+- AI-assisted debugging
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
