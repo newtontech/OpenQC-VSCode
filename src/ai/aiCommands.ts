@@ -323,7 +323,9 @@ async function aiSettings(aiCore: AICore): Promise<void> {
     if (available) {
       vscode.window.showInformationMessage('AI backend is available and ready');
     } else {
-      vscode.window.showErrorMessage(`AI backend is not available. ${validation.errors.join(', ')}`);
+      vscode.window.showErrorMessage(
+        `AI backend is not available. ${validation.errors.join(', ')}`
+      );
     }
   }
 }
@@ -348,7 +350,7 @@ function checkAIEnabled(aiCore: AICore): boolean {
 
 function detectSoftware(filename: string): string | null {
   const basename = filename.toLowerCase();
-  
+
   if (basename.includes('incar') || basename.includes('poscar') || basename.includes('vasp')) {
     return 'vasp';
   }
@@ -364,20 +366,20 @@ function detectSoftware(filename: string): string | null {
   if (basename.endsWith('.nw') || basename.endsWith('.nwinp')) {
     return 'nwchem';
   }
-  
+
   return null;
 }
 
 function detectFormat(filename: string): string {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
-  
+
   if (['xyz', 'pdb', 'cif'].includes(ext)) {
     return ext;
   }
   if (filename.toLowerCase().includes('poscar') || filename.toLowerCase().includes('contcar')) {
     return 'vasp';
   }
-  
+
   return 'xyz';
 }
 
@@ -413,7 +415,7 @@ function getLanguageId(software: string): string {
     nwchem: 'nwchem',
     gamess: 'gamess',
   };
-  
+
   return mapping[software] || 'plaintext';
 }
 

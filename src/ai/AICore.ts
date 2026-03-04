@@ -83,13 +83,7 @@ export class AICore {
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.pythonPath = this.getPythonPath();
-    this.aiScript = path.join(
-      context.extensionPath,
-      'python',
-      'openqc',
-      'ai',
-      'client.py'
-    );
+    this.aiScript = path.join(context.extensionPath, 'python', 'openqc', 'ai', 'client.py');
     this.config = this.loadConfig();
   }
 
@@ -157,10 +151,7 @@ export class AICore {
   /**
    * Optimize input file parameters
    */
-  public async optimizeInput(
-    inputContent: string,
-    software: string
-  ): Promise<AIResponse> {
+  public async optimizeInput(inputContent: string, software: string): Promise<AIResponse> {
     const request: AIRequest = {
       type: AIRequestType.OptimizeInput,
       content: inputContent,
@@ -191,10 +182,7 @@ export class AICore {
   /**
    * Explain input file parameters
    */
-  public async explainParameters(
-    inputContent: string,
-    software: string
-  ): Promise<AIResponse> {
+  public async explainParameters(inputContent: string, software: string): Promise<AIResponse> {
     const request: AIRequest = {
       type: AIRequestType.ExplainParameters,
       content: inputContent,

@@ -135,7 +135,7 @@ class ComputeWorker {
   private async parseStructure(payload: ParseStructurePayload): Promise<ASEAtoms> {
     // Simulate heavy parsing (actual implementation would call Python backend)
     const { content, format, options } = payload;
-    
+
     // Basic validation
     if (!content || content.trim().length === 0) {
       throw new Error('Empty content provided');
@@ -176,17 +176,17 @@ class ComputeWorker {
 
     // Simulate conversion (would call Python backend)
     const lines: string[] = [];
-    
+
     // Header
     lines.push(`# Converted to ${targetFormat}`);
     lines.push(`# Atoms: ${atoms.chemical_symbols.length}`);
     lines.push('');
 
     // Cell (if periodic)
-    if (atoms.cell && atoms.pbc.some((p) => p)) {
+    if (atoms.cell && atoms.pbc.some(p => p)) {
       lines.push('# Unit cell:');
-      atoms.cell.forEach((row) => {
-        lines.push(row.map((v) => v.toFixed(6)).join(' '));
+      atoms.cell.forEach(row => {
+        lines.push(row.map(v => v.toFixed(6)).join(' '));
       });
       lines.push('');
     }
@@ -195,7 +195,7 @@ class ComputeWorker {
     lines.push('# Atomic positions:');
     atoms.chemical_symbols.forEach((symbol, i) => {
       const pos = atoms.positions[i];
-      lines.push(`${symbol} ${pos.map((v) => v.toFixed(6)).join(' ')}`);
+      lines.push(`${symbol} ${pos.map(v => v.toFixed(6)).join(' ')}`);
     });
 
     return lines.join('\n');
@@ -237,7 +237,9 @@ class ComputeWorker {
   /**
    * Calculate molecular properties
    */
-  private async calculateProperties(payload: CalculatePropertiesPayload): Promise<Record<string, any>> {
+  private async calculateProperties(
+    payload: CalculatePropertiesPayload
+  ): Promise<Record<string, any>> {
     const { atoms, properties } = payload;
     const results: Record<string, any> = {};
 
@@ -329,12 +331,12 @@ class ComputeWorker {
    * Check cell consistency
    */
   private checkCellConsistency(atoms: ASEAtoms): any {
-    if (!atoms.cell || !atoms.pbc.some((p) => p)) {
+    if (!atoms.cell || !atoms.pbc.some(p => p)) {
       return { valid: true, warnings: ['Non-periodic system'] };
     }
 
     const warnings: string[] = [];
-    
+
     // Check cell vectors
     for (let i = 0; i < 3; i++) {
       const length = this.distance(atoms.cell![i], [0, 0, 0]);
@@ -396,7 +398,7 @@ class ComputeWorker {
       }
     }
 
-    return com.map((v) => v / n);
+    return com.map(v => v / n);
   }
 
   /**

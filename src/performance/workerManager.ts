@@ -5,11 +5,7 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  WorkerMessage,
-  WorkerResponse,
-  WorkerMessageType,
-} from './computeWorker';
+import { WorkerMessage, WorkerResponse, WorkerMessageType } from './computeWorker';
 
 export interface WorkerTask {
   id: string;
@@ -81,7 +77,7 @@ export class WorkerManager {
     };
 
     this.taskMap.set(task.id, task);
-    
+
     // Add to queue with priority
     this.addToQueue(task);
 
@@ -104,10 +100,10 @@ export class WorkerManager {
   async waitForTask(taskId: string, timeout: number = 30000): Promise<WorkerTask> {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      
+
       const check = () => {
         const task = this.taskMap.get(taskId);
-        
+
         if (!task) {
           reject(new Error(`Task ${taskId} not found`));
           return;
@@ -172,13 +168,13 @@ export class WorkerManager {
    */
   async shutdown(): Promise<void> {
     // Terminate all workers
-    this.workers.forEach((worker) => worker.terminate());
+    this.workers.forEach(worker => worker.terminate());
     this.workers = [];
-    
+
     // Clear queues
     this.taskQueue = [];
     this.taskMap.clear();
-    
+
     console.log('WorkerManager shutdown complete');
   }
 
@@ -195,7 +191,7 @@ export class WorkerManager {
   private addToQueue(task: WorkerTask): void {
     // Priority order: high > normal > low
     const priorityOrder = { high: 0, normal: 1, low: 2 };
-    
+
     let inserted = false;
     for (let i = 0; i < this.taskQueue.length; i++) {
       if (priorityOrder[task.priority] < priorityOrder[this.taskQueue[i].priority]) {
@@ -237,22 +233,22 @@ export class WorkerManager {
       // Simulate worker execution
       // In production, this would send message to WebWorker
       const result = await this.simulateWorkerExecution(task);
-      
+
       task.result = result;
       task.status = 'completed';
       task.endTime = Date.now();
-      
+
       this.stats.completedTasks++;
     } catch (error) {
       task.error = error instanceof Error ? error.message : String(error);
       task.status = 'failed';
       task.endTime = Date.now();
-      
+
       this.stats.failedTasks++;
     }
 
     this.stats.pendingTasks = this.taskQueue.length;
-    
+
     // Process next task
     this.processQueue();
   }
@@ -262,14 +258,18 @@ export class WorkerManager {
    */
   private async simulateWorkerExecution(task: WorkerTask): Promise<any> {
     // Simulate computation time
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Return mock result
     switch (task.type) {
       case WorkerMessageType.PARSE_STRUCTURE:
         return {
           chemical_symbols: ['C', 'C', 'C'],
-          positions: [[0, 0, 0], [1, 0, 0], [2, 0, 0]],
+          positions: [
+            [0, 0, 0],
+            [1, 0, 0],
+            [2, 0, 0],
+          ],
           pbc: [false, false, false],
         };
 

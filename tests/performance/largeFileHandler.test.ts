@@ -32,13 +32,11 @@ describe('ChunkedFileLoader', () => {
     test('should load file and emit events', async () => {
       const loadStartSpy = jest.fn();
       const loadCompleteSpy = jest.fn();
-      
+
       loader.on('loadStart', loadStartSpy);
       loader.on('loadComplete', loadCompleteSpy);
 
-      const mockParser = jest.fn().mockResolvedValue([
-        { element: 'H', x: 0, y: 0, z: 0 },
-      ]);
+      const mockParser = jest.fn().mockResolvedValue([{ element: 'H', x: 0, y: 0, z: 0 }]);
 
       const content = 'line1\\nline2\\nline3';
       await loader.loadFile('/test/file.xyz', mockParser, content);
@@ -90,9 +88,9 @@ describe('ChunkedFileLoader', () => {
     test('should provide accurate statistics', async () => {
       const mockParser = jest.fn().mockResolvedValue([{ element: 'H' }]);
       const content = Array(20).fill('H 0 0 0').join('\\n');
-      
+
       await loader.loadFile('/test/file.xyz', mockParser, content);
-      
+
       const stats = loader.getStats();
       expect(stats.totalAtoms).toBeGreaterThan(0);
       expect(stats.totalChunks).toBeGreaterThan(0);
@@ -107,7 +105,7 @@ describe('ChunkedFileLoader', () => {
 
       const mockParser = jest.fn().mockResolvedValue([{ element: 'H' }]);
       const content = Array(30).fill('H 0 0 0').join('\\n');
-      
+
       await loader.loadFile('/test/file.xyz', mockParser, content);
 
       expect(progressSpy).toHaveBeenCalled();
@@ -121,10 +119,10 @@ describe('ChunkedFileLoader', () => {
     test('should clear all loaded chunks', async () => {
       const mockParser = jest.fn().mockResolvedValue([{ element: 'H' }]);
       const content = 'test content';
-      
+
       await loader.loadFile('/test/file.xyz', mockParser, content);
       loader.clear();
-      
+
       const stats = loader.getStats();
       expect(stats.chunksInMemory).toBe(0);
     });
@@ -148,7 +146,7 @@ describe('MemoryPool', () => {
     expect(block!.length).toBe(5);
 
     (pool as any).release(block!);
-    
+
     const stats = (pool as any).getStats();
     expect(stats.usedBlocks).toBe(0);
     expect(stats.freeBlocks).toBeGreaterThan(0);
@@ -180,9 +178,9 @@ describe('MemoryPool', () => {
   test('should clear all blocks', () => {
     (pool as any).acquire(5);
     (pool as any).acquire(5);
-    
+
     (pool as any).clear();
-    
+
     const stats = (pool as any).getStats();
     expect(stats.usedBlocks).toBe(0);
   });
@@ -197,7 +195,7 @@ describe('VirtualScrollHandler', () => {
 
   test('should calculate visible range', () => {
     const range = handler.calculateVisibleRange(100, 1000);
-    
+
     // At 100px scroll with 20px items, start should be 5
     expect(range.start).toBe(5);
     expect(range.end).toBeGreaterThan(range.start);
@@ -217,7 +215,7 @@ describe('VirtualScrollHandler', () => {
   test('should update viewport size', () => {
     handler.setViewportSize(400);
     const range = handler.calculateVisibleRange(0, 100);
-    
+
     // With 400px viewport, should show more items
     expect(range.end - range.start).toBeGreaterThan(10);
   });
@@ -225,7 +223,7 @@ describe('VirtualScrollHandler', () => {
   test('should return current visible range', () => {
     handler.calculateVisibleRange(50, 100);
     const range = handler.getVisibleRange();
-    
+
     expect(range.start).toBeGreaterThanOrEqual(0);
     expect(range.end).toBeGreaterThan(range.start);
   });
@@ -249,12 +247,12 @@ describe('LargeFileHandler', () => {
 
   test('should provide combined statistics', () => {
     const stats = handler.getStats();
-    
+
     expect(stats).toBeDefined();
     expect(stats.chunkLoader).toBeDefined();
     expect(stats.memoryPool).toBeDefined();
     expect(stats.visibleRange).toBeDefined();
-    
+
     expect(typeof stats.chunkLoader.totalAtoms).toBe('number');
     expect(typeof stats.memoryPool.totalBlocks).toBe('number');
   });

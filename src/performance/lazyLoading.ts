@@ -63,7 +63,7 @@ export class StructureLazyLoader {
   }
 
   releaseChunks(indices: number[]): void {
-    indices.forEach((index) => this.cache.delete(index));
+    indices.forEach(index => this.cache.delete(index));
   }
 
   clearCache(): void {
@@ -72,7 +72,7 @@ export class StructureLazyLoader {
 
   getMemoryUsage(): number {
     let usage = 0;
-    this.cache.forEach((atoms) => {
+    this.cache.forEach(atoms => {
       usage += atoms.chemical_symbols.length * 100;
     });
     return usage;

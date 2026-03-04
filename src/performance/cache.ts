@@ -109,14 +109,14 @@ export class IncrementalCache {
    */
   get(key: string): CacheEntry | undefined {
     const entry = this.cache.get(key);
-    
+
     if (entry) {
       // Update access order (LRU)
       this.updateAccessOrder(key);
       this.hits++;
       return entry;
     }
-    
+
     this.misses++;
     return undefined;
   }
@@ -129,14 +129,14 @@ export class IncrementalCache {
    */
   getIfValid(key: string, contentHash: string): any | null {
     const entry = this.cache.get(key);
-    
+
     if (entry && entry.hash === contentHash) {
       // Update access order (LRU)
       this.updateAccessOrder(key);
       this.hits++;
       return entry.data;
     }
-    
+
     this.misses++;
     return null;
   }
@@ -149,7 +149,7 @@ export class IncrementalCache {
    */
   set(key: string, data: any, contentHash: string): void {
     const size = this.estimateSize(data);
-    
+
     // Evict entries if necessary
     while (this.currentSize + size > this.config.maxSize && this.accessOrder.length > 0) {
       this.evictLRU();
@@ -222,14 +222,14 @@ export class IncrementalCache {
    */
   invalidateStale(validator: (key: string, entry: CacheEntry) => boolean): number {
     let invalidated = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (!validator(key, entry)) {
         this.delete(key);
         invalidated++;
       }
     }
-    
+
     return invalidated;
   }
 
@@ -241,14 +241,14 @@ export class IncrementalCache {
   invalidateByAge(maxAge: number): number {
     const now = Date.now();
     let invalidated = 0;
-    
+
     for (const [key, entry] of this.cache.entries()) {
       if (now - entry.timestamp > maxAge) {
         this.delete(key);
         invalidated++;
       }
     }
-    
+
     return invalidated;
   }
 
@@ -312,10 +312,10 @@ export class IncrementalCache {
    */
   private evictLRU(): void {
     if (this.accessOrder.length === 0) return;
-    
+
     const lruKey = this.accessOrder.shift()!;
     const entry = this.cache.get(lruKey);
-    
+
     if (entry) {
       this.currentSize -= entry.size;
       this.cache.delete(lruKey);
@@ -327,9 +327,9 @@ export class IncrementalCache {
    */
   private estimateSize(data: any): number {
     if (data === null || data === undefined) return 0;
-    
+
     const type = typeof data;
-    
+
     switch (type) {
       case 'boolean':
         return 4;

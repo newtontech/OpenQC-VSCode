@@ -96,10 +96,7 @@ export class ASECalculator {
   /**
    * Generate input files for a calculation
    */
-  public async generateInput(
-    atoms: ASEAtoms,
-    outputDir: string
-  ): Promise<InputGenerationResult> {
+  public async generateInput(atoms: ASEAtoms, outputDir: string): Promise<InputGenerationResult> {
     const args = [
       'generate',
       this.config.type,
@@ -122,10 +119,7 @@ export class ASECalculator {
   /**
    * Run a calculation
    */
-  public async runCalculation(
-    inputDir: string,
-    outputDir?: string
-  ): Promise<CalculationResult> {
+  public async runCalculation(inputDir: string, outputDir?: string): Promise<CalculationResult> {
     const args = ['run', this.config.type, inputDir];
 
     if (outputDir) {
@@ -154,10 +148,7 @@ export class ASECalculator {
   /**
    * Generate input and run calculation in one step
    */
-  public async calculate(
-    atoms: ASEAtoms,
-    workingDir: string
-  ): Promise<CalculationResult> {
+  public async calculate(atoms: ASEAtoms, workingDir: string): Promise<CalculationResult> {
     // Generate input files
     const inputResult = await this.generateInput(atoms, workingDir);
     if (!inputResult.success) {
@@ -264,9 +255,7 @@ export class ASECalculator {
     }
 
     try {
-      const { stdout } = await execAsync(
-        `which ${this.config.command.split(' ')[0]}`
-      );
+      const { stdout } = await execAsync(`which ${this.config.command.split(' ')[0]}`);
       return stdout.trim().length > 0;
     } catch {
       return false;
@@ -359,10 +348,7 @@ export class CalculatorFactory {
   /**
    * Create a VASP calculator
    */
-  createVASPCalculator(
-    parameters?: Record<string, any>,
-    command?: string
-  ): ASECalculator {
+  createVASPCalculator(parameters?: Record<string, any>, command?: string): ASECalculator {
     return this.createCalculator({
       type: CalculatorType.VASP,
       command: command || 'vasp',
@@ -373,10 +359,7 @@ export class CalculatorFactory {
   /**
    * Create a CP2K calculator
    */
-  createCP2KCalculator(
-    parameters?: Record<string, any>,
-    command?: string
-  ): ASECalculator {
+  createCP2KCalculator(parameters?: Record<string, any>, command?: string): ASECalculator {
     return this.createCalculator({
       type: CalculatorType.CP2K,
       command: command || 'cp2k.popt',
@@ -387,10 +370,7 @@ export class CalculatorFactory {
   /**
    * Create a Quantum ESPRESSO calculator
    */
-  createQECalculator(
-    parameters?: Record<string, any>,
-    command?: string
-  ): ASECalculator {
+  createQECalculator(parameters?: Record<string, any>, command?: string): ASECalculator {
     return this.createCalculator({
       type: CalculatorType.QE,
       command: command || 'pw.x',

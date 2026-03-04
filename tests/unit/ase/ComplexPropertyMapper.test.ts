@@ -5,7 +5,10 @@
  */
 
 import * as vscode from 'vscode';
-import { ComplexPropertyMapper, initializeComplexPropertyMapper } from '../../../src/ase/ComplexPropertyMapper';
+import {
+  ComplexPropertyMapper,
+  initializeComplexPropertyMapper,
+} from '../../../src/ase/ComplexPropertyMapper';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
@@ -15,9 +18,13 @@ const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 const mockExec = jest.fn();
 jest.mock('child_process', () => ({
   spawn: jest.fn(),
-  exec: jest.fn().mockImplementation((cmd: string, callback: (error: any, stdout: { stdout: string; stderr: string }) => void) => {
-    return mockExec(cmd, callback);
-  }),
+  exec: jest
+    .fn()
+    .mockImplementation(
+      (cmd: string, callback: (error: any, stdout: { stdout: string; stderr: string }) => void) => {
+        return mockExec(cmd, callback);
+      }
+    ),
 }));
 
 // Mock vscode
@@ -55,11 +62,11 @@ describe('ComplexPropertyMapper', () => {
         keys: jest.fn(),
         setKeysForSync: jest.fn(),
       },
-      asAbsolutePath: jest.fn((p) => path.join('/test/extension/path', p)),
+      asAbsolutePath: jest.fn(p => path.join('/test/extension/path', p)),
       asAbsolutePathUri: jest.fn(),
-      extensionUri: ({ fsPath: '/test/extension/path', scheme: 'file' } as any),
-      storageUri: ({ fsPath: '/test/storage', scheme: 'file' } as any),
-      globalStorageUri: ({ fsPath: '/test/global-storage', scheme: 'file' } as any),
+      extensionUri: { fsPath: '/test/extension/path', scheme: 'file' } as any,
+      storageUri: { fsPath: '/test/storage', scheme: 'file' } as any,
+      globalStorageUri: { fsPath: '/test/global-storage', scheme: 'file' } as any,
       logPath: '/test/logs',
     } as any;
 
@@ -209,9 +216,14 @@ describe('ComplexPropertyMapper', () => {
   describe('isAvailable', () => {
     it('should return true when ASE is available', async () => {
       const mockExec = require('child_process').exec;
-      mockExec.mockImplementation((cmd: string, callback: (error: any, result: { stdout: string; stderr: string }) => void) => {
-        callback(null, { stdout: '3.22.0\n', stderr: '' });
-      });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (error: any, result: { stdout: string; stderr: string }) => void
+        ) => {
+          callback(null, { stdout: '3.22.0\n', stderr: '' });
+        }
+      );
 
       const result = await mapper.isAvailable();
 
@@ -220,9 +232,14 @@ describe('ComplexPropertyMapper', () => {
 
     it('should return false when ASE is not available', async () => {
       const mockExec = require('child_process').exec;
-      mockExec.mockImplementation((cmd: string, callback: (error: any, result: { stdout: string; stderr: string }) => void) => {
-        callback(new Error('ASE not found'), { stdout: '', stderr: 'ASE not found' });
-      });
+      mockExec.mockImplementation(
+        (
+          cmd: string,
+          callback: (error: any, result: { stdout: string; stderr: string }) => void
+        ) => {
+          callback(new Error('ASE not found'), { stdout: '', stderr: 'ASE not found' });
+        }
+      );
 
       const result = await mapper.isAvailable();
 
