@@ -12,7 +12,7 @@ import sys
 from ase import Atoms
 from ase.io import read, write
 from ase.io.vasp import read_vasp, write_vasp
-from ase.io.cp2k import read_cp2k_input
+# CP2K input reading uses generic read() function
 import numpy as np
 
 

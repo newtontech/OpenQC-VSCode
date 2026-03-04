@@ -81,7 +81,7 @@ describe('Migration Validation Integration Tests', () => {
   const outputDir = path.join(__dirname, '../temp/migration');
 
   beforeAll(async () => {
-    const mockContext = new MockExtensionContext(__dirname) as any;
+    const mockContext = new MockExtensionContext(path.join(__dirname, "../../..")) as any;
     converter = new ASEConverter(mockContext);
 
     const backendAvailable = await converter.isAvailable();
