@@ -11,7 +11,7 @@ import { EventEmitter } from 'events';
  * Chunk configuration
  */
 export interface ChunkConfig {
-  chunkSize: number;       // Number of atoms per chunk
+  chunkSize: number; // Number of atoms per chunk
   maxChunksInMemory: number; // Maximum chunks to keep in memory
   preloadDistance: number; // Number of chunks to preload ahead
 }
@@ -20,10 +20,10 @@ export interface ChunkConfig {
  * Memory pool configuration
  */
 export interface MemoryPoolConfig {
-  initialSize: number;     // Initial pool size
-  maxSize: number;         // Maximum pool size
-  blockSize: number;       // Size of each memory block
-  growthFactor: number;    // Growth factor when expanding
+  initialSize: number; // Initial pool size
+  maxSize: number; // Maximum pool size
+  blockSize: number; // Size of each memory block
+  growthFactor: number; // Growth factor when expanding
 }
 
 /**
@@ -76,15 +76,15 @@ export interface LoadProgress {
  * Default configuration
  */
 const DEFAULT_CHUNK_CONFIG: ChunkConfig = {
-  chunkSize: 1000,         // 1000 atoms per chunk
-  maxChunksInMemory: 20,   // Keep 20 chunks in memory
-  preloadDistance: 2,      // Preload 2 chunks ahead
+  chunkSize: 1000, // 1000 atoms per chunk
+  maxChunksInMemory: 20, // Keep 20 chunks in memory
+  preloadDistance: 2, // Preload 2 chunks ahead
 };
 
 const DEFAULT_POOL_CONFIG: MemoryPoolConfig = {
-  initialSize: 1000,       // 1000 floats initially
-  maxSize: 1000000,        // 1 million floats max
-  blockSize: 3000,         // 3 floats per atom (xyz) * 1000 atoms
+  initialSize: 1000, // 1000 floats initially
+  maxSize: 1000000, // 1 million floats max
+  blockSize: 3000, // 3 floats per atom (xyz) * 1000 atoms
   growthFactor: 1.5,
 };
 
@@ -131,7 +131,7 @@ export class ChunkedFileLoader extends EventEmitter {
     for (let i = 0; i < totalChunks; i++) {
       const startAtom = i * this.config.chunkSize;
       const endAtom = Math.min(startAtom + this.config.chunkSize, this.totalAtoms);
-      
+
       this.chunks.set(i, {
         id: i,
         startAtom,
@@ -145,10 +145,10 @@ export class ChunkedFileLoader extends EventEmitter {
     // Load first chunk immediately
     await this.loadChunk(0, parser, content);
 
-    this.emit('loadComplete', { 
-      totalAtoms: this.totalAtoms, 
+    this.emit('loadComplete', {
+      totalAtoms: this.totalAtoms,
       totalChunks,
-      chunksInMemory: this.chunks.size 
+      chunksInMemory: this.chunks.size,
     });
   }
 
@@ -163,12 +163,12 @@ export class ChunkedFileLoader extends EventEmitter {
   ): Promise<any[]> {
     const startChunk = Math.floor(startAtom / this.config.chunkSize);
     const endChunk = Math.floor((endAtom - 1) / this.config.chunkSize);
-    
+
     const atoms: any[] = [];
 
     for (let chunkId = startChunk; chunkId <= endChunk; chunkId++) {
       const chunk = await this.getChunk(chunkId, parser, content);
-      
+
       if (chunk) {
         // Filter atoms within range
         const relevantAtoms = chunk.atoms.filter((_, index) => {
@@ -191,8 +191,10 @@ export class ChunkedFileLoader extends EventEmitter {
     content: string
   ): Promise<FileChunk | undefined> {
     let chunk = this.chunks.get(chunkId);
-    
-    if (!chunk) { return undefined; }
+
+    if (!chunk) {
+      return undefined;
+    }
 
     // Load if not loaded
     if (!chunk.loaded && !chunk.loading) {
@@ -219,7 +221,9 @@ export class ChunkedFileLoader extends EventEmitter {
     content: string
   ): Promise<void> {
     const chunk = this.chunks.get(chunkId);
-    if (!chunk || chunk.loaded || chunk.loading) { return; }
+    if (!chunk || chunk.loaded || chunk.loading) {
+      return;
+    }
 
     chunk.loading = true;
 
@@ -273,7 +277,9 @@ export class ChunkedFileLoader extends EventEmitter {
     content: string
   ): void {
     const chunk = this.chunks.get(chunkId);
-    if (!chunk || chunk.loaded || chunk.loading) { return; }
+    if (!chunk || chunk.loaded || chunk.loading) {
+      return;
+    }
 
     // Add to queue if not already there
     if (!this.chunkQueue.includes(chunkId)) {
@@ -289,7 +295,9 @@ export class ChunkedFileLoader extends EventEmitter {
     parser: (content: string, start: number, end: number) => Promise<any[]>,
     content: string
   ): Promise<void> {
-    if (this.isLoading || this.chunkQueue.length === 0) { return; }
+    if (this.isLoading || this.chunkQueue.length === 0) {
+      return;
+    }
 
     this.isLoading = true;
 
@@ -327,7 +335,7 @@ export class ChunkedFileLoader extends EventEmitter {
   private reportProgress(): void {
     const loadedChunks = Array.from(this.chunks.values()).filter(c => c.loaded);
     const loadedAtoms = loadedChunks.reduce((sum, c) => sum + c.atoms.length, 0);
-    
+
     const progress: LoadProgress = {
       totalAtoms: this.totalAtoms,
       loadedAtoms,
@@ -338,7 +346,7 @@ export class ChunkedFileLoader extends EventEmitter {
     };
 
     this.emit('progress', progress);
-    
+
     if (this.options.onProgress) {
       this.options.onProgress(progress);
     }
@@ -552,10 +560,7 @@ export class LargeFileHandler {
   public readonly memoryPool: MemoryPool;
   public readonly virtualScroll: VirtualScrollHandler;
 
-  constructor(
-    viewportSize: number,
-    options: LargeFileOptions = {}
-  ) {
+  constructor(viewportSize: number, options: LargeFileOptions = {}) {
     this.chunkLoader = new ChunkedFileLoader(options);
     this.memoryPool = new MemoryPool();
     this.virtualScroll = new VirtualScrollHandler(viewportSize);

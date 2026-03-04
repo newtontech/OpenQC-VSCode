@@ -125,7 +125,10 @@ describe('ComputeWorker', () => {
     it('should detect atom overlap', async () => {
       const atoms: ASEAtoms = {
         chemical_symbols: ['C', 'C'],
-        positions: [[0, 0, 0], [0.3, 0, 0]], // Very close atoms
+        positions: [
+          [0, 0, 0],
+          [0.3, 0, 0],
+        ], // Very close atoms
         pbc: [false, false, false],
       };
 
@@ -170,7 +173,10 @@ describe('ComputeWorker', () => {
     it('should calculate center of mass correctly', async () => {
       const atoms: ASEAtoms = {
         chemical_symbols: ['C', 'C'],
-        positions: [[0, 0, 0], [2, 0, 0]],
+        positions: [
+          [0, 0, 0],
+          [2, 0, 0],
+        ],
         pbc: [false, false, false],
       };
 

@@ -297,22 +297,24 @@ export class ComplexPropertyMapper {
   /**
    * Execute Python mapper script
    */
-  private async executeMapper(args: string[]): Promise<{ success: boolean; data?: any; error?: string }> {
-    return new Promise((resolve) => {
+  private async executeMapper(
+    args: string[]
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    return new Promise(resolve => {
       const process = spawn(this.pythonPath, [this.mapperScript, ...args]);
 
       let stdout = '';
       let stderr = '';
 
-      process.stdout.on('data', (data) => {
+      process.stdout.on('data', data => {
         stdout += data.toString();
       });
 
-      process.stderr.on('data', (data) => {
+      process.stderr.on('data', data => {
         stderr += data.toString();
       });
 
-      process.on('close', (code) => {
+      process.on('close', code => {
         if (code !== 0) {
           resolve({
             success: false,
@@ -330,7 +332,7 @@ export class ComplexPropertyMapper {
         }
       });
 
-      process.on('error', (error) => {
+      process.on('error', error => {
         resolve({
           success: false,
           error: `Failed to execute mapper: ${error.message}`,

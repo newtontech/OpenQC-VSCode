@@ -41,10 +41,7 @@ export function registerCalculatorCommands(context: vscode.ExtensionContext): vo
 
   // Command: Read calculation results
   context.subscriptions.push(
-    vscode.commands.registerCommand(
-      'openqc.readResults',
-      async () => await readResults()
-    )
+    vscode.commands.registerCommand('openqc.readResults', async () => await readResults())
   );
 
   // Command: Quick VASP calculation
@@ -136,7 +133,9 @@ async function generateCalculatorInput(factory: CalculatorFactory): Promise<void
       progress.report({ message: 'Reading structure...' });
 
       // Read structure from current file
-      const converter = new ASEConverter(vscode.extensions.getExtension('newtontech.openqc')!.exports.context);
+      const converter = new ASEConverter(
+        vscode.extensions.getExtension('newtontech.openqc')!.exports.context
+      );
       const filepath = editor.document.uri.fsPath;
       const readResult = await converter.readToAtoms(filepath);
 
@@ -355,7 +354,9 @@ async function quickCalculation(
       progress.report({ message: 'Reading structure...' });
 
       // Read structure
-      const converter = new ASEConverter(vscode.extensions.getExtension('newtontech.openqc')!.exports.context);
+      const converter = new ASEConverter(
+        vscode.extensions.getExtension('newtontech.openqc')!.exports.context
+      );
       const readResult = await converter.readToAtoms(filepath);
 
       if (!readResult.success || !readResult.atoms) {
@@ -405,10 +406,7 @@ async function checkCalculators(factory: CalculatorFactory): Promise<void> {
     );
   }
 
-  vscode.window.showInformationMessage(
-    `Calculator Status: ${results.join(', ')}`,
-    { modal: true }
-  );
+  vscode.window.showInformationMessage(`Calculator Status: ${results.join(', ')}`, { modal: true });
 }
 
 /**
@@ -416,7 +414,11 @@ async function checkCalculators(factory: CalculatorFactory): Promise<void> {
  */
 async function selectCalculatorType(): Promise<CalculatorType | undefined> {
   const types = [
-    { label: 'VASP', type: CalculatorType.VASP, description: 'Vienna Ab initio Simulation Package' },
+    {
+      label: 'VASP',
+      type: CalculatorType.VASP,
+      description: 'Vienna Ab initio Simulation Package',
+    },
     { label: 'CP2K', type: CalculatorType.CP2K, description: 'Car-Parrinello 2K' },
     { label: 'Quantum ESPRESSO', type: CalculatorType.QE, description: 'Plane-wave DFT' },
   ];
@@ -507,10 +509,12 @@ function displayCalculationResults(result: {
 
   // Show detailed results in a new document
   const resultContent = formatResults(result);
-  vscode.workspace.openTextDocument({
-    content: resultContent,
-    language: 'json',
-  }).then(doc => vscode.window.showTextDocument(doc));
+  vscode.workspace
+    .openTextDocument({
+      content: resultContent,
+      language: 'json',
+    })
+    .then(doc => vscode.window.showTextDocument(doc));
 }
 
 /**

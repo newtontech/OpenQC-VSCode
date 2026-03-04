@@ -2,10 +2,7 @@
  * Unit tests for Worker Manager
  */
 
-import {
-  WorkerManager,
-  getWorkerManager,
-} from '../../src/performance/workerManager';
+import { WorkerManager, getWorkerManager } from '../../src/performance/workerManager';
 import { WorkerMessageType } from '../../src/performance/computeWorker';
 
 describe('WorkerManager', () => {
@@ -21,10 +18,10 @@ describe('WorkerManager', () => {
 
   describe('Task Submission', () => {
     it('should submit task successfully', async () => {
-      const task = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       expect(task).toBeDefined();
       expect(task.id).toBeDefined();
@@ -32,15 +29,15 @@ describe('WorkerManager', () => {
     });
 
     it('should generate unique task IDs', async () => {
-      const task1 = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task1 = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
-      const task2 = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task2 = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       expect(task1.id).not.toBe(task2.id);
     });
@@ -65,10 +62,10 @@ describe('WorkerManager', () => {
 
   describe('Task Management', () => {
     it('should get task by ID', async () => {
-      const submitted = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const submitted = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       const retrieved = manager.getTask(submitted.id);
 
@@ -83,15 +80,15 @@ describe('WorkerManager', () => {
 
     it('should cancel pending task', async () => {
       // Submit multiple tasks to create queue
-      await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
-      
-      const task = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
+
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       const cancelled = manager.cancelTask(task.id);
 
@@ -111,10 +108,10 @@ describe('WorkerManager', () => {
 
   describe('Task Waiting', () => {
     it('should wait for task completion', async () => {
-      const task = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       const completed = await manager.waitForTask(task.id, 5000);
 
@@ -123,10 +120,10 @@ describe('WorkerManager', () => {
     }, 10000);
 
     it('should timeout if task takes too long', async () => {
-      const task = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       await expect(
         manager.waitForTask(task.id, 1) // 1ms timeout
@@ -134,9 +131,7 @@ describe('WorkerManager', () => {
     });
 
     it('should reject if task not found', async () => {
-      await expect(
-        manager.waitForTask('non-existent-id', 1000)
-      ).rejects.toThrow('not found');
+      await expect(manager.waitForTask('non-existent-id', 1000)).rejects.toThrow('not found');
     });
   });
 
@@ -154,10 +149,10 @@ describe('WorkerManager', () => {
     it('should update stats after task completion', async () => {
       const initialStats = manager.getStats();
 
-      const task = await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       await manager.waitForTask(task.id, 5000);
 
@@ -169,10 +164,10 @@ describe('WorkerManager', () => {
 
   describe('Shutdown', () => {
     it('should shutdown gracefully', async () => {
-      await manager.submitTask(
-        WorkerMessageType.PARSE_STRUCTURE,
-        { content: 'C 0 0 0', format: 'xyz' }
-      );
+      await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'C 0 0 0',
+        format: 'xyz',
+      });
 
       await manager.shutdown();
 

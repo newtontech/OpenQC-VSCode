@@ -42,7 +42,7 @@ class MockExtensionContext {
     this.extension = {};
     this.secrets = {};
     this.languageModelAccessInformation = {};
-    
+
     const mementoGet = (key: string, defaultValue?: any) => defaultValue;
     const mementoUpdate = (key: string, value: any) => Promise.resolve();
     const mementoKeys = () => [];
@@ -60,7 +60,7 @@ class MockExtensionContext {
       update: mementoUpdate,
       keys: mementoKeys,
     };
-    
+
     this.environmentVariableCollection = {
       getScoped: () => ({}),
     };
@@ -81,7 +81,7 @@ describe('Migration Validation Integration Tests', () => {
   const outputDir = path.join(__dirname, '../temp/migration');
 
   beforeAll(async () => {
-    const mockContext = new MockExtensionContext(path.join(__dirname, "../../..")) as any;
+    const mockContext = new MockExtensionContext(path.join(__dirname, '../../..')) as any;
     converter = new ASEConverter(mockContext);
 
     const backendAvailable = await converter.isAvailable();
