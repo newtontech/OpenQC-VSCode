@@ -237,7 +237,7 @@ describe('LargeFileHandler', () => {
       chunkSize: 50,
       maxChunksInMemory: 5,
     };
-    handler = new LargeFileHandler(options);
+    handler = new LargeFileHandler(800, options); // 800 is viewport size
   });
 
   test('should initialize all components', () => {
