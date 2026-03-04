@@ -355,6 +355,36 @@
         "title": "OpenQC: AI Settings",
         "category": "AI",
         "icon": "$(gear)"
+      },
+      {
+        "command": "openqc.convertToASE",
+        "title": "Convert to ASE Atoms",
+        "category": "OpenQC",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "openqc.convertFromASE",
+        "title": "Convert from ASE Atoms",
+        "category": "OpenQC",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "openqc.migrateFormat",
+        "title": "Migrate Format (ASE)",
+        "category": "OpenQC",
+        "icon": "$(replace)"
+      },
+      {
+        "command": "openqc.quickConvert",
+        "title": "Quick Convert",
+        "category": "OpenQC",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "openqc.showConverterPanel",
+        "title": "Show ASE Converter",
+        "category": "OpenQC",
+        "icon": "$(sidebar-right)"
       }
     ],
     "views": {
@@ -373,6 +403,13 @@
           "icon": "$(server-process)",
           "contextualTitle": "OpenQC Jobs"
         }
+      ],
+      "openqc-converter-panel": [
+        {
+          "id": "openqc.converterView",
+          "name": "ASE Converter",
+          "when": "openqc.converterEnabled"
+        }
       ]
     },
     "viewsContainers": {
@@ -382,6 +419,11 @@
           "title": "OpenQC",
           "icon": "$(beaker)",
           "when": "openqc.sidebar.enabled"
+        },
+        {
+          "id": "openqc-converter-panel",
+          "title": "OpenQC Converter",
+          "icon": "$(symbol-array)"
         }
       ]
     },
