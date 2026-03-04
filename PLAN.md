@@ -285,8 +285,8 @@ ASE (Atomic Simulation Environment) provides:
 #### Week 20-21: Performance
 - [x] Lazy loading for large structures
 - [x] WebWorker for heavy computations
-- [ ] Caching and incremental parsing
-- [ ] Memory optimization for 10k+ atom systems
+- [x] Caching and incremental parsing
+- [x] Memory optimization for 10k+ atom systems
 
 #### Week 22-23: Community & Documentation
 - [ ] Extension marketplace listing
