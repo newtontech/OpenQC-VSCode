@@ -301,7 +301,25 @@ describe('AICore', () => {
   });
 
   describe('Available Models', () => {
-    it('should return OpenAI models', async () => {
+    it('should return OpenAI models when provider is OpenAI', async () => {
+      // Mock OpenAI provider
+      mockGetConfiguration.mockReturnValue({
+        get: jest.fn((key: string, defaultValue?: any) => {
+          const config: Record<string, any> = {
+            'enabled': true,
+            'provider': AIProvider.OpenAI,
+            'apiKey': 'test-key',
+            'model': 'gpt-4',
+            'ollamaUrl': 'http://localhost:11434',
+            'maxTokens': 2048,
+            'temperature': 0.7,
+            'pythonPath': 'python3',
+          };
+          return config[key] ?? defaultValue;
+        }),
+      });
+      aiCore.refreshConfig();
+      
       const models = await aiCore.getAvailableModels();
       
       expect(models).toContain('gpt-4');
