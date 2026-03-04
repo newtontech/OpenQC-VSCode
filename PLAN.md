@@ -283,8 +283,8 @@ ASE (Atomic Simulation Environment) provides:
 ### Deliverables
 
 #### Week 20-21: Performance
-- [ ] Lazy loading for large structures
-- [ ] WebWorker for heavy computations
+- [x] Lazy loading for large structures
+- [x] WebWorker for heavy computations
 - [ ] Caching and incremental parsing
 - [ ] Memory optimization for 10k+ atom systems
 
