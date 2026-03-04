@@ -1,5 +1,45 @@
 ## [4.0.0] - 2026-03-04
 
+## [5.0.0] - Unreleased
+
+### Phase 5: Performance Optimization (In Progress)
+
+OpenQC-VSCode is now implementing performance optimizations for handling large molecular structures and improving user experience.
+
+### Added - Phase 5: Performance Features
+
+#### Lazy Loading Module (Week 20-21)
+- **src/performance/lazyLoading.ts** - Lazy loading for large structures
+  - `StructureLazyLoader` class for efficient chunk-based loading
+  - Configurable chunk size and memory thresholds
+  - Cache management with LRU eviction
+  - Preloading for smooth navigation
+  - Memory usage tracking
+  - Full TypeScript support with async/await
+
+- **LazyLoadedStructure Interface**
+  - Chunk-based data access for structures > 5000 atoms
+  - Range-based atom retrieval (`getAtomsInRange`)
+  - Chunk preloading around viewport center
+  - Memory-efficient storage of large systems
+
+#### Performance Module Structure
+- **src/performance/index.ts** - Module exports
+- **tests/performance/lazyLoading.test.ts** - Unit tests
+  - 7 test cases covering chunk calculations
+  - Lazy loading threshold tests
+  - Memory management validation
+
+### Phase Status
+- ✅ Phase 1: Foundation (100%)
+- ✅ Phase 2: Visualization (75%)
+- ✅ Phase 2.5: Dynamic LSP Discovery (100%)
+- ✅ Phase 3: ASE Integration (100%)
+- ✅ Phase 4: AI Assistance (100%)
+- ⏳ Phase 5: Advanced Features & Polish (25% - Lazy loading started)
+
+---
+
 ### Major Release - AI Assistance (Phase 4)
 
 OpenQC-VSCode now features AI-powered assistance for quantum chemistry input files.
