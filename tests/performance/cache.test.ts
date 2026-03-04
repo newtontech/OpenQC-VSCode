@@ -71,15 +71,19 @@ describe('IncrementalCache', () => {
 
   describe('LRU Eviction', () => {
     it('should evict least recently used entries when size limit exceeded', () => {
-      const smallCache = new IncrementalCache({ maxSize: 100 });
+      // Use maxSize of 45 bytes:
+      // key1=10 + key2=10 + key3=32 = 52 > 45, triggers eviction
+      // After evicting key2 (LRU): key1=10 + key3=32 = 42 <= 45, stops
+      const smallCache = new IncrementalCache({ maxSize: 45 });
 
-      smallCache.set('key1', 'small', 'hash1');
-      smallCache.set('key2', 'small', 'hash2');
+      smallCache.set('key1', 'small', 'hash1');  // 10 bytes
+      smallCache.set('key2', 'small', 'hash2');  // 10 bytes, total = 20
 
       // Access key1 to make it more recently used
       smallCache.get('key1');
 
-      // Add more data to trigger eviction
+      // Add more data to trigger eviction (32 bytes)
+      // 20 + 32 = 52 > 45, so need to evict
       smallCache.set('key3', 'larger data here', 'hash3');
 
       // key2 should be evicted (least recently used)
@@ -88,14 +92,24 @@ describe('IncrementalCache', () => {
     });
 
     it('should update access order on get', () => {
-      cache.set('key1', 'data1', 'hash1');
-      cache.set('key2', 'data2', 'hash2');
+      // Use a small cache to verify access order affects eviction
+      // key1=10 + key2=10 + key3=10 = 30 > 22, triggers eviction
+      // After evicting key2 (LRU): key1=10 + key3=10 = 20 <= 22, stops
+      const smallCache = new IncrementalCache({ maxSize: 22 });
 
-      // Access key1 to update its position
-      cache.get('key1');
+      smallCache.set('key1', 'data1', 'hash1');  // 10 bytes
+      smallCache.set('key2', 'data2', 'hash2');  // 10 bytes
 
-      const keys = cache.keys();
-      expect(keys[keys.length - 1]).toBe('key1');
+      // Access key1 to update its position (make it more recently used)
+      smallCache.get('key1');
+
+      // Add key3 which should trigger eviction of key2 (LRU)
+      smallCache.set('key3', 'data3', 'hash3');  // 10 bytes
+
+      // key1 should still exist (was accessed more recently)
+      // key2 should be evicted (was LRU)
+      expect(smallCache.has('key1')).toBe(true);
+      expect(smallCache.has('key2')).toBe(false);
     });
   });
 
@@ -191,7 +205,9 @@ describe('IncrementalCache', () => {
       cache.set('key1', 'data1', 'hash1');
       cache.set('key2', 'data2', 'hash2');
 
-      const invalidated = cache.invalidateStale((key: string, entry: CacheEntry) => key !== 'key1');
+      // Validator returns true for VALID entries (to keep)
+      // Keep only key1, invalidate key2
+      const invalidated = cache.invalidateStale((key: string, entry: CacheEntry) => key === 'key1');
 
       expect(invalidated).toBe(1);
       expect(cache.has('key1')).toBe(true);

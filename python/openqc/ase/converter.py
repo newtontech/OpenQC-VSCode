@@ -56,12 +56,24 @@ class ConversionResult:
     
     def _atoms_to_dict(self, atoms: Atoms) -> Dict[str, Any]:
         """Convert ASE Atoms to dictionary."""
+        # Convert info dict, handling non-JSON-serializable objects
+        info_dict = {}
+        if atoms.info:
+            for key, value in atoms.info.items():
+                try:
+                    # Try to serialize the value
+                    json.dumps(value)
+                    info_dict[key] = value
+                except (TypeError, ValueError):
+                    # Convert non-serializable objects to string
+                    info_dict[key] = str(value)
+        
         data = {
             'chemical_symbols': atoms.get_chemical_symbols(),
             'positions': atoms.get_positions().tolist(),
             'cell': atoms.get_cell().tolist() if atoms.pbc.any() else None,
             'pbc': atoms.pbc.tolist(),
-            'info': dict(atoms.info) if atoms.info else {}
+            'info': info_dict
         }
         
         if atoms.has('masses'):
@@ -101,6 +113,7 @@ class ASEConverter:
             'nwchem': {'extensions': ['.nw', '.nwinp'], 'ase_format': 'nwchem'},
             'gamess': {'extensions': ['.inp'], 'ase_format': 'gamess'},
             'lammps': {'extensions': ['.lmp', '.data'], 'ase_format': 'lammps-data'},
+            'extxyz': {'extensions': ['.extxyz'], 'ase_format': 'extxyz'},
             'xyz': {'extensions': ['.xyz'], 'ase_format': 'xyz'},
             'pdb': {'extensions': ['.pdb'], 'ase_format': 'pdb'},
             'cif': {'extensions': ['.cif'], 'ase_format': 'cif'}
@@ -231,7 +244,7 @@ class ASEConverter:
         except Exception as e:
             return ConversionResult(
                 success=False,
-                error=f"Failed to write file: {str(e)}"
+                error=f"Failed to write file: {str(e)}. Format {ase_format} may not be supported for writing."
             )
     
     def convert_format(
