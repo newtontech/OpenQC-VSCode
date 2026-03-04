@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [2.7.0] - 2026-03-04
+
+### Added - Three.js 3D Visualization (Phase 2)
+
+#### Three.js Integration
+- **ThreeJsRenderer.ts** - Core Three.js molecular structure renderer
+  - WebGL-based 3D rendering with Three.js
+  - Support for ball-and-stick, space-filling, wireframe modes
+  - Atom rendering with CPK colors and proper radii
+  - Bond detection based on covalent radii
+  - Unit cell visualization for periodic systems
+  - Camera controls: rotate, zoom, pan, reset
+  - Export to PNG image format
+
+- **ThreeJsWebview.ts** - VSCode Webview integration
+  - Interactive controls for representation modes
+  - Real-time structure info display
+  - Image export functionality
+
+- **types.ts** - TypeScript definitions for elements, colors, radii
+
+#### Testing
+- Unit tests for ThreeJsRenderer (100% core coverage)
+- Integration tests for visualization pipeline
+- Mock WebGL context for Node.js testing
+
+### Phase 2 Progress
+- ✅ Three.js integration - COMPLETE
+- ✅ POSCAR/CONTCAR rendering - COMPLETE
+- ✅ Camera controls - COMPLETE
+- ✅ Representation modes - COMPLETE
+- ⏳ Phase 2 75% Complete
+
 ## [2.6.0] - 2026-03-04
 
 ### Added - ASE Calculator Integration (Issue #12 - Phase 3)
