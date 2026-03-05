@@ -247,6 +247,59 @@ class ASEConverter:
                 error=f"Failed to write file: {str(e)}. Format {ase_format} may not be supported for writing."
             )
     
+    def atoms_from_dict(self, atoms_dict: Dict[str, Any]) -> ConversionResult:
+        """
+        Create ASE Atoms object from dictionary.
+        
+        Parameters
+        ----------
+        atoms_dict : Dict[str, Any]
+            Dictionary with atoms data (chemical_symbols, positions, cell, pbc, info)
+        
+        Returns
+        -------
+        ConversionResult
+            Result with Atoms object or error
+        """
+        try:
+            # Required fields
+            if 'chemical_symbols' not in atoms_dict or 'positions' not in atoms_dict:
+                return ConversionResult(
+                    success=False,
+                    error="Missing required fields: chemical_symbols and positions"
+                )
+            
+            # Create Atoms object
+            atoms = Atoms(
+                symbols=atoms_dict['chemical_symbols'],
+                positions=atoms_dict['positions']
+            )
+            
+            # Set cell if present
+            if 'cell' in atoms_dict and atoms_dict['cell']:
+                atoms.set_cell(atoms_dict['cell'])
+            
+            # Set PBC if present
+            if 'pbc' in atoms_dict:
+                atoms.set_pbc(atoms_dict['pbc'])
+            
+            # Set info if present
+            if 'info' in atoms_dict:
+                atoms.info = atoms_dict['info']
+            
+            return ConversionResult(
+                success=True,
+                data=atoms,
+                metadata={'natoms': len(atoms), 'formula': atoms.get_chemical_formula()}
+            )
+            
+        except Exception as e:
+            return ConversionResult(
+                success=False,
+                error=f"Failed to create Atoms from dict: {str(e)}"
+            )
+
+
     def convert_format(
         self,
         input_path: str,

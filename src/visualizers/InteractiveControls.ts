@@ -566,4 +566,38 @@ export class InteractiveControls {
     this.onMeasurement = undefined;
     this.onCoordinateChange = undefined;
   }
+
+  /**
+   * Get current structure data for export
+   * This method should be called by the renderer with current atom positions
+   */
+  public getStructureForExport(
+    atoms: Map<number, { element: string; position: THREE.Vector3 }>,
+    cell?: { a: number; b: number; c: number; alpha: number; beta: number; gamma: number }
+  ): { element: string; x: number; y: number; z: number }[] | undefined {
+    if (!atoms || atoms.size === 0) {
+      return undefined;
+    }
+
+    // Collect all atom data
+    const structureData: { element: string; x: number; y: number; z: number }[] = [];
+    
+    for (const [index, atomData] of atoms.entries()) {
+      structureData.push({
+        element: atomData.element,
+        x: atomData.position.x,
+        y: atomData.position.y,
+        z: atomData.position.z,
+      });
+    }
+
+    return structureData;
+  }
+
+  /**
+   * Check if there are modified atoms
+   */
+  public hasModifiedAtoms(): boolean {
+    return this.selectionState.selectedIndices.size > 0 || this.selectionState.highlightedAtom !== null;
+  }
 }
