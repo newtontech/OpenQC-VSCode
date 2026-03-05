@@ -344,7 +344,9 @@ export class InteractiveControls {
     scene: THREE.Scene
   ): void {
     const mesh = atomMeshes.get(atomIndex);
-    if (!mesh) return;
+    if (!mesh) {
+      return;
+    }
 
     // Create selection ring (slightly larger sphere with wireframe)
     const geometry = new THREE.SphereGeometry(
@@ -521,7 +523,9 @@ export class InteractiveControls {
     scene: THREE.Scene,
     color: string = this.config.measurementColor
   ): void {
-    if (positions.length < 2) return;
+    if (positions.length < 2) {
+      return;
+    }
 
     const points = positions.map(p => new THREE.Vector3(p.x, p.y, p.z));
     const geometry = new THREE.BufferGeometry().setFromPoints(points);

@@ -84,8 +84,12 @@ export function gammaToMonkhorst(grid: [number, number, number]): [number, numbe
 
 export function detectKpointFormat(content: string): 'vasp' | 'qe' | 'unknown' {
   const firstLine = content.trim().split('\n')[0]?.toLowerCase() || '';
-  if (firstLine.includes('k_points')) return 'qe';
-  if (content.trim().split('\n')[1]?.trim() === '0') return 'vasp';
+  if (firstLine.includes('k_points')) {
+    return 'qe';
+  }
+  if (content.trim().split('\n')[1]?.trim() === '0') {
+    return 'vasp';
+  }
   return 'unknown';
 }
 
