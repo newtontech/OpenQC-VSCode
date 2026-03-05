@@ -2,7 +2,7 @@
   "name": "openqc",
   "displayName": "OpenQC - Quantum Chemistry & Molecular Dynamics Suite",
   "description": "Parse, visualize, and analyze ANY DFT/quantum chemistry/MD input files. Supporting 10+ computational chemistry software with interactive 3D molecular visualization.",
-  "version": "0.0.2",
+  "version": "3.0.7",
   "publisher": "newtontech",
   "engines": {
     "vscode": "^1.85.0"
@@ -279,6 +279,124 @@
       {
         "command": "openqc.checkConverterBackend",
         "title": "OpenQC: Check Format Converter Backend"
+      },
+      {
+        "command": "openqc.convertToASE",
+        "title": "OpenQC: Convert to ASE Atoms",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.convertFromASE",
+        "title": "OpenQC: Convert from ASE Atoms",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.migrateFormat",
+        "title": "OpenQC: Migrate Format (ASE)",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.quickConvert",
+        "title": "OpenQC: Quick Convert (ASE)",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.migrateKpoints",
+        "title": "OpenQC: Migrate k-Point Grid",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateParameters",
+        "title": "OpenQC: Migrate Electronic Parameters",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateMDParameters",
+        "title": "OpenQC: Migrate MD Parameters",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateMDWorkflow",
+        "title": "OpenQC: Migrate MD/Optimization Workflow",
+        "category": "Migration",
+        "description": "Comprehensive MD and optimization workflow migration (ensembles, thermostats, algorithms)"
+      },
+      {
+        "command": "openqc.showMigrationValidation",
+        "title": "OpenQC: Show Migration Validation",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.aiOptimizeInput",
+        "title": "OpenQC: AI Optimize Input",
+        "category": "AI",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "openqc.aiGenerateInput",
+        "title": "OpenQC: AI Generate Input",
+        "category": "AI",
+        "icon": "$(wand)"
+      },
+      {
+        "command": "openqc.aiExplainParameters",
+        "title": "OpenQC: AI Explain Parameters",
+        "category": "AI",
+        "icon": "$(question)"
+      },
+      {
+        "command": "openqc.aiDebugCalculation",
+        "title": "OpenQC: AI Debug Calculation",
+        "category": "AI",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "openqc.aiSettings",
+        "title": "OpenQC: AI Settings",
+        "category": "AI",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "openqc.convertToASE",
+        "title": "Convert to ASE Atoms",
+        "category": "OpenQC",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "openqc.convertFromASE",
+        "title": "Convert from ASE Atoms",
+        "category": "OpenQC",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "openqc.migrateFormat",
+        "title": "Migrate Format (ASE)",
+        "category": "OpenQC",
+        "icon": "$(replace)"
+      },
+      {
+        "command": "openqc.quickConvert",
+        "title": "Quick Convert",
+        "category": "OpenQC",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "openqc.showConverterPanel",
+        "title": "Show ASE Converter",
+        "category": "OpenQC",
+        "icon": "$(sidebar-right)"
+      },
+      {
+        "command": "openqc.exportStructureWithPicker",
+        "title": "OpenQC: Export Structure (Choose Format)",
+        "category": "OpenQC",
+        "icon": "$(save-all)"
+      },
+      {
+        "command": "openqc.exportStructure",
+        "title": "OpenQC: Export Structure",
+        "category": "OpenQC",
+        "icon": "$(save)"
       }
     ],
     "views": {
@@ -297,6 +415,13 @@
           "icon": "$(server-process)",
           "contextualTitle": "OpenQC Jobs"
         }
+      ],
+      "openqc-converter-panel": [
+        {
+          "id": "openqc.converterView",
+          "name": "ASE Converter",
+          "when": "openqc.converterEnabled"
+        }
       ]
     },
     "viewsContainers": {
@@ -306,6 +431,11 @@
           "title": "OpenQC",
           "icon": "$(beaker)",
           "when": "openqc.sidebar.enabled"
+        },
+        {
+          "id": "openqc-converter-panel",
+          "title": "OpenQC Converter",
+          "icon": "$(symbol-array)"
         }
       ]
     },
@@ -426,6 +556,52 @@
           "type": "boolean",
           "default": true,
           "description": "Preserve metadata during format conversion"
+        },
+        "openqc.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Path to Python executable for ASE backend"
+        },
+        "openqc.ai.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable AI-powered features"
+        },
+        "openqc.ai.provider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "ollama"
+          ],
+          "default": "ollama",
+          "description": "AI provider (OpenAI or Ollama)"
+        },
+        "openqc.ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API key (only used with OpenAI provider)"
+        },
+        "openqc.ai.model": {
+          "type": "string",
+          "default": "llama2",
+          "description": "AI model name (gpt-4 for OpenAI, llama2 for Ollama)"
+        },
+        "openqc.ai.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server URL"
+        },
+        "openqc.ai.maxTokens": {
+          "type": "number",
+          "default": 2048,
+          "description": "Maximum tokens in AI response"
+        },
+        "openqc.ai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "AI temperature (creativity vs determinism)"
         }
       }
     },
