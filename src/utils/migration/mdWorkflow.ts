@@ -564,7 +564,7 @@ export class MDWorkflowConverter {
 
     // Detect format
     let format = 'unknown';
-    if (basename === 'INCAR' || basename.startsWith('INCAR-')) {
+    if (basename === 'INCAR' || basename.startsWith('INCAR')) {
       format = 'vasp';
     } else if (ext === '.in' || ext === '.pw') {
       format = 'qe';
