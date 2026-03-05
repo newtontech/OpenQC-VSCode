@@ -2,7 +2,7 @@
   "name": "openqc",
   "displayName": "OpenQC - Quantum Chemistry & Molecular Dynamics Suite",
   "description": "Parse, visualize, and analyze ANY DFT/quantum chemistry/MD input files. Supporting 10+ computational chemistry software with interactive 3D molecular visualization.",
-  "version": "0.0.2",
+  "version": "3.0.7",
   "publisher": "newtontech",
   "engines": {
     "vscode": "^1.85.0"
