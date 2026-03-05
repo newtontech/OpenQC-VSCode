@@ -76,8 +76,8 @@ describe('IncrementalCache', () => {
       // After evicting key2 (LRU): key1=10 + key3=32 = 42 <= 45, stops
       const smallCache = new IncrementalCache({ maxSize: 45 });
 
-      smallCache.set('key1', 'small', 'hash1');  // 10 bytes
-      smallCache.set('key2', 'small', 'hash2');  // 10 bytes, total = 20
+      smallCache.set('key1', 'small', 'hash1'); // 10 bytes
+      smallCache.set('key2', 'small', 'hash2'); // 10 bytes, total = 20
 
       // Access key1 to make it more recently used
       smallCache.get('key1');
@@ -97,14 +97,14 @@ describe('IncrementalCache', () => {
       // After evicting key2 (LRU): key1=10 + key3=10 = 20 <= 22, stops
       const smallCache = new IncrementalCache({ maxSize: 22 });
 
-      smallCache.set('key1', 'data1', 'hash1');  // 10 bytes
-      smallCache.set('key2', 'data2', 'hash2');  // 10 bytes
+      smallCache.set('key1', 'data1', 'hash1'); // 10 bytes
+      smallCache.set('key2', 'data2', 'hash2'); // 10 bytes
 
       // Access key1 to update its position (make it more recently used)
       smallCache.get('key1');
 
       // Add key3 which should trigger eviction of key2 (LRU)
-      smallCache.set('key3', 'data3', 'hash3');  // 10 bytes
+      smallCache.set('key3', 'data3', 'hash3'); // 10 bytes
 
       // key1 should still exist (was accessed more recently)
       // key2 should be evicted (was LRU)
@@ -179,12 +179,12 @@ describe('IncrementalCache', () => {
   });
 
   describe('Invalidation', () => {
-    it('should invalidate entries by age', () => {
+    it('should invalidate entries by age', async () => {
       cache.set('key1', 'data1', 'hash1');
       cache.set('key2', 'data2', 'hash2');
 
-      // Wait a bit
-      jest.advanceTimersByTime(100);
+      // Wait a bit for entries to age
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const invalidated = cache.invalidateByAge(50);
 

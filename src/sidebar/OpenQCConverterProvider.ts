@@ -3,7 +3,7 @@ import * as path from 'path';
 
 /**
  * OpenQC Sidebar Provider
- * 
+ *
  * 提供VSCode侧边栏界面，包含：
  * - 格式转换按钮
  * - 快速转换预设
@@ -11,52 +11,52 @@ import * as path from 'path';
  * - 最近转换历史
  */
 export class OpenQCConverterProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = 'openqc.converterSidebar';
-    
-    private _view?: vscode.WebviewView;
-    
-    constructor(private readonly _extensionUri: vscode.Uri) {}
-    
-    public resolveWebviewView(
-        webviewView: vscode.WebviewView,
-        context: vscode.WebviewViewResolveContext,
-        _token: vscode.CancellationToken
-    ) {
-        this._view = webviewView;
-        
-        webviewView.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [this._extensionUri]
-        };
-        
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        
-        // 处理来自Webview的消息
-        webviewView.webview.onDidReceiveMessage(async (data) => {
-            switch (data.type) {
-                case 'convertToASE':
-                    vscode.commands.executeCommand('openqc.convertToASE');
-                    break;
-                case 'convertFromASE':
-                    vscode.commands.executeCommand('openqc.convertFromASE');
-                    break;
-                case 'migrateFormat':
-                    vscode.commands.executeCommand('openqc.migrateFormat');
-                    break;
-                case 'quickConvert':
-                    vscode.commands.executeCommand('openqc.quickConvert', data.from, data.to);
-                    break;
-                case 'openSettings':
-                    vscode.commands.executeCommand('workbench.action.openSettings', 'openqc');
-                    break;
-            }
-        });
-    }
-    
-    private _getHtmlForWebview(webview: vscode.Webview): string {
-        const nonce = getNonce();
-        
-        return `<!DOCTYPE html>
+  public static readonly viewType = 'openqc.converterSidebar';
+
+  private _view?: vscode.WebviewView;
+
+  constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  public resolveWebviewView(
+    webviewView: vscode.WebviewView,
+    context: vscode.WebviewViewResolveContext,
+    _token: vscode.CancellationToken
+  ) {
+    this._view = webviewView;
+
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [this._extensionUri],
+    };
+
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+    // 处理来自Webview的消息
+    webviewView.webview.onDidReceiveMessage(async data => {
+      switch (data.type) {
+        case 'convertToASE':
+          vscode.commands.executeCommand('openqc.convertToASE');
+          break;
+        case 'convertFromASE':
+          vscode.commands.executeCommand('openqc.convertFromASE');
+          break;
+        case 'migrateFormat':
+          vscode.commands.executeCommand('openqc.migrateFormat');
+          break;
+        case 'quickConvert':
+          vscode.commands.executeCommand('openqc.quickConvert', data.from, data.to);
+          break;
+        case 'openSettings':
+          vscode.commands.executeCommand('workbench.action.openSettings', 'openqc');
+          break;
+      }
+    });
+  }
+
+  private _getHtmlForWebview(webview: vscode.Webview): string {
+    const nonce = getNonce();
+
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -264,14 +264,14 @@ export class OpenQCConverterProvider implements vscode.WebviewViewProvider {
     </script>
 </body>
 </html>`;
-    }
+  }
 }
 
 function getNonce(): string {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }

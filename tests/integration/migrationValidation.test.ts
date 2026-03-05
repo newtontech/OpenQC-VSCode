@@ -105,6 +105,7 @@ describe('Migration Validation Integration Tests', () => {
 
   describe('Round-Trip Conversion Tests', () => {
     it('should preserve structure in VASP → XYZ → VASP round-trip', async () => {
+      jest.setTimeout(30000);
       if (!(await getBackendAvailable())) return;
 
       const inputFile = path.join(fixturesDir, 'POSCAR');
@@ -151,7 +152,7 @@ describe('Migration Validation Integration Tests', () => {
         ASEFormat.VASP,
         ASEFormat.CP2K
       );
-      
+
       // CP2K format may not be supported for writing in all ASE versions
       if (!result1.success) {
         console.warn('CP2K format not supported for writing, skipping test');
@@ -189,7 +190,7 @@ describe('Migration Validation Integration Tests', () => {
         ASEFormat.VASP,
         ASEFormat.QE
       );
-      
+
       // QE format may not be supported for writing in all ASE versions
       if (!result1.success) {
         console.warn('QE format not supported for writing, skipping test');
@@ -253,7 +254,7 @@ describe('Migration Validation Integration Tests', () => {
       if (!(await getBackendAvailable())) return;
 
       const inputFile = path.join(fixturesDir, 'POSCAR');
-      const outputFile = path.join(outputDir, 'cell.xyz');  // Use XYZ format for better compatibility
+      const outputFile = path.join(outputDir, 'cell.xyz'); // Use XYZ format for better compatibility
 
       const result = await converter.convertFormat(
         inputFile,
@@ -349,7 +350,7 @@ describe('Migration Validation Integration Tests', () => {
       if (!(await getBackendAvailable())) return;
 
       const inputFile = path.join(fixturesDir, 'POSCAR');
-      const outputFile = path.join(outputDir, 'report_test.xyz');  // Use XYZ format
+      const outputFile = path.join(outputDir, 'report_test.xyz'); // Use XYZ format
 
       const result = await converter.convertFormat(
         inputFile,

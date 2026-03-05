@@ -53,12 +53,9 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize OpenQC Converter Sidebar Provider
   converterProvider = new OpenQCConverterProvider(context.extensionUri);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      OpenQCConverterProvider.viewType,
-      converterProvider
-    )
+    vscode.window.registerWebviewViewProvider(OpenQCConverterProvider.viewType, converterProvider)
   );
-  
+
   // Set converter enabled context
   vscode.commands.executeCommand('setContext', 'openqc.converterEnabled', true);
 
@@ -340,7 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register ASE commands
   registerMigrationCommands(context);
   registerAICommands(context);
-  
+
   console.log('OpenQC-VSCode: All providers registered successfully!');
 }
 

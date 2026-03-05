@@ -53,7 +53,7 @@ describe('OpenQCConverterProvider', () => {
       toString: () => '/test/extension',
     } as vscode.Uri;
     provider = new OpenQCConverterProvider(mockExtensionUri);
-    
+
     messageHandler = undefined;
     mockWebviewView = {
       webview: {
@@ -136,12 +136,19 @@ describe('OpenQCConverterProvider', () => {
 
     it('should handle quickConvert message with from and to formats', () => {
       messageHandler!({ type: 'quickConvert', from: 'vasp', to: 'cp2k' });
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('openqc.quickConvert', 'vasp', 'cp2k');
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'openqc.quickConvert',
+        'vasp',
+        'cp2k'
+      );
     });
 
     it('should handle openSettings message', () => {
       messageHandler!({ type: 'openSettings' });
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('workbench.action.openSettings', 'openqc');
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        'workbench.action.openSettings',
+        'openqc'
+      );
     });
 
     it('should ignore unknown message types', () => {
