@@ -1,3 +1,58 @@
+## [3.0.5] - 2026-03-05
+
+### Added - Interactive 3D Editing (Phase 2: Week 7-8)
+
+#### InteractiveControls Module
+- **src/visualizers/InteractiveControls.ts** - Comprehensive interactive 3D editing system
+  - Click-to-select atoms with visual highlighting
+  - Multi-selection support (Ctrl/Cmd click)
+  - Hover effects for atom preview
+  - Bond distance measurements
+  - Angle measurements (3 atoms)
+  - Dihedral angle measurements (4 atoms)
+  - Real-time coordinate editing
+  - Keyboard shortcuts (Esc, Delete, Ctrl+A, M for measure)
+  - Visual measurement labels and lines
+
+#### ThreeJsRenderer Integration
+- Integrated InteractiveControls with ThreeJsRenderer
+- New methods:
+  - `enableInteractiveControls()` - Enable interactive editing mode
+  - `disableInteractiveControls()` - Disable interactive mode
+  - `selectAtom(index)` - Programmatically select atoms
+  - `measureSelection()` - Measure distances/angles
+  - `updateAtomPosition()` - Edit atom coordinates
+  - `deleteSelectedAtoms()` - Remove selected atoms
+  - `setMultiSelect()` - Toggle multi-selection mode
+  - `setMeasurements()` - Toggle measurement display
+
+#### Type Definitions
+- Added `SelectionState` - Track selected/hovered atoms
+- Added `MeasurementResult` - Distance/angle/dihedral measurements
+- Added `EditOperation` - Track edit operations
+- Added `InteractiveConfig` - Configuration for interactive features
+
+#### Testing
+- **tests/unit/visualizers/InteractiveControls.test.ts** - 31 comprehensive tests
+  - Initialization tests
+  - Atom selection/deselection tests
+  - Multi-selection tests
+  - Measurement tests (distance, angle, dihedral)
+  - Edit operation tests
+  - Callback tests
+  - Edge case handling
+
+### Updated Phase 2 Status
+- Phase 2: Visualization - 85% Complete
+  - ✅ Three.js integration
+  - ✅ POSCAR/CONTCAR rendering
+  - ✅ Camera controls
+  - ✅ Representation modes
+  - ✅ Interactive editing (NEW)
+  - ⏳ Unit cell visualization (pending minor improvements)
+
+---
+
 ## [3.0.4] - 2026-03-05
 
 ### Fixed - Test Suite and Coverage Improvements

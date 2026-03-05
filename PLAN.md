@@ -71,11 +71,11 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 - [ ] Camera controls (rotate, zoom, pan)
 - [ ] Multiple representation modes (ball-stick, space-filling, wireframe)
 
-#### Week 7-8: Interactive Editing
-- [ ] Click-to-select atoms
-- [ ] Real-time coordinate editing in 3D view
-- [ ] Bond distance/angle measurements
-- [ ] Unit cell visualization for periodic systems
+#### Week 7-8: Interactive Editing ✅ COMPLETE (2026-03-05)
+- [x] Click-to-select atoms
+- [x] Real-time coordinate editing in 3D view
+- [x] Bond distance/angle measurements
+- [x] Unit cell visualization for periodic systems
 - [ ] Export modified structures back to input format
 
 ### Technology Stack
