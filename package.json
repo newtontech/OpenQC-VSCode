@@ -385,6 +385,18 @@
         "title": "Show ASE Converter",
         "category": "OpenQC",
         "icon": "$(sidebar-right)"
+      },
+      {
+        "command": "openqc.exportStructureWithPicker",
+        "title": "OpenQC: Export Structure (Choose Format)",
+        "category": "OpenQC",
+        "icon": "$(save-all)"
+      },
+      {
+        "command": "openqc.exportStructure",
+        "title": "OpenQC: Export Structure",
+        "category": "OpenQC",
+        "icon": "$(save)"
       }
     ],
     "views": {

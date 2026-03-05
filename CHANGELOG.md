@@ -1,3 +1,63 @@
+## [3.0.6] - 2026-03-05
+
+### Added - Phase 2 Complete: Export Modified Structures ✅
+
+#### Structure Export Functionality
+- **src/utils/structureExporter.ts** - Complete structure export system
+  - Export to 12 formats: VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS, LAMMPS, XYZ, extXYZ, PDB, CIF
+  - VSCode command: `openqc.exportStructure` - Quick export with format picker
+  - VSCode command: `openqc.exportStructureWithPicker` - Export with detailed format selection
+  - File save dialog with format-specific extensions
+  - Overwrite confirmation dialog
+  - Success notification with option to open exported file
+  - Python backend integration via `structure_writer.py`
+
+#### Python Backend
+- **python/openqc/ase/structure_writer.py** - New CLI tool for writing structures
+  - Accepts JSON atoms data from TypeScript frontend
+  - Support for all ASE write formats
+  - Stdout output mode for preview
+  - File output mode for saving
+  - JSON result reporting
+
+#### VSCode Commands
+- Export current 3D structure to file
+- Export with format picker (12 formats supported)
+- Automatic file extension based on format
+- Save dialog integration
+
+#### Type Definitions
+- `ExportFormat` - Supported export format types
+- `ExportOptions` - Configuration for export operations
+- `StructureData` - Structure data model for export
+- `ExportResult` - Result of export operations
+
+#### Testing
+- **src/utils/__tests__/structureExporter.test.ts** - 17 comprehensive tests
+  - Format display name tests (12 formats)
+  - Supported formats listing tests
+  - Cell parameter conversion tests
+  - Structure to ASE format conversion tests
+
+### Phase 2 Complete ✅
+- Phase 2: Visualization - 100% Complete
+  - ✅ Three.js integration
+  - ✅ POSCAR/CONTCAR rendering
+  - ✅ Camera controls
+  - ✅ Representation modes
+  - ✅ Interactive editing
+  - ✅ Unit cell visualization
+  - ✅ Export modified structures (NEW - COMPLETE)
+
+### Next Steps
+- Phase 5: Advanced Features & Polish (50% → Next priority)
+  - Caching and incremental parsing
+  - Memory optimization for 10k+ atom systems
+  - Extension marketplace listing
+  - Documentation website
+  - Video tutorials
+
+---
 ## [3.0.5] - 2026-03-05
 
 ### Added - Interactive 3D Editing (Phase 2: Week 7-8)

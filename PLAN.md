@@ -76,7 +76,7 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 - [x] Real-time coordinate editing in 3D view
 - [x] Bond distance/angle measurements
 - [x] Unit cell visualization for periodic systems
-- [ ] Export modified structures back to input format
+- [x] Export modified structures back to input format ✅ COMPLETE (2026-03-05)
 
 ### Technology Stack
 - **3D Engine**: Three.js or NGL Viewer
