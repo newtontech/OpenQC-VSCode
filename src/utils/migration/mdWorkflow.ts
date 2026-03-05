@@ -156,12 +156,18 @@ export class MDWorkflowConverter {
    */
   private parseValue(value: string): any {
     // Boolean
-    if (value.toUpperCase() === '.TRUE.' || value.toUpperCase() === 'TRUE') return true;
-    if (value.toUpperCase() === '.FALSE.' || value.toUpperCase() === 'FALSE') return false;
+    if (value.toUpperCase() === '.TRUE.' || value.toUpperCase() === 'TRUE') {
+      return true;
+    }
+    if (value.toUpperCase() === '.FALSE.' || value.toUpperCase() === 'FALSE') {
+      return false;
+    }
 
     // Number
     const num = parseFloat(value);
-    if (!isNaN(num)) return num;
+    if (!isNaN(num)) {
+      return num;
+    }
 
     // String
     return value.replace(/^["']|["']$/g, '');
@@ -179,7 +185,9 @@ export class MDWorkflowConverter {
     // Parse INCAR
     content.split('\n').forEach(line => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) return;
+      if (!trimmed || trimmed.startsWith('#')) {
+        return;
+      }
 
       const match = trimmed.match(/^(\w+)\s*=\s*(.+?)(?:\s*#.*)?$/);
       if (match) {
@@ -220,38 +228,64 @@ export class MDWorkflowConverter {
     const md: MDParameters = {};
 
     // Time step
-    if (params.POTIM) md.timeStep = params.POTIM;
-    if (params.NSW) md.nSteps = params.NSW;
+    if (params.POTIM) {
+      md.timeStep = params.POTIM;
+    }
+    if (params.NSW) {
+      md.nSteps = params.NSW;
+    }
 
     // Ensemble
     if (params.ISIF !== undefined) {
-      if (params.ISIF === 2) md.ensemble = 'NVT';
-      else if (params.ISIF === 3) md.ensemble = 'NPT';
-      else if (params.ISIF === 7) md.ensemble = 'NPH';
-      else md.ensemble = 'NVT';
+      if (params.ISIF === 2) {
+        md.ensemble = 'NVT';
+      } else if (params.ISIF === 3) {
+        md.ensemble = 'NPT';
+      } else if (params.ISIF === 7) {
+        md.ensemble = 'NPH';
+      } else {
+        md.ensemble = 'NVT';
+      }
     }
 
     // Temperature
-    if (params.TEBEG) md.temperature = params.TEBEG;
-    if (params.TEEND) md.temperatureEnd = params.TEEND;
+    if (params.TEBEG) {
+      md.temperature = params.TEBEG;
+    }
+    if (params.TEEND) {
+      md.temperatureEnd = params.TEEND;
+    }
 
     // Pressure
-    if (params.PSTRESS !== undefined) md.pressure = params.PSTRESS;
+    if (params.PSTRESS !== undefined) {
+      md.pressure = params.PSTRESS;
+    }
 
     // Thermostat
     if (params.SMASS !== undefined) {
-      if (params.SMASS === 0) md.thermostat = 'NOSE_HOOVER';
-      else if (params.SMASS === 1) md.thermostat = 'VELOCITY_SCALING';
-      else if (params.SMASS === 2) md.thermostat = 'BERENDSEN';
-      else if (params.SMASS === 3) md.thermostat = 'ANDERSEN';
+      if (params.SMASS === 0) {
+        md.thermostat = 'NOSE_HOOVER';
+      } else if (params.SMASS === 1) {
+        md.thermostat = 'VELOCITY_SCALING';
+      } else if (params.SMASS === 2) {
+        md.thermostat = 'BERENDSEN';
+      } else if (params.SMASS === 3) {
+        md.thermostat = 'ANDERSEN';
+      }
     }
 
     // Random seed
-    if (params.RANDOM_SEED) md.randomSeed = params.RANDOM_SEED;
+    if (params.RANDOM_SEED) {
+      md.randomSeed = params.RANDOM_SEED;
+    }
 
     // Print frequency
-    if (params.NWRITE) md.printFreq = params.NWRITE;
-    if (params.NBLOCK) md.trajFreq = params.NBLOCK;
+    if (params.NWRITE) {
+      md.printFreq = params.NWRITE;
+    }
+    if (params.NBLOCK) {
+      md.trajFreq = params.NBLOCK;
+    }
 
     return md;
   }
@@ -264,28 +298,45 @@ export class MDWorkflowConverter {
 
     // Algorithm
     if (params.IBRION !== undefined) {
-      if (params.IBRION === 1) opt.algorithm = 'RMMDIIS';
-      else if (params.IBRION === 2) opt.algorithm = 'CG';
-      else if (params.IBRION === 3) opt.algorithm = 'DAMPED_MD';
-      else if (params.IBRION === 5) opt.algorithm = 'BFGS';
-      else if (params.IBRION === 7) opt.algorithm = 'MD';
-      else opt.algorithm = 'CG';
+      if (params.IBRION === 1) {
+        opt.algorithm = 'RMMDIIS';
+      } else if (params.IBRION === 2) {
+        opt.algorithm = 'CG';
+      } else if (params.IBRION === 3) {
+        opt.algorithm = 'DAMPED_MD';
+      } else if (params.IBRION === 5) {
+        opt.algorithm = 'BFGS';
+      } else if (params.IBRION === 7) {
+        opt.algorithm = 'MD';
+      } else {
+        opt.algorithm = 'CG';
+      }
     }
 
     // Max steps
-    if (params.NSW) opt.maxSteps = params.NSW;
+    if (params.NSW) {
+      opt.maxSteps = params.NSW;
+    }
 
     // Convergence
-    if (params.EDIFF) opt.energyConv = params.EDIFF;
-    if (params.EDIFFG) opt.forceConv = Math.abs(params.EDIFFG);
+    if (params.EDIFF) {
+      opt.energyConv = params.EDIFF;
+    }
+    if (params.EDIFFG) {
+      opt.forceConv = Math.abs(params.EDIFFG);
+    }
 
     // Step size
-    if (params.POTIM) opt.stepSize = params.POTIM;
+    if (params.POTIM) {
+      opt.stepSize = params.POTIM;
+    }
 
     // Cell optimization
     if (params.ISIF !== undefined) {
       opt.optimizeCell = params.ISIF >= 3 && params.ISIF <= 7;
-      if (params.PSTRESS) opt.cellPressure = params.PSTRESS;
+      if (params.PSTRESS) {
+        opt.cellPressure = params.PSTRESS;
+      }
     }
 
     return opt;
@@ -312,7 +363,9 @@ export class MDWorkflowConverter {
         currentSection = '';
         return;
       }
-      if (!trimmed || trimmed.startsWith('!')) return;
+      if (!trimmed || trimmed.startsWith('!')) {
+        return;
+      }
 
       if (currentSection && trimmed.includes('=')) {
         const match = trimmed.match(/^(\w+)\s*=\s*(.+?)(?:\s*!.*)?$/);
@@ -353,33 +406,52 @@ export class MDWorkflowConverter {
     const md: MDParameters = {};
 
     // Time step
-    if (params['CONTROL.dt']) md.timeStep = params['CONTROL.dt'];
-    if (params['CONTROL.nstep']) md.nSteps = params['CONTROL.nstep'];
+    if (params['CONTROL.dt']) {
+      md.timeStep = params['CONTROL.dt'];
+    }
+    if (params['CONTROL.nstep']) {
+      md.nSteps = params['CONTROL.nstep'];
+    }
 
     // Ensemble
     if (params['IONS.ion_dynamics']) {
       const dyn = params['IONS.ion_dynamics'].toLowerCase();
       const ionTemp = params['IONS.ion_temperature']?.toLowerCase() || '';
       const hasThermostat = ionTemp && ionTemp !== 'not_controlled';
-      if (dyn === 'verlet' && !hasThermostat) md.ensemble = 'NVE';
-      else if (dyn === 'langevin') md.ensemble = 'NVT';
-      else md.ensemble = 'NVT';
+      if (dyn === 'verlet' && !hasThermostat) {
+        md.ensemble = 'NVE';
+      } else if (dyn === 'langevin') {
+        md.ensemble = 'NVT';
+      } else {
+        md.ensemble = 'NVT';
+      }
     }
 
     // Temperature
-    if (params['IONS.tempw']) md.temperature = params['IONS.tempw'];
-    if (params['IONS.templ']) md.temperatureEnd = params['IONS.templ'];
+    if (params['IONS.tempw']) {
+      md.temperature = params['IONS.tempw'];
+    }
+    if (params['IONS.templ']) {
+      md.temperatureEnd = params['IONS.templ'];
+    }
 
     // Pressure
-    if (params['CELL.press']) md.pressure = params['CELL.press'];
+    if (params['CELL.press']) {
+      md.pressure = params['CELL.press'];
+    }
 
     // Thermostat
     if (params['IONS.ion_temperature']) {
       const therm = params['IONS.ion_temperature'].toLowerCase();
-      if (therm.includes('nose')) md.thermostat = 'NOSE_HOOVER';
-      else if (therm.includes('berendsen')) md.thermostat = 'BERENDSEN';
-      else if (therm.includes('langevin')) md.thermostat = 'LANGEVIN';
-      else if (therm.includes('rescaling')) md.thermostat = 'VELOCITY_SCALING';
+      if (therm.includes('nose')) {
+        md.thermostat = 'NOSE_HOOVER';
+      } else if (therm.includes('berendsen')) {
+        md.thermostat = 'BERENDSEN';
+      } else if (therm.includes('langevin')) {
+        md.thermostat = 'LANGEVIN';
+      } else if (therm.includes('rescaling')) {
+        md.thermostat = 'VELOCITY_SCALING';
+      }
     }
 
     return md;
@@ -394,24 +466,37 @@ export class MDWorkflowConverter {
     // Algorithm
     if (params['IONS.ion_dynamics']) {
       const dyn = params['IONS.ion_dynamics'].toLowerCase();
-      if (dyn.includes('bfgs')) opt.algorithm = 'BFGS';
-      else if (dyn.includes('lbfgs')) opt.algorithm = 'LBFGS';
-      else if (dyn.includes('cg')) opt.algorithm = 'CG';
-      else if (dyn.includes('damp')) opt.algorithm = 'DAMPED_MD';
-      else if (dyn.includes('verlet')) opt.algorithm = 'MD';
-      else opt.algorithm = 'BFGS';
+      if (dyn.includes('bfgs')) {
+        opt.algorithm = 'BFGS';
+      } else if (dyn.includes('lbfgs')) {
+        opt.algorithm = 'LBFGS';
+      } else if (dyn.includes('cg')) {
+        opt.algorithm = 'CG';
+      } else if (dyn.includes('damp')) {
+        opt.algorithm = 'DAMPED_MD';
+      } else if (dyn.includes('verlet')) {
+        opt.algorithm = 'MD';
+      } else {
+        opt.algorithm = 'BFGS';
+      }
     }
 
     // Max steps
-    if (params['IONS.bfgs_ndim']) opt.maxSteps = params['IONS.bfgs_ndim'];
+    if (params['IONS.bfgs_ndim']) {
+      opt.maxSteps = params['IONS.bfgs_ndim'];
+    }
 
     // Convergence
-    if (params['ELECTRONS.conv_thr']) opt.energyConv = params['ELECTRONS.conv_thr'];
+    if (params['ELECTRONS.conv_thr']) {
+      opt.energyConv = params['ELECTRONS.conv_thr'];
+    }
 
     // Cell optimization
     if (params['CELL.cell_dynamics']) {
       opt.optimizeCell = params['CELL.cell_dynamics'].toLowerCase() !== 'none';
-      if (params['CELL.press']) opt.cellPressure = params['CELL.press'];
+      if (params['CELL.press']) {
+        opt.cellPressure = params['CELL.press'];
+      }
     }
 
     return opt;
@@ -443,7 +528,9 @@ export class MDWorkflowConverter {
         currentSection = sectionPath.join('.');
         return;
       }
-      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('!')) return;
+      if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('!')) {
+        return;
+      }
 
       const parts = trimmed.split(/\s+/);
       if (parts.length >= 2) {
@@ -480,39 +567,64 @@ export class MDWorkflowConverter {
     const md: MDParameters = {};
 
     // Time step
-    if (params['MOTION.MD.TIMESTEP']) md.timeStep = params['MOTION.MD.TIMESTEP'];
-    if (params['MOTION.MD.STEPS']) md.nSteps = params['MOTION.MD.STEPS'];
+    if (params['MOTION.MD.TIMESTEP']) {
+      md.timeStep = params['MOTION.MD.TIMESTEP'];
+    }
+    if (params['MOTION.MD.STEPS']) {
+      md.nSteps = params['MOTION.MD.STEPS'];
+    }
 
     // Ensemble
     if (params['MOTION.MD.ENSEMBLE']) {
       const ens = params['MOTION.MD.ENSEMBLE'].toUpperCase();
-      if (ens.includes('NVE')) md.ensemble = 'NVE';
-      else if (ens.includes('NVT')) md.ensemble = 'NVT';
-      else if (ens.includes('NPT')) md.ensemble = 'NPT';
-      else if (ens.includes('NPH')) md.ensemble = 'NPH';
-      else md.ensemble = 'NVT';
+      if (ens.includes('NVE')) {
+        md.ensemble = 'NVE';
+      } else if (ens.includes('NVT')) {
+        md.ensemble = 'NVT';
+      } else if (ens.includes('NPT')) {
+        md.ensemble = 'NPT';
+      } else if (ens.includes('NPH')) {
+        md.ensemble = 'NPH';
+      } else {
+        md.ensemble = 'NVT';
+      }
     }
 
     // Temperature
-    if (params['MOTION.MD.TEMPERATURE']) md.temperature = params['MOTION.MD.TEMPERATURE'];
-    if (params['MOTION.MD.TEMPTOL']) md.temperatureEnd = params['MOTION.MD.TEMPTOL'];
+    if (params['MOTION.MD.TEMPERATURE']) {
+      md.temperature = params['MOTION.MD.TEMPERATURE'];
+    }
+    if (params['MOTION.MD.TEMPTOL']) {
+      md.temperatureEnd = params['MOTION.MD.TEMPTOL'];
+    }
 
     // Thermostat
     if (params['MOTION.MD.THERMOSTAT.TYPE']) {
       const therm = params['MOTION.MD.THERMOSTAT.TYPE'].toUpperCase();
-      if (therm.includes('NOSE')) md.thermostat = 'NOSE_HOOVER';
-      else if (therm.includes('BERENDSEN')) md.thermostat = 'BERENDSEN';
-      else if (therm.includes('LANGEVIN')) md.thermostat = 'LANGEVIN';
-      else md.thermostat = 'NOSE_HOOVER';
+      if (therm.includes('NOSE')) {
+        md.thermostat = 'NOSE_HOOVER';
+      } else if (therm.includes('BERENDSEN')) {
+        md.thermostat = 'BERENDSEN';
+      } else if (therm.includes('LANGEVIN')) {
+        md.thermostat = 'LANGEVIN';
+      } else {
+        md.thermostat = 'NOSE_HOOVER';
+      }
     }
 
     // Pressure
-    if (params['MOTION.MD.PRESSURE']) md.pressure = params['MOTION.MD.PRESSURE'];
+    if (params['MOTION.MD.PRESSURE']) {
+      md.pressure = params['MOTION.MD.PRESSURE'];
+    }
     if (params['MOTION.MD.BAROSTAT.TYPE']) {
       const baro = params['MOTION.MD.BAROSTAT.TYPE'].toUpperCase();
-      if (baro.includes('NOSE')) md.barostat = 'NOSE_HOOVER';
-      else if (baro.includes('BERENDSEN')) md.barostat = 'BERENDSEN';
-      else if (baro.includes('MTTK')) md.barostat = 'MTTK';
+      if (baro.includes('NOSE')) {
+        md.barostat = 'NOSE_HOOVER';
+      } else if (baro.includes('BERENDSEN')) {
+        md.barostat = 'BERENDSEN';
+      } else if (baro.includes('MTTK')) {
+        md.barostat = 'MTTK';
+      }
     }
 
     return md;
@@ -527,14 +639,21 @@ export class MDWorkflowConverter {
     // Algorithm
     if (params['MOTION.GEO_OPT.OPTIMIZER']) {
       const algo = params['MOTION.GEO_OPT.OPTIMIZER'].toUpperCase();
-      if (algo.includes('BFGS')) opt.algorithm = 'BFGS';
-      else if (algo.includes('LBFGS')) opt.algorithm = 'LBFGS';
-      else if (algo.includes('CG')) opt.algorithm = 'CG';
-      else opt.algorithm = 'BFGS';
+      if (algo.includes('BFGS')) {
+        opt.algorithm = 'BFGS';
+      } else if (algo.includes('LBFGS')) {
+        opt.algorithm = 'LBFGS';
+      } else if (algo.includes('CG')) {
+        opt.algorithm = 'CG';
+      } else {
+        opt.algorithm = 'BFGS';
+      }
     }
 
     // Max steps
-    if (params['MOTION.GEO_OPT.MAX_ITER']) opt.maxSteps = params['MOTION.GEO_OPT.MAX_ITER'];
+    if (params['MOTION.GEO_OPT.MAX_ITER']) {
+      opt.maxSteps = params['MOTION.GEO_OPT.MAX_ITER'];
+    }
 
     // Convergence
     if (params['MOTION.GEO_OPT.CONVERGENCE.EPS_ENERGY']) {
@@ -599,14 +718,30 @@ export class MDWorkflowConverter {
   private convertVASPtoQEMD(md: MDParameters): MDParameters {
     const target: MDParameters = {};
 
-    if (md.timeStep) target.timeStep = md.timeStep;
-    if (md.nSteps) target.nSteps = md.nSteps;
-    if (md.ensemble) target.ensemble = md.ensemble;
-    if (md.temperature) target.temperature = md.temperature;
-    if (md.temperatureEnd) target.temperatureEnd = md.temperatureEnd;
-    if (md.pressure) target.pressure = md.pressure;
-    if (md.thermostat) target.thermostat = md.thermostat;
-    if (md.randomSeed) target.randomSeed = md.randomSeed;
+    if (md.timeStep) {
+      target.timeStep = md.timeStep;
+    }
+    if (md.nSteps) {
+      target.nSteps = md.nSteps;
+    }
+    if (md.ensemble) {
+      target.ensemble = md.ensemble;
+    }
+    if (md.temperature) {
+      target.temperature = md.temperature;
+    }
+    if (md.temperatureEnd) {
+      target.temperatureEnd = md.temperatureEnd;
+    }
+    if (md.pressure) {
+      target.pressure = md.pressure;
+    }
+    if (md.thermostat) {
+      target.thermostat = md.thermostat;
+    }
+    if (md.randomSeed) {
+      target.randomSeed = md.randomSeed;
+    }
 
     return target;
   }
@@ -617,15 +752,31 @@ export class MDWorkflowConverter {
   private convertVASPtoCP2KMD(md: MDParameters): MDParameters {
     const target: MDParameters = {};
 
-    if (md.timeStep) target.timeStep = md.timeStep;
-    if (md.nSteps) target.nSteps = md.nSteps;
-    if (md.ensemble) target.ensemble = md.ensemble;
-    if (md.temperature) target.temperature = md.temperature;
-    if (md.temperatureEnd) target.temperatureEnd = md.temperatureEnd;
+    if (md.timeStep) {
+      target.timeStep = md.timeStep;
+    }
+    if (md.nSteps) {
+      target.nSteps = md.nSteps;
+    }
+    if (md.ensemble) {
+      target.ensemble = md.ensemble;
+    }
+    if (md.temperature) {
+      target.temperature = md.temperature;
+    }
+    if (md.temperatureEnd) {
+      target.temperatureEnd = md.temperatureEnd;
+    }
     // kbar to bar
-    if (md.pressure) target.pressure = md.pressure * 1000;
-    if (md.thermostat) target.thermostat = md.thermostat;
-    if (md.barostat) target.barostat = md.barostat;
+    if (md.pressure) {
+      target.pressure = md.pressure * 1000;
+    }
+    if (md.thermostat) {
+      target.thermostat = md.thermostat;
+    }
+    if (md.barostat) {
+      target.barostat = md.barostat;
+    }
 
     return target;
   }
@@ -636,16 +787,31 @@ export class MDWorkflowConverter {
   private convertQEtoVASPMD(md: MDParameters): MDParameters {
     const target: MDParameters = {};
 
-    if (md.timeStep) target.timeStep = md.timeStep;
-    if (md.nSteps) target.nSteps = md.nSteps;
-    if (md.ensemble) target.ensemble = md.ensemble;
-    if (md.temperature) target.temperature = md.temperature;
-    if (md.temperatureEnd) target.temperatureEnd = md.temperatureEnd;
-    if (md.pressure) target.pressure = md.pressure;
+    if (md.timeStep) {
+      target.timeStep = md.timeStep;
+    }
+    if (md.nSteps) {
+      target.nSteps = md.nSteps;
+    }
+    if (md.ensemble) {
+      target.ensemble = md.ensemble;
+    }
+    if (md.temperature) {
+      target.temperature = md.temperature;
+    }
+    if (md.temperatureEnd) {
+      target.temperatureEnd = md.temperatureEnd;
+    }
+    if (md.pressure) {
+      target.pressure = md.pressure;
+    }
     if (md.thermostat) {
       // QE Langevin -> VASP Nose-Hoover (no direct equivalent)
-      if (md.thermostat === 'LANGEVIN') target.thermostat = 'NOSE_HOOVER';
-      else target.thermostat = md.thermostat;
+      if (md.thermostat === 'LANGEVIN') {
+        target.thermostat = 'NOSE_HOOVER';
+      } else {
+        target.thermostat = md.thermostat;
+      }
     }
 
     return target;
@@ -671,12 +837,22 @@ export class MDWorkflowConverter {
       target.algorithm = algoMap[opt.algorithm] || 'BFGS';
     }
 
-    if (opt.maxSteps) target.maxSteps = opt.maxSteps;
+    if (opt.maxSteps) {
+      target.maxSteps = opt.maxSteps;
+    }
     // eV to Ry
-    if (opt.energyConv) target.energyConv = opt.energyConv * 0.0734986;
-    if (opt.forceConv) target.forceConv = opt.forceConv;
-    if (opt.optimizeCell !== undefined) target.optimizeCell = opt.optimizeCell;
-    if (opt.cellPressure) target.cellPressure = opt.cellPressure;
+    if (opt.energyConv) {
+      target.energyConv = opt.energyConv * 0.0734986;
+    }
+    if (opt.forceConv) {
+      target.forceConv = opt.forceConv;
+    }
+    if (opt.optimizeCell !== undefined) {
+      target.optimizeCell = opt.optimizeCell;
+    }
+    if (opt.cellPressure) {
+      target.cellPressure = opt.cellPressure;
+    }
 
     return target;
   }
@@ -700,14 +876,24 @@ export class MDWorkflowConverter {
       target.algorithm = algoMap[opt.algorithm] || 'BFGS';
     }
 
-    if (opt.maxSteps) target.maxSteps = opt.maxSteps;
+    if (opt.maxSteps) {
+      target.maxSteps = opt.maxSteps;
+    }
     // eV to hartree
-    if (opt.energyConv) target.energyConv = opt.energyConv * 0.0367493;
+    if (opt.energyConv) {
+      target.energyConv = opt.energyConv * 0.0367493;
+    }
     // eV/Å to hartree/bohr
-    if (opt.forceConv) target.forceConv = opt.forceConv * 0.01943;
-    if (opt.optimizeCell !== undefined) target.optimizeCell = opt.optimizeCell;
+    if (opt.forceConv) {
+      target.forceConv = opt.forceConv * 0.01943;
+    }
+    if (opt.optimizeCell !== undefined) {
+      target.optimizeCell = opt.optimizeCell;
+    }
     // kbar to bar
-    if (opt.cellPressure) target.cellPressure = opt.cellPressure * 1000;
+    if (opt.cellPressure) {
+      target.cellPressure = opt.cellPressure * 1000;
+    }
 
     return target;
   }
@@ -731,12 +917,22 @@ export class MDWorkflowConverter {
       target.algorithm = algoMap[opt.algorithm] || 'CG';
     }
 
-    if (opt.maxSteps) target.maxSteps = opt.maxSteps;
+    if (opt.maxSteps) {
+      target.maxSteps = opt.maxSteps;
+    }
     // Ry to eV
-    if (opt.energyConv) target.energyConv = opt.energyConv * 13.6057;
-    if (opt.forceConv) target.forceConv = opt.forceConv;
-    if (opt.optimizeCell !== undefined) target.optimizeCell = opt.optimizeCell;
-    if (opt.cellPressure) target.cellPressure = opt.cellPressure;
+    if (opt.energyConv) {
+      target.energyConv = opt.energyConv * 13.6057;
+    }
+    if (opt.forceConv) {
+      target.forceConv = opt.forceConv;
+    }
+    if (opt.optimizeCell !== undefined) {
+      target.optimizeCell = opt.optimizeCell;
+    }
+    if (opt.cellPressure) {
+      target.cellPressure = opt.cellPressure;
+    }
 
     return target;
   }
@@ -778,7 +974,9 @@ export class MDWorkflowConverter {
           break;
         case 'cp2k->vasp':
           target.md = { ...source.md };
-          if (target.md.pressure) target.md.pressure = target.md.pressure / 1000;
+          if (target.md.pressure) {
+            target.md.pressure = target.md.pressure / 1000;
+          }
           break;
         default:
           result.warnings.push(
@@ -818,8 +1016,12 @@ export class MDWorkflowConverter {
     const lines: string[] = [];
 
     lines.push('# MD Parameters (migrated from OpenQC)');
-    if (md.timeStep) lines.push(`POTIM = ${md.timeStep.toFixed(1)}`);
-    if (md.nSteps) lines.push(`NSW = ${md.nSteps}`);
+    if (md.timeStep) {
+      lines.push(`POTIM = ${md.timeStep.toFixed(1)}`);
+    }
+    if (md.nSteps) {
+      lines.push(`NSW = ${md.nSteps}`);
+    }
 
     lines.push('IBRION = 0'); // MD
 
@@ -830,9 +1032,15 @@ export class MDWorkflowConverter {
       lines.push('ISIF = 3');
     }
 
-    if (md.temperature) lines.push(`TEBEG = ${md.temperature}`);
-    if (md.temperatureEnd) lines.push(`TEEND = ${md.temperatureEnd}`);
-    if (md.pressure) lines.push(`PSTRESS = ${md.pressure.toFixed(1)}`);
+    if (md.temperature) {
+      lines.push(`TEBEG = ${md.temperature}`);
+    }
+    if (md.temperatureEnd) {
+      lines.push(`TEEND = ${md.temperatureEnd}`);
+    }
+    if (md.pressure) {
+      lines.push(`PSTRESS = ${md.pressure.toFixed(1)}`);
+    }
 
     if (md.thermostat) {
       switch (md.thermostat) {
@@ -858,8 +1066,12 @@ export class MDWorkflowConverter {
     const lines: string[] = [];
 
     lines.push('&CONTROL');
-    if (md.timeStep) lines.push(`  dt = ${md.timeStep.toFixed(1)}`);
-    if (md.nSteps) lines.push(`  nstep = ${md.nSteps}`);
+    if (md.timeStep) {
+      lines.push(`  dt = ${md.timeStep.toFixed(1)}`);
+    }
+    if (md.nSteps) {
+      lines.push(`  nstep = ${md.nSteps}`);
+    }
     lines.push('/');
 
     lines.push('&IONS');
@@ -871,8 +1083,12 @@ export class MDWorkflowConverter {
       lines.push("  ion_dynamics = 'verlet'");
     }
 
-    if (md.temperature) lines.push(`  tempw = ${md.temperature}`);
-    if (md.temperatureEnd) lines.push(`  templ = ${md.temperatureEnd}`);
+    if (md.temperature) {
+      lines.push(`  tempw = ${md.temperature}`);
+    }
+    if (md.temperatureEnd) {
+      lines.push(`  templ = ${md.temperatureEnd}`);
+    }
 
     if (md.thermostat && md.ensemble !== 'NVE') {
       switch (md.thermostat) {
@@ -908,10 +1124,18 @@ export class MDWorkflowConverter {
     lines.push('&MOTION');
     lines.push('  &MD');
 
-    if (md.ensemble) lines.push(`    ENSEMBLE ${md.ensemble}`);
-    if (md.timeStep) lines.push(`    TIMESTEP ${md.timeStep.toFixed(1)}`);
-    if (md.nSteps) lines.push(`    STEPS ${md.nSteps}`);
-    if (md.temperature) lines.push(`    TEMPERATURE ${md.temperature}`);
+    if (md.ensemble) {
+      lines.push(`    ENSEMBLE ${md.ensemble}`);
+    }
+    if (md.timeStep) {
+      lines.push(`    TIMESTEP ${md.timeStep.toFixed(1)}`);
+    }
+    if (md.nSteps) {
+      lines.push(`    STEPS ${md.nSteps}`);
+    }
+    if (md.temperature) {
+      lines.push(`    TEMPERATURE ${md.temperature}`);
+    }
 
     if (md.thermostat && md.ensemble !== 'NVE') {
       lines.push('    &THERMOSTAT');
@@ -932,7 +1156,9 @@ export class MDWorkflowConverter {
     if (md.ensemble === 'NPT') {
       lines.push('    &BAROSTAT');
       lines.push('      TYPE NOSE');
-      if (md.pressure) lines.push(`      PRESSURE ${md.pressure.toFixed(1)}`);
+      if (md.pressure) {
+        lines.push(`      PRESSURE ${md.pressure.toFixed(1)}`);
+      }
       lines.push('    &END BAROSTAT');
     }
 
@@ -963,14 +1189,21 @@ export class MDWorkflowConverter {
       lines.push(`IBRION = ${algoMap[opt.algorithm] || 2}`);
     }
 
-    if (opt.maxSteps) lines.push(`NSW = ${opt.maxSteps}`);
-    if (opt.energyConv)
+    if (opt.maxSteps) {
+      lines.push(`NSW = ${opt.maxSteps}`);
+    }
+    if (opt.energyConv) {
       lines.push(`EDIFF = ${opt.energyConv.toExponential(0).replace('e-', 'e-0')}`);
-    if (opt.forceConv) lines.push(`EDIFFG = -${opt.forceConv.toFixed(2)}`);
+    }
+    if (opt.forceConv) {
+      lines.push(`EDIFFG = -${opt.forceConv.toFixed(2)}`);
+    }
 
     if (opt.optimizeCell) {
       lines.push('ISIF = 3');
-      if (opt.cellPressure) lines.push(`PSTRESS = ${opt.cellPressure.toFixed(1)}`);
+      if (opt.cellPressure) {
+        lines.push(`PSTRESS = ${opt.cellPressure.toFixed(1)}`);
+      }
     } else {
       lines.push('ISIF = 2');
     }
@@ -997,13 +1230,17 @@ export class MDWorkflowConverter {
       };
       lines.push(`  ion_dynamics = '${algoMap[opt.algorithm] || 'bfgs'}'`);
     }
-    if (opt.maxSteps) lines.push(`  bfgs_ndim = ${opt.maxSteps}`);
+    if (opt.maxSteps) {
+      lines.push(`  bfgs_ndim = ${opt.maxSteps}`);
+    }
     lines.push('/');
 
     if (opt.optimizeCell) {
       lines.push('&CELL');
       lines.push("  cell_dynamics = 'bfgs'");
-      if (opt.cellPressure) lines.push(`  press = ${opt.cellPressure.toFixed(1)}`);
+      if (opt.cellPressure) {
+        lines.push(`  press = ${opt.cellPressure.toFixed(1)}`);
+      }
       lines.push('/');
     }
 
@@ -1019,21 +1256,33 @@ export class MDWorkflowConverter {
     if (opt.optimizeCell) {
       lines.push('&MOTION');
       lines.push('  &CELL_OPT');
-      if (opt.algorithm) lines.push(`    OPTIMIZER ${opt.algorithm}`);
-      if (opt.maxSteps) lines.push(`    MAX_ITER ${opt.maxSteps}`);
-      if (opt.cellPressure) lines.push(`    PRESSURE ${opt.cellPressure.toFixed(1)}`);
+      if (opt.algorithm) {
+        lines.push(`    OPTIMIZER ${opt.algorithm}`);
+      }
+      if (opt.maxSteps) {
+        lines.push(`    MAX_ITER ${opt.maxSteps}`);
+      }
+      if (opt.cellPressure) {
+        lines.push(`    PRESSURE ${opt.cellPressure.toFixed(1)}`);
+      }
       lines.push('  &END CELL_OPT');
       lines.push('&END MOTION');
     } else {
       lines.push('&MOTION');
       lines.push('  &GEO_OPT');
-      if (opt.algorithm) lines.push(`    OPTIMIZER ${opt.algorithm}`);
-      if (opt.maxSteps) lines.push(`    MAX_ITER ${opt.maxSteps}`);
+      if (opt.algorithm) {
+        lines.push(`    OPTIMIZER ${opt.algorithm}`);
+      }
+      if (opt.maxSteps) {
+        lines.push(`    MAX_ITER ${opt.maxSteps}`);
+      }
       lines.push('    &CONVERGENCE');
-      if (opt.energyConv)
+      if (opt.energyConv) {
         lines.push(`      EPS_ENERGY ${opt.energyConv.toExponential(0).replace('e-', 'e-0')}`);
-      if (opt.forceConv)
+      }
+      if (opt.forceConv) {
         lines.push(`      EPS_FORCE ${opt.forceConv.toExponential(0).replace('e-', 'e-0')}`);
+      }
       lines.push('    &END CONVERGENCE');
       lines.push('  &END GEO_OPT');
       lines.push('&END MOTION');
@@ -1048,14 +1297,30 @@ export class MDWorkflowConverter {
   public formatMDParameters(md: MDParameters): string {
     const lines: string[] = [];
 
-    if (md.timeStep) lines.push(`Time Step: ${md.timeStep} fs`);
-    if (md.nSteps) lines.push(`Number of Steps: ${md.nSteps}`);
-    if (md.ensemble) lines.push(`Ensemble: ${md.ensemble}`);
-    if (md.temperature) lines.push(`Temperature: ${md.temperature} K`);
-    if (md.temperatureEnd) lines.push(`Final Temperature: ${md.temperatureEnd} K`);
-    if (md.pressure) lines.push(`Pressure: ${md.pressure} kbar`);
-    if (md.thermostat) lines.push(`Thermostat: ${md.thermostat}`);
-    if (md.barostat) lines.push(`Barostat: ${md.barostat}`);
+    if (md.timeStep) {
+      lines.push(`Time Step: ${md.timeStep} fs`);
+    }
+    if (md.nSteps) {
+      lines.push(`Number of Steps: ${md.nSteps}`);
+    }
+    if (md.ensemble) {
+      lines.push(`Ensemble: ${md.ensemble}`);
+    }
+    if (md.temperature) {
+      lines.push(`Temperature: ${md.temperature} K`);
+    }
+    if (md.temperatureEnd) {
+      lines.push(`Final Temperature: ${md.temperatureEnd} K`);
+    }
+    if (md.pressure) {
+      lines.push(`Pressure: ${md.pressure} kbar`);
+    }
+    if (md.thermostat) {
+      lines.push(`Thermostat: ${md.thermostat}`);
+    }
+    if (md.barostat) {
+      lines.push(`Barostat: ${md.barostat}`);
+    }
 
     return lines.join('\n');
   }
@@ -1066,12 +1331,24 @@ export class MDWorkflowConverter {
   public formatOptimizationParameters(opt: OptimizationParameters): string {
     const lines: string[] = [];
 
-    if (opt.algorithm) lines.push(`Algorithm: ${opt.algorithm}`);
-    if (opt.maxSteps) lines.push(`Max Steps: ${opt.maxSteps}`);
-    if (opt.energyConv) lines.push(`Energy Convergence: ${opt.energyConv} eV`);
-    if (opt.forceConv) lines.push(`Force Convergence: ${opt.forceConv} eV/Å`);
-    if (opt.optimizeCell !== undefined) lines.push(`Cell Optimization: ${opt.optimizeCell}`);
-    if (opt.cellPressure) lines.push(`Cell Pressure: ${opt.cellPressure} kbar`);
+    if (opt.algorithm) {
+      lines.push(`Algorithm: ${opt.algorithm}`);
+    }
+    if (opt.maxSteps) {
+      lines.push(`Max Steps: ${opt.maxSteps}`);
+    }
+    if (opt.energyConv) {
+      lines.push(`Energy Convergence: ${opt.energyConv} eV`);
+    }
+    if (opt.forceConv) {
+      lines.push(`Force Convergence: ${opt.forceConv} eV/Å`);
+    }
+    if (opt.optimizeCell !== undefined) {
+      lines.push(`Cell Optimization: ${opt.optimizeCell}`);
+    }
+    if (opt.cellPressure) {
+      lines.push(`Cell Pressure: ${opt.cellPressure} kbar`);
+    }
 
     return lines.join('\n');
   }

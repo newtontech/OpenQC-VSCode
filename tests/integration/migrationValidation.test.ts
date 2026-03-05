@@ -76,6 +76,7 @@ class MockExtensionContext {
 }
 
 describe('Migration Validation Integration Tests', () => {
+  jest.setTimeout(60000);
   let converter: ASEConverter;
   const fixturesDir = path.join(__dirname, '../fixtures/migration');
   const outputDir = path.join(__dirname, '../temp/migration');

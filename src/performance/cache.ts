@@ -311,7 +311,9 @@ export class IncrementalCache {
    * Evict least recently used entry
    */
   private evictLRU(): void {
-    if (this.accessOrder.length === 0) return;
+    if (this.accessOrder.length === 0) {
+      return;
+    }
 
     const lruKey = this.accessOrder.shift()!;
     const entry = this.cache.get(lruKey);
@@ -326,7 +328,9 @@ export class IncrementalCache {
    * Estimate size of data in bytes
    */
   private estimateSize(data: any): number {
-    if (data === null || data === undefined) return 0;
+    if (data === null || data === undefined) {
+      return 0;
+    }
 
     const type = typeof data;
 

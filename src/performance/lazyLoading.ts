@@ -122,7 +122,9 @@ export function createLazyLoadedStructure(
 
       for (let i = startChunk; i <= endChunk; i++) {
         const chunk = chunkCache.get(i);
-        if (!chunk) continue;
+        if (!chunk) {
+          continue;
+        }
         const chunkStart = i * loader.config.chunkSize;
         const localStart = Math.max(0, start - chunkStart);
         const localEnd = Math.min(chunk.chemical_symbols.length, end - chunkStart);
@@ -132,7 +134,9 @@ export function createLazyLoadedStructure(
         }
       }
 
-      if (symbols.length === 0) return null;
+      if (symbols.length === 0) {
+        return null;
+      }
       return {
         chemical_symbols: symbols,
         positions,
