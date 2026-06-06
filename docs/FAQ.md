@@ -67,7 +67,7 @@ A: Language servers provide intelligent features like auto-completion, hover inf
 ### Q: How do I install language servers?
 
 A: Each quantum chemistry package has its own LSP:
-- CP2K: `cp2k-lsp-enhanced`
+- CP2K: `cp2k-language-server`
 - VASP: `vasp-lsp`
 - Gaussian: `gaussian-lsp`
 - ORCA: `orca-lsp`

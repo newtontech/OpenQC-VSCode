@@ -319,7 +319,7 @@
         },
         "openqc.lsp.cp2k.path": {
           "type": "string",
-          "default": "cp2k-lsp-enhanced",
+          "default": "cp2k-language-server",
           "description": "Path to CP2K Language Server executable"
         },
         "openqc.lsp.vasp.enabled": {
