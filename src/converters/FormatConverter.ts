@@ -8,10 +8,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { spawn, exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import { spawn } from 'child_process';
 
 /**
  * Supported file formats for conversion
@@ -103,7 +100,7 @@ export class FormatConverter {
   constructor(config: FormatConverterConfig = {}) {
     this.config = {
       pythonPath: config.pythonPath || 'python3',
-      scriptPath: config.scriptPath || path.join(__dirname, '../../../python/format_converter.py'),
+      scriptPath: config.scriptPath || path.resolve(__dirname, '../../python/format_converter.py'),
       preserveMetadata: config.preserveMetadata ?? true,
     };
     this.outputChannel = vscode.window.createOutputChannel('OpenQC Format Converter');
@@ -186,7 +183,7 @@ export class FormatConverter {
       }
       args.push('--json');
 
-      const { stdout } = await execAsync(`${this.config.pythonPath} ${args.join(' ')}`);
+      const stdout = await this.runPython(args);
       const result = JSON.parse(stdout) as ConversionResult;
 
       if (result.success) {
@@ -242,7 +239,7 @@ export class FormatConverter {
         args.push('--no-metadata');
       }
 
-      const { stdout } = await execAsync(`${this.config.pythonPath} ${args.join(' ')}`);
+      const stdout = await this.runPython(args);
       const result = JSON.parse(stdout) as BatchConversionResult;
 
       this.log(`Batch conversion complete: ${result.successful}/${result.total} successful`);
@@ -310,8 +307,8 @@ export class FormatConverter {
    */
   async checkBackend(): Promise<boolean> {
     try {
-      await execAsync(`${this.config.pythonPath} --version`);
-      await execAsync(`${this.config.pythonPath} -c "import dpdata"`);
+      await this.runPython(['--version']);
+      await this.runPython(['-c', 'import dpdata']);
       return true;
     } catch {
       return false;
@@ -364,6 +361,32 @@ export class FormatConverter {
 
   private logError(message: string): void {
     this.outputChannel.appendLine(`[ERROR] ${message}`);
+  }
+
+  private runPython(args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const child = spawn(this.config.pythonPath!, args, { shell: false });
+      let stdout = '';
+      let stderr = '';
+
+      child.stdout.on('data', chunk => {
+        stdout += chunk.toString();
+      });
+
+      child.stderr.on('data', chunk => {
+        stderr += chunk.toString();
+      });
+
+      child.on('error', reject);
+      child.on('close', code => {
+        if (code === 0) {
+          resolve(stdout);
+          return;
+        }
+
+        reject(new Error(stderr.trim() || `Python process exited with code ${code}`));
+      });
+    });
   }
 
   dispose(): void {
