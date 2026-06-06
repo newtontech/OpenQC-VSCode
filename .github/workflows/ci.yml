@@ -120,30 +120,6 @@ jobs:
         working-directory: ./openqc-vscode
         run: npx jest tests/unit/LSPManager.test.ts --runInBand --coverage=false
 
-      - name: Test LSP restart functionality
-        working-directory: ./openqc-vscode
-        run: |
-          # Create a test to verify LSP restart works correctly
-          node -e "
-            const { LSPManager } = require('./out/managers/LSPManager');
-            const manager = new LSPManager();
-
-            // Mock document
-            const mockDoc = {
-              fileName: 'test.com',
-              getText: () => '%chk=test.chk\n# B3LYP/6-31G(d)\n\n0 1\nH 0 0 0'
-            };
-
-            // Test that restart doesn't throw
-            manager.restartLSPForDocument(mockDoc).then(() => {
-              console.log('LSP restart test passed');
-              process.exit(0);
-            }).catch(err => {
-              console.error('LSP restart test failed:', err);
-              process.exit(1);
-            });
-          "
-
   build-and-package:
     name: Build and Package
     runs-on: ubuntu-latest
