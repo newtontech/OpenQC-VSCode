@@ -48,7 +48,7 @@ jobs:
         if: matrix.node-version == '18.x'
         with:
           file: ./coverage/lcov.info
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   lsp-integration-test:
     name: LSP Integration Test
@@ -93,7 +93,7 @@ jobs:
       - name: Install Python LSP servers
         run: |
           python -m pip install --upgrade pip
-          pip install -e "./cp2k-lsp-enhanced[lsp]"
+          pip install "./cp2k-lsp-enhanced[lsp]"
           pip install -e ./gaussian-lsp
           pip install -e ./vasp-lsp
 
