@@ -44,6 +44,6 @@ Open the Command Palette (Ctrl+Shift+P) and type "OpenQC":
 
 ## Next Steps
 
-- [Installation Guide](/guide/installation) - Detailed installation instructions
-- [Configuration](/guide/configuration) - Customize the extension settings
-- [Features](/guide/syntax-highlighting) - Learn about all features
+- [Installation](#installation) - Install the extension
+- [Commands](#commands) - Use the extension commands
+- [Features](#features) - Learn about core features
