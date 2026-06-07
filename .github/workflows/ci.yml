@@ -3,13 +3,38 @@ name: CI
 on:
   push:
     branches: [main, master]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'tests/**'
+      - 'syntaxes/**'
+      - 'language-configurations/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main, master]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
+      - 'tests/**'
+      - 'syntaxes/**'
+      - 'language-configurations/**'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     strategy:
       matrix:
@@ -24,6 +49,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -53,6 +79,7 @@ jobs:
   lsp-integration-test:
     name: LSP Integration Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout OpenQC-VSCode
@@ -123,6 +150,7 @@ jobs:
   build-and-package:
     name: Build and Package
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [test, lsp-integration-test]
 
     steps:
@@ -134,6 +162,7 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
