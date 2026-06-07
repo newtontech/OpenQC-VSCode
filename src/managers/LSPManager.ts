@@ -6,22 +6,27 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
+import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
 
 interface LSPServerConfig {
   name: string;
   enabled: boolean;
   path: string;
   args: string[];
+  definition: LSPServerDefinition;
 }
 
 export class LSPManager {
   private clients: Map<string, LanguageClient> = new Map();
   private fileTypeDetector: FileTypeDetector;
   private config: vscode.WorkspaceConfiguration;
+  private discovery: LSPDiscovery;
+  private serverDefinitions: LSPServerDefinition[] = LSPDiscovery.getDefaultDefinitions();
 
-  constructor() {
+  constructor(context?: vscode.ExtensionContext, discovery?: LSPDiscovery) {
     this.fileTypeDetector = new FileTypeDetector();
     this.config = vscode.workspace.getConfiguration('openqc.lsp');
+    this.discovery = discovery || new LSPDiscovery(context);
   }
 
   async startLSPForDocument(document: vscode.TextDocument): Promise<void> {
@@ -30,12 +35,16 @@ export class LSPManager {
       return;
     }
 
-    const languageId = this.getLanguageId(software);
+    const serverConfig = await this.getServerConfig(software);
+    if (!serverConfig) {
+      return;
+    }
+
+    const languageId = serverConfig.definition.languageId;
     if (this.clients.has(languageId)) {
       return; // LSP already running
     }
 
-    const serverConfig = this.getServerConfig(software);
     if (!serverConfig.enabled) {
       return;
     }
@@ -61,7 +70,12 @@ export class LSPManager {
       return;
     }
 
-    const languageId = this.getLanguageId(software);
+    const definition = this.findServerDefinition(software);
+    if (!definition) {
+      return;
+    }
+
+    const languageId = definition.languageId;
     const client = this.clients.get(languageId);
     if (client) {
       try {
@@ -123,10 +137,10 @@ export class LSPManager {
       };
 
       const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: this.getLanguageId(software) }],
+        documentSelector: [{ scheme: 'file', language: config.definition.languageId }],
         synchronize: {
           fileEvents: vscode.workspace.createFileSystemWatcher(
-            `**/*.{${this.getExtensions(software).join(',')}}`
+            this.createWatcherPattern(config.definition)
           ),
         },
       };
@@ -143,40 +157,51 @@ export class LSPManager {
     }
   }
 
-  private getServerConfig(software: QuantumChemistrySoftware): LSPServerConfig {
-    const softwareKey = software.toLowerCase();
+  private async getServerConfig(
+    software: QuantumChemistrySoftware
+  ): Promise<LSPServerConfig | undefined> {
+    await this.refreshDiscoveredDefinitions();
+
+    const definition = this.findServerDefinition(software);
+    if (!definition) {
+      return undefined;
+    }
+
+    const softwareKey = definition.languageId;
     return {
-      name: `${software} LSP`,
-      enabled: this.config.get<boolean>(`${softwareKey}.enabled`, true),
-      path: this.config.get<string>(`${softwareKey}.path`, `${softwareKey}-lsp`),
+      name: `${definition.name} LSP`,
+      enabled: this.config.get<boolean>(`${softwareKey}.enabled`, definition.enabled),
+      path: this.config.get<string>(`${softwareKey}.path`, definition.executable),
       args: ['--stdio'],
+      definition,
     };
   }
 
-  private getLanguageId(software: QuantumChemistrySoftware): string {
-    const mapping: Record<QuantumChemistrySoftware, string> = {
-      CP2K: 'cp2k',
-      VASP: 'vasp',
-      Gaussian: 'gaussian',
-      ORCA: 'orca',
-      'Quantum ESPRESSO': 'qe',
-      GAMESS: 'gamess',
-      NWChem: 'nwchem',
-    };
-    return mapping[software];
+  private async refreshDiscoveredDefinitions(): Promise<void> {
+    this.serverDefinitions = await this.discovery.fetchLSPRepositories();
   }
 
-  private getExtensions(software: QuantumChemistrySoftware): string[] {
-    const mapping: Record<QuantumChemistrySoftware, string[]> = {
-      CP2K: ['inp'],
-      VASP: ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR'],
-      Gaussian: ['gjf', 'com'],
-      ORCA: ['inp'],
-      'Quantum ESPRESSO': ['in', 'pw.in', 'relax.in'],
-      GAMESS: ['inp'],
-      NWChem: ['nw'],
-    };
-    return mapping[software];
+  private findServerDefinition(
+    software: QuantumChemistrySoftware
+  ): LSPServerDefinition | undefined {
+    return this.serverDefinitions.find(definition => definition.name === software);
+  }
+
+  private createWatcherPattern(definition: LSPServerDefinition): string {
+    const filePatterns = [
+      ...definition.fileExtensions.map(extension => `*.${extension}`),
+      ...(definition.fileNames || []),
+    ];
+
+    if (filePatterns.length === 0) {
+      return '**/*';
+    }
+
+    if (filePatterns.length === 1) {
+      return `**/${filePatterns[0]}`;
+    }
+
+    return `**/{${filePatterns.join(',')}}`;
   }
 
   dispose(): void {

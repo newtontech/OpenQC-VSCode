@@ -61,6 +61,105 @@ interface CacheEntry {
   timestamp: number;
 }
 
+export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] = [
+  {
+    id: 'vasp-lsp',
+    name: 'VASP',
+    repository: 'OpenQuantumChemistry/vasp-lsp',
+    executable: 'vasp-lsp',
+    languageId: 'vasp',
+    fileExtensions: [],
+    fileNames: [
+      'INCAR',
+      'POSCAR',
+      'KPOINTS',
+      'POTCAR',
+      'CONTCAR',
+      'OSZICAR',
+      'OUTCAR',
+      'vasprun.xml',
+    ],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/vasp-lsp',
+  },
+  {
+    id: 'gaussian-lsp',
+    name: 'Gaussian',
+    repository: 'OpenQuantumChemistry/gaussian-lsp',
+    executable: 'gaussian-lsp',
+    languageId: 'gaussian',
+    fileExtensions: ['gjf', 'com'],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/gaussian-lsp',
+  },
+  {
+    id: 'orca-lsp',
+    name: 'ORCA',
+    repository: 'OpenQuantumChemistry/orca-lsp',
+    executable: 'orca-lsp',
+    languageId: 'orca',
+    fileExtensions: ['inp'],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/orca-lsp',
+  },
+  {
+    id: 'cp2k-lsp-enhanced',
+    name: 'CP2K',
+    repository: 'OpenQuantumChemistry/cp2k-lsp-enhanced',
+    executable: 'cp2k-language-server',
+    languageId: 'cp2k',
+    fileExtensions: ['inp'],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/cp2k-lsp-enhanced',
+  },
+  {
+    id: 'qe-lsp',
+    name: 'Quantum ESPRESSO',
+    repository: 'OpenQuantumChemistry/qe-lsp',
+    executable: 'qe-lsp',
+    languageId: 'qe',
+    fileExtensions: [
+      'in',
+      'pw.in',
+      'relax.in',
+      'vc-relax.in',
+      'scf.in',
+      'nscf.in',
+      'bands.in',
+      'ph.in',
+      'dos.in',
+    ],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/qe-lsp',
+  },
+  {
+    id: 'gamess-lsp',
+    name: 'GAMESS',
+    repository: 'OpenQuantumChemistry/gamess-lsp',
+    executable: 'gamess-lsp',
+    languageId: 'gamess',
+    fileExtensions: ['inp'],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/gamess-lsp',
+  },
+  {
+    id: 'nwchem-lsp',
+    name: 'NWChem',
+    repository: 'OpenQuantumChemistry/nwchem-lsp',
+    executable: 'nwchem-lsp',
+    languageId: 'nwchem',
+    fileExtensions: ['nw', 'nwinp'],
+    fileNames: [],
+    enabled: true,
+    repositoryUrl: 'https://github.com/OpenQuantumChemistry/nwchem-lsp',
+  },
+];
+
 export class LSPDiscovery {
   private static readonly CACHE_KEY = 'openqc.lsp.discovery.cache';
   private static readonly CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -73,83 +172,7 @@ export class LSPDiscovery {
    * Known LSP to language mappings
    * These are used when auto-detecting from repository names
    */
-  private static readonly KNOWN_MAPPINGS: Record<
-    string,
-    {
-      name: string;
-      languageId: string;
-      extensions: string[];
-      fileNames?: string[];
-    }
-  > = {
-    'vasp-lsp': {
-      name: 'VASP',
-      languageId: 'vasp',
-      extensions: [],
-      fileNames: [
-        'INCAR',
-        'POSCAR',
-        'KPOINTS',
-        'POTCAR',
-        'CONTCAR',
-        'OSZICAR',
-        'OUTCAR',
-        'vasprun.xml',
-      ],
-    },
-    'gaussian-lsp': {
-      name: 'Gaussian',
-      languageId: 'gaussian',
-      extensions: ['gjf', 'com'],
-      fileNames: [],
-    },
-    'orca-lsp': {
-      name: 'ORCA',
-      languageId: 'orca',
-      extensions: ['inp'],
-      fileNames: [],
-    },
-    'cp2k-lsp': {
-      name: 'CP2K',
-      languageId: 'cp2k',
-      extensions: ['inp'],
-      fileNames: [],
-    },
-    'cp2k-lsp-enhanced': {
-      name: 'CP2K',
-      languageId: 'cp2k',
-      extensions: ['inp'],
-      fileNames: [],
-    },
-    'qe-lsp': {
-      name: 'Quantum ESPRESSO',
-      languageId: 'qe',
-      extensions: [
-        'in',
-        'pw.in',
-        'relax.in',
-        'vc-relax.in',
-        'scf.in',
-        'nscf.in',
-        'bands.in',
-        'ph.in',
-        'dos.in',
-      ],
-      fileNames: [],
-    },
-    'gamess-lsp': {
-      name: 'GAMESS',
-      languageId: 'gamess',
-      extensions: ['inp'],
-      fileNames: [],
-    },
-    'nwchem-lsp': {
-      name: 'NWChem',
-      languageId: 'nwchem',
-      extensions: ['nw', 'nwinp'],
-      fileNames: [],
-    },
-  };
+  private static readonly KNOWN_MAPPINGS = LSPDiscovery.createKnownMappings();
 
   constructor(context?: vscode.ExtensionContext) {
     this.context = context;
@@ -202,6 +225,49 @@ export class LSPDiscovery {
     }
   }
 
+  static getDefaultDefinitions(): LSPServerDefinition[] {
+    return DEFAULT_LSP_SERVER_DEFINITIONS.map(definition => ({
+      ...definition,
+      fileExtensions: [...definition.fileExtensions],
+      fileNames: definition.fileNames ? [...definition.fileNames] : undefined,
+    }));
+  }
+
+  private static createKnownMappings(): Record<
+    string,
+    {
+      name: string;
+      languageId: string;
+      extensions: string[];
+      fileNames?: string[];
+      executable: string;
+    }
+  > {
+    const mappings: Record<
+      string,
+      {
+        name: string;
+        languageId: string;
+        extensions: string[];
+        fileNames?: string[];
+        executable: string;
+      }
+    > = {};
+
+    for (const definition of DEFAULT_LSP_SERVER_DEFINITIONS) {
+      mappings[definition.id] = {
+        name: definition.name,
+        languageId: definition.languageId,
+        extensions: [...definition.fileExtensions],
+        fileNames: definition.fileNames ? [...definition.fileNames] : undefined,
+        executable: definition.executable,
+      };
+    }
+
+    mappings['cp2k-lsp'] = { ...mappings['cp2k-lsp-enhanced'] };
+    return mappings;
+  }
+
   /**
    * Fetch repositories from GitHub API
    */
@@ -235,7 +301,7 @@ export class LSPDiscovery {
       id: repo.name,
       name: mapping.name,
       repository: repo.full_name,
-      executable: this.getExecutableName(repo.name),
+      executable: mapping.executable,
       languageId: mapping.languageId,
       fileExtensions: mapping.extensions,
       fileNames: mapping.fileNames,
@@ -254,6 +320,7 @@ export class LSPDiscovery {
     languageId: string;
     extensions: string[];
     fileNames?: string[];
+    executable: string;
   } {
     // Remove '-lsp' suffix and convert to title case
     const baseName = repoName.replace(/-lsp(-enhanced)?$/, '');
@@ -267,98 +334,15 @@ export class LSPDiscovery {
       languageId: baseName.toLowerCase(),
       extensions: ['inp'], // Default extension
       fileNames: [],
+      executable: repoName,
     };
-  }
-
-  /**
-   * Get executable name from repository name
-   */
-  private getExecutableName(repoName: string): string {
-    if (repoName === 'cp2k-lsp-enhanced' || repoName === 'cp2k-lsp') {
-      return 'cp2k-language-server';
-    }
-
-    // Use repo name as executable (e.g., "vasp-lsp" -> "vasp-lsp").
-    return repoName;
   }
 
   /**
    * Get fallback definitions when API fails
    */
   private getFallbackDefinitions(): LSPServerDefinition[] {
-    return [
-      {
-        id: 'vasp-lsp',
-        name: 'VASP',
-        repository: 'OpenQuantumChemistry/vasp-lsp',
-        executable: 'vasp-lsp',
-        languageId: 'vasp',
-        fileExtensions: [],
-        fileNames: ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/vasp-lsp',
-      },
-      {
-        id: 'gaussian-lsp',
-        name: 'Gaussian',
-        repository: 'OpenQuantumChemistry/gaussian-lsp',
-        executable: 'gaussian-lsp',
-        languageId: 'gaussian',
-        fileExtensions: ['gjf', 'com'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/gaussian-lsp',
-      },
-      {
-        id: 'orca-lsp',
-        name: 'ORCA',
-        repository: 'OpenQuantumChemistry/orca-lsp',
-        executable: 'orca-lsp',
-        languageId: 'orca',
-        fileExtensions: ['inp'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/orca-lsp',
-      },
-      {
-        id: 'cp2k-lsp-enhanced',
-        name: 'CP2K',
-        repository: 'OpenQuantumChemistry/cp2k-lsp-enhanced',
-        executable: 'cp2k-language-server',
-        languageId: 'cp2k',
-        fileExtensions: ['inp'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/cp2k-lsp-enhanced',
-      },
-      {
-        id: 'qe-lsp',
-        name: 'Quantum ESPRESSO',
-        repository: 'OpenQuantumChemistry/qe-lsp',
-        executable: 'qe-lsp',
-        languageId: 'qe',
-        fileExtensions: ['in', 'pw.in', 'relax.in'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/qe-lsp',
-      },
-      {
-        id: 'gamess-lsp',
-        name: 'GAMESS',
-        repository: 'OpenQuantumChemistry/gamess-lsp',
-        executable: 'gamess-lsp',
-        languageId: 'gamess',
-        fileExtensions: ['inp'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/gamess-lsp',
-      },
-      {
-        id: 'nwchem-lsp',
-        name: 'NWChem',
-        repository: 'OpenQuantumChemistry/nwchem-lsp',
-        executable: 'nwchem-lsp',
-        languageId: 'nwchem',
-        fileExtensions: ['nw', 'nwinp'],
-        enabled: true,
-        repositoryUrl: 'https://github.com/OpenQuantumChemistry/nwchem-lsp',
-      },
-    ];
+    return LSPDiscovery.getDefaultDefinitions();
   }
 
   /**
