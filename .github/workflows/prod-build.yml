@@ -5,6 +5,9 @@ on:
     branches:
       - prod
 
+permissions:
+  contents: write
+
 jobs:
   build-and-package:
     name: Build and Package for Prod
@@ -17,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '20.x'
           cache: 'npm'
 
       - name: Install dependencies
@@ -33,7 +36,7 @@ jobs:
         run: npm run test:unit
 
       - name: Package extension
-        run: npx vsce package --no-dependencies
+        run: npx @vscode/vsce package --no-dependencies
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
