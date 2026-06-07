@@ -1,0 +1,4 @@
+# Optional ASE dependencies for advanced structure migration experiments.
+# The default format converter currently uses dpdata and does not require ASE.
+
+ase>=3.22.0

@@ -36,12 +36,17 @@ OpenQC-VSCode follows a layered architecture with clear separation of concerns:
 │  ┌──────────────────────────────────────────────────┐  │
 │  │         External Integrations Layer               │  │
 │  │  • dpdata (Python)                                 │  │
-│  │  • ASE (Python)                                    │  │
+│  │  • ASE (Python, optional/future)                    │  │
 │  │  • PyMOL (Python)                                  │  │
 │  │  • AI APIs (OpenAI/Ollama)                         │  │
 │  └──────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────┘
 ```
+
+See [ASE Integration Architecture Evaluation](./ASE_INTEGRATION_EVALUATION.md)
+for the current KISS recommendation: keep the implemented dpdata subprocess
+converter as the default path and add ASE only as an optional capability when a
+specific migration workflow proves it needs `ase.Atoms`.
 
 ## Core Components
 
@@ -84,14 +89,11 @@ src/parsers/
 **Key Classes**:
 ```
 src/converters/
-├── Converter.ts               # Abstract converter
-├── VASPConverter.ts
-├── GaussianConverter.ts
-├── ORCAConverter.ts
-├── UniversalConverter.ts      # Multi-format converter
-└── adapters/
-    ├── DPDataAdapter.ts       # Python integration
-    └── ASEAdapter.ts
+├── FormatConverter.ts         # TypeScript adapter for Python conversion
+└── index.ts
+
+python/
+└── format_converter.py        # dpdata-backed conversion CLI
 ```
 
 ### 3. Visualization
