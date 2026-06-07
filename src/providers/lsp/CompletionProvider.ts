@@ -17,6 +17,18 @@ export class CompletionProvider implements vscode.CompletionItemProvider {
     this.fileTypeDetector = new FileTypeDetector();
   }
 
+  /**
+   * Provide context-aware completion items for supported quantum chemistry inputs.
+   *
+   * Implements the VS Code completion provider contract by detecting the active
+   * software format and returning completions for the current line and document.
+   *
+   * @param document - Document requesting completions.
+   * @param position - Cursor position where completion was triggered.
+   * @param token - Cancellation token supplied by VS Code.
+   * @param context - Completion trigger context supplied by VS Code.
+   * @returns Completion items, a completion list, or an empty list when unsupported.
+   */
   provideCompletionItems(
     document: vscode.TextDocument,
     position: vscode.Position,

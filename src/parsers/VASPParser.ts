@@ -41,6 +41,14 @@ export class VASPParser extends BaseParser {
     this.filename = filename.toUpperCase();
   }
 
+  /**
+   * Parse VASP input content using the parser that matches the current filename.
+   *
+   * Supports INCAR, POSCAR, KPOINTS, and POTCAR parsing and caches successful
+   * parse results for subsequent calls.
+   *
+   * @returns Structured parse result with sections, parameters, errors, and warnings.
+   */
   parseInput(): ParseResult {
     if (this.parsedResult) {
       return this.parsedResult;
@@ -290,6 +298,11 @@ export class VASPParser extends BaseParser {
     return value;
   }
 
+  /**
+   * Validate the parsed VASP input and report errors or recommended-parameter warnings.
+   *
+   * @returns Validation result containing validity plus collected errors and warnings.
+   */
   validate(): ValidationResult {
     const result = this.parseInput();
     const errors = [...result.errors];
@@ -316,18 +329,40 @@ export class VASPParser extends BaseParser {
     };
   }
 
+  /**
+   * Return parsed VASP sections.
+   *
+   * @returns Sections from the current parse result.
+   */
   getSections(): ParsedSection[] {
     return this.parseInput().sections;
   }
 
+  /**
+   * Return parsed VASP parameters.
+   *
+   * @returns Parameters from the current parse result.
+   */
   getParameters(): ParsedParameter[] {
     return this.parseInput().parameters;
   }
 
+  /**
+   * Find a parsed VASP parameter by name.
+   *
+   * @param name - Parameter name to search for, case-insensitively.
+   * @returns Matching parameter, or undefined when absent.
+   */
   getParameter(name: string): ParsedParameter | undefined {
     return this.parseInput().parameters.find(p => p.name.toUpperCase() === name.toUpperCase());
   }
 
+  /**
+   * Find a parsed VASP section by name.
+   *
+   * @param name - Section name to search for, case-insensitively.
+   * @returns Matching section, or undefined when absent.
+   */
   getSection(name: string): ParsedSection | undefined {
     return this.parseInput().sections.find(s => s.name.toUpperCase() === name.toUpperCase());
   }

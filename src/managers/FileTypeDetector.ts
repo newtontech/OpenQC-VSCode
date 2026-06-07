@@ -61,6 +61,15 @@ export class FileTypeDetector {
     },
   ];
 
+  /**
+   * Detect the quantum chemistry software represented by a VS Code document.
+   *
+   * The detector prefers exact filename matches, then validates ambiguous file
+   * extensions with content patterns, and finally falls back to content-only matching.
+   *
+   * @param document - VS Code document to inspect.
+   * @returns Detected software name, or null when no supported format matches.
+   */
   detectSoftware(document: vscode.TextDocument): QuantumChemistrySoftware | null {
     const filename = document.fileName;
     const basename = filename.split('/').pop()?.split('\\').pop() || '';
@@ -112,6 +121,12 @@ export class FileTypeDetector {
     return matches / patterns.length;
   }
 
+  /**
+   * Return display metadata for a supported quantum chemistry package.
+   *
+   * @param software - Supported software identifier.
+   * @returns Human-readable name, description, and website metadata.
+   */
   getSoftwareInfo(software: QuantumChemistrySoftware): {
     name: string;
     description: string;

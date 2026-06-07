@@ -27,6 +27,8 @@ Tired of switching between different editors for VASP, Gaussian, ORCA, CP2K, and
 
 OpenQC is the VS Code-facing workspace for the newtontech computational chemistry LSP family. It should stay aligned with the standalone language servers in `newtontech/gaussian-lsp`, `newtontech/orca-lsp`, `newtontech/gamess-lsp`, `newtontech/qe-lsp`, and `newtontech/cp2k-lsp-enhanced`.
 
+The repository root is the canonical VS Code extension package root. Development, tests, packaging, and Marketplace publishing should use the root `package.json`; stale nested extension package roots are not maintained.
+
 We support **10+ major computational chemistry packages** with more on the way:
 
 ### LSP Alignment Matrix

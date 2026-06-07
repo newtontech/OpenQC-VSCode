@@ -138,8 +138,8 @@ describe('Extension Integration', () => {
     await ext.activate();
     
     const commands = await vscode.commands.getCommands(true);
-    expect(commands).to.include('openqc.parseINCAR');
-    expect(commands).to.include('openqc.visualize');
+    expect(commands).to.include('openqc.validate');
+    expect(commands).to.include('openqc.visualizeStructure');
   });
 });
 ```
@@ -169,7 +169,7 @@ describe('User Workflows', () => {
     await vscode.workspace.openTextDocument('samples/POSCAR');
     
     // Execute command
-    await vscode.commands.executeCommand('openqc.visualize');
+    await vscode.commands.executeCommand('openqc.visualizeStructure');
     
     // Verify webview opens
     const webviews = vscode.window.webviews;
