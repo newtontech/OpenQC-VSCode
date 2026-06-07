@@ -1,4 +1,5 @@
 import { QuantumChemistrySoftware } from '../managers/FileTypeDetector';
+import { getElementSymbol } from './atomicData';
 import { Atom } from './types';
 
 export class Molecule3D {
@@ -128,7 +129,7 @@ export class Molecule3D {
           } else {
             // Atomic number - convert to element
             const atomicNumber = parseInt(firstPart);
-            const element = this.atomicNumberToElement(atomicNumber);
+            const element = getElementSymbol(atomicNumber);
             atoms.push({
               element: element,
               x: parseFloat(parts[1]),
@@ -267,40 +268,5 @@ export class Molecule3D {
     }
 
     return atoms;
-  }
-
-  private atomicNumberToElement(atomicNumber: number): string {
-    const elements: Record<number, string> = {
-      1: 'H',
-      2: 'He',
-      3: 'Li',
-      4: 'Be',
-      5: 'B',
-      6: 'C',
-      7: 'N',
-      8: 'O',
-      9: 'F',
-      10: 'Ne',
-      11: 'Na',
-      12: 'Mg',
-      13: 'Al',
-      14: 'Si',
-      15: 'P',
-      16: 'S',
-      17: 'Cl',
-      18: 'Ar',
-      19: 'K',
-      20: 'Ca',
-      26: 'Fe',
-      29: 'Cu',
-      30: 'Zn',
-      35: 'Br',
-      47: 'Ag',
-      53: 'I',
-      79: 'Au',
-      80: 'Hg',
-      82: 'Pb',
-    };
-    return elements[atomicNumber] || 'X';
   }
 }
