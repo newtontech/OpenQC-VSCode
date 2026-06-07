@@ -44,6 +44,7 @@ jest.mock('vscode', () => ({
         return defaultValue;
       }),
     })),
+    getWorkspaceFolder: jest.fn(),
     createFileSystemWatcher: jest.fn(() => ({
       onDidCreate: jest.fn(),
       onDidChange: jest.fn(),
@@ -51,6 +52,10 @@ jest.mock('vscode', () => ({
       dispose: jest.fn(),
     })),
   },
+  RelativePattern: jest.fn().mockImplementation((base: any, pattern: string) => ({
+    base,
+    pattern,
+  })),
 }));
 
 // Mock child_process
@@ -87,6 +92,8 @@ describe('LSPManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    const vscode = require('vscode');
+    vscode.workspace.getWorkspaceFolder.mockReturnValue(undefined);
     mockDiscovery = {
       fetchLSPRepositories: jest.fn().mockResolvedValue(LSPDiscovery.getDefaultDefinitions()),
     };
@@ -108,8 +115,8 @@ describe('LSPManager', () => {
     }));
   });
 
-  afterEach(() => {
-    lspManager.dispose();
+  afterEach(async () => {
+    await lspManager.dispose();
   });
 
   describe('startLSPForDocument', () => {
@@ -126,7 +133,7 @@ describe('LSPManager', () => {
 
       expect(mockFunctions.exec).toHaveBeenCalledWith('which gaussian-lsp', expect.any(Function));
       expect(mockFunctions.languageClient).toHaveBeenCalledWith(
-        'openqc-gaussian',
+        expect.stringContaining('openqc-gaussian-'),
         'OpenQC Gaussian Language Server',
         expect.objectContaining({ command: 'gaussian-lsp' }),
         expect.objectContaining({
@@ -149,6 +156,115 @@ describe('LSPManager', () => {
       await lspManager.startLSPForDocument(mockDocument);
       await lspManager.startLSPForDocument(mockDocument);
       expect(mockFunctions.languageClient).toHaveBeenCalledTimes(1);
+    });
+
+    it('should start separate clients for the same language in different workspace folders', async () => {
+      const vscode = require('vscode');
+      const workspaceA = {
+        name: 'workspace-a',
+        index: 0,
+        uri: { fsPath: '/workspace-a', scheme: 'file', toString: () => 'file:///workspace-a' },
+      };
+      const workspaceB = {
+        name: 'workspace-b',
+        index: 1,
+        uri: { fsPath: '/workspace-b', scheme: 'file', toString: () => 'file:///workspace-b' },
+      };
+      const docA = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace-a/file.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace-a/file.com',
+        },
+        fileName: '/workspace-a/file.com',
+      };
+      const docB = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace-b/file.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace-b/file.com',
+        },
+        fileName: '/workspace-b/file.com',
+      };
+      vscode.workspace.getWorkspaceFolder.mockImplementation((uri: any) =>
+        uri.fsPath.startsWith('/workspace-a') ? workspaceA : workspaceB
+      );
+
+      await lspManager.startLSPForDocument(docA);
+      await lspManager.startLSPForDocument(docB);
+
+      expect(mockFunctions.languageClient).toHaveBeenCalledTimes(2);
+      expect(mockFunctions.languageClient).toHaveBeenNthCalledWith(
+        1,
+        expect.stringContaining('workspace-a'),
+        'OpenQC Gaussian Language Server (workspace-a)',
+        expect.any(Object),
+        expect.objectContaining({ workspaceFolder: workspaceA })
+      );
+      expect(mockFunctions.languageClient).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('workspace-b'),
+        'OpenQC Gaussian Language Server (workspace-b)',
+        expect.any(Object),
+        expect.objectContaining({ workspaceFolder: workspaceB })
+      );
+    });
+
+    it('should coalesce concurrent starts for the same language and workspace', async () => {
+      const vscode = require('vscode');
+      const workspaceFolder = {
+        name: 'chemistry',
+        index: 0,
+        uri: { fsPath: '/workspace', scheme: 'file', toString: () => 'file:///workspace' },
+      };
+      vscode.workspace.getWorkspaceFolder.mockReturnValue(workspaceFolder);
+      const mockStop = jest.fn().mockResolvedValue(undefined);
+      let resolveStart: () => void = () => {};
+      const startPromise = new Promise<void>(resolve => {
+        resolveStart = resolve;
+      });
+      mockFunctions.languageClient.mockImplementation(() => ({
+        start: jest.fn().mockReturnValue(startPromise),
+        stop: mockStop,
+        needsStop: jest.fn().mockReturnValue(true),
+      }));
+      const docA = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace/a.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace/a.com',
+        },
+        fileName: '/workspace/a.com',
+      };
+      const docB = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace/b.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace/b.com',
+        },
+        fileName: '/workspace/b.com',
+      };
+
+      const firstStart = lspManager.startLSPForDocument(docA);
+      const secondStart = lspManager.startLSPForDocument(docB);
+
+      await new Promise(resolve => setImmediate(resolve));
+
+      expect(mockFunctions.languageClient).toHaveBeenCalledTimes(1);
+
+      resolveStart();
+      await Promise.all([firstStart, secondStart]);
+      await lspManager.stopLSPForDocument(docA);
+
+      expect(mockStop).not.toHaveBeenCalled();
+
+      await lspManager.stopLSPForDocument(docB);
+
+      expect(mockStop).toHaveBeenCalledTimes(1);
     });
 
     it('should handle errors when LSP executable is not found', async () => {
@@ -244,6 +360,105 @@ describe('LSPManager', () => {
       };
       await expect(lspManager.stopLSPForDocument(unknownDoc)).resolves.not.toThrow();
     });
+
+    it('should keep a workspace client running until the last matching document closes', async () => {
+      const vscode = require('vscode');
+      const workspaceFolder = {
+        name: 'chemistry',
+        index: 0,
+        uri: { fsPath: '/workspace', scheme: 'file', toString: () => 'file:///workspace' },
+      };
+      vscode.workspace.getWorkspaceFolder.mockReturnValue(workspaceFolder);
+      const mockStop = jest.fn().mockResolvedValue(undefined);
+      mockFunctions.languageClient.mockImplementation(() => ({
+        start: jest.fn().mockResolvedValue(undefined),
+        stop: mockStop,
+        needsStop: jest.fn().mockReturnValue(true),
+      }));
+      const docA = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace/a.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace/a.com',
+        },
+        fileName: '/workspace/a.com',
+      };
+      const docB = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace/b.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace/b.com',
+        },
+        fileName: '/workspace/b.com',
+      };
+
+      await lspManager.startLSPForDocument(docA);
+      await lspManager.startLSPForDocument(docB);
+      await lspManager.stopLSPForDocument(docA);
+
+      expect(mockStop).not.toHaveBeenCalled();
+
+      await lspManager.stopLSPForDocument(docB);
+
+      expect(mockStop).toHaveBeenCalledTimes(1);
+    });
+
+    it('should stop only the client for the closed document workspace', async () => {
+      const vscode = require('vscode');
+      const workspaceA = {
+        name: 'workspace-a',
+        index: 0,
+        uri: { fsPath: '/workspace-a', scheme: 'file', toString: () => 'file:///workspace-a' },
+      };
+      const workspaceB = {
+        name: 'workspace-b',
+        index: 1,
+        uri: { fsPath: '/workspace-b', scheme: 'file', toString: () => 'file:///workspace-b' },
+      };
+      const stopA = jest.fn().mockResolvedValue(undefined);
+      const stopB = jest.fn().mockResolvedValue(undefined);
+      mockFunctions.languageClient
+        .mockImplementationOnce(() => ({
+          start: jest.fn().mockResolvedValue(undefined),
+          stop: stopA,
+          needsStop: jest.fn().mockReturnValue(true),
+        }))
+        .mockImplementationOnce(() => ({
+          start: jest.fn().mockResolvedValue(undefined),
+          stop: stopB,
+          needsStop: jest.fn().mockReturnValue(true),
+        }));
+      const docA = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace-a/file.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace-a/file.com',
+        },
+        fileName: '/workspace-a/file.com',
+      };
+      const docB = {
+        ...mockDocument,
+        uri: {
+          fsPath: '/workspace-b/file.com',
+          scheme: 'file',
+          toString: () => 'file:///workspace-b/file.com',
+        },
+        fileName: '/workspace-b/file.com',
+      };
+      vscode.workspace.getWorkspaceFolder.mockImplementation((uri: any) =>
+        uri.fsPath.startsWith('/workspace-a') ? workspaceA : workspaceB
+      );
+
+      await lspManager.startLSPForDocument(docA);
+      await lspManager.startLSPForDocument(docB);
+      await lspManager.stopLSPForDocument(docA);
+
+      expect(stopA).toHaveBeenCalledTimes(1);
+      expect(stopB).not.toHaveBeenCalled();
+    });
   });
 
   describe('restartLSPForDocument', () => {
@@ -322,8 +537,7 @@ describe('LSPManager', () => {
       };
       await lspManager.startLSPForDocument(gaussianDoc);
       await lspManager.startLSPForDocument(vaspDoc);
-      lspManager.dispose();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await lspManager.dispose();
       expect(mockStop).toHaveBeenCalledTimes(2);
     });
 
@@ -335,8 +549,7 @@ describe('LSPManager', () => {
         needsStop: jest.fn().mockReturnValue(true),
       }));
       await lspManager.startLSPForDocument(mockDocument);
-      lspManager.dispose();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await lspManager.dispose();
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error stopping'),
         expect.any(Error)

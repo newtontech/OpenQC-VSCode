@@ -351,9 +351,9 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 
-export function deactivate() {
+export async function deactivate() {
   if (lspManager) {
-    lspManager.dispose();
+    await lspManager.dispose();
   }
   if (diagnosticsProvider) {
     diagnosticsProvider.dispose();

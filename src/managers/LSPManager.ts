@@ -16,8 +16,21 @@ interface LSPServerConfig {
   definition: LSPServerDefinition;
 }
 
+interface LSPClientIdentity {
+  key: string;
+  label: string;
+  workspaceFolder?: vscode.WorkspaceFolder;
+}
+
+interface LSPClientRecord {
+  client: LanguageClient;
+  documents: Set<string>;
+  languageId: string;
+}
+
 export class LSPManager {
-  private clients: Map<string, LanguageClient> = new Map();
+  private clients: Map<string, LSPClientRecord> = new Map();
+  private startingClients: Map<string, Promise<void>> = new Map();
   private fileTypeDetector: FileTypeDetector;
   private config: vscode.WorkspaceConfiguration;
   private discovery: LSPDiscovery;
@@ -41,7 +54,11 @@ export class LSPManager {
     }
 
     const languageId = serverConfig.definition.languageId;
-    if (this.clients.has(languageId)) {
+    const identity = this.getClientIdentity(languageId, document);
+    const documentKey = this.getDocumentKey(document);
+    const existingRecord = this.clients.get(identity.key);
+    if (existingRecord) {
+      existingRecord.documents.add(documentKey);
       return; // LSP already running
     }
 
@@ -49,18 +66,48 @@ export class LSPManager {
       return;
     }
 
+    const pendingStart = this.startingClients.get(identity.key);
+    if (pendingStart) {
+      await pendingStart;
+      const startedRecord = this.clients.get(identity.key);
+      if (startedRecord) {
+        startedRecord.documents.add(documentKey);
+      }
+      return;
+    }
+
+    const startPromise = this.startClient(software, serverConfig, document, identity, documentKey);
+    this.startingClients.set(identity.key, startPromise);
     try {
-      const client = await this.createLanguageClient(software, serverConfig, document);
+      await startPromise;
+    } finally {
+      this.startingClients.delete(identity.key);
+    }
+  }
+
+  private async startClient(
+    software: QuantumChemistrySoftware,
+    serverConfig: LSPServerConfig,
+    document: vscode.TextDocument,
+    identity: LSPClientIdentity,
+    documentKey: string
+  ): Promise<void> {
+    try {
+      const client = await this.createLanguageClient(software, serverConfig, document, identity);
       if (client) {
-        this.clients.set(languageId, client);
         await client.start();
+        this.clients.set(identity.key, {
+          client,
+          documents: new Set([documentKey]),
+          languageId: serverConfig.definition.languageId,
+        });
         vscode.window.showInformationMessage(`${software} Language Server started`);
       }
     } catch (error) {
       console.error(`Error starting ${software} Language Server:`, error);
       vscode.window.showErrorMessage(`Failed to start ${software} Language Server: ${error}`);
       // Clean up the client if it was added
-      this.clients.delete(languageId);
+      this.clients.delete(identity.key);
     }
   }
 
@@ -76,20 +123,22 @@ export class LSPManager {
     }
 
     const languageId = definition.languageId;
-    const client = this.clients.get(languageId);
-    if (client) {
-      try {
-        // Check if client is running before stopping
-        if (client.needsStop()) {
-          await client.stop();
-        }
-      } catch (error) {
-        console.error(`Error stopping ${software} Language Server:`, error);
-        vscode.window.showWarningMessage(`Error stopping ${software} Language Server: ${error}`);
-      } finally {
-        // Always remove from clients map to allow restart
-        this.clients.delete(languageId);
-      }
+    const identity = this.getClientIdentity(languageId, document);
+    const record = this.clients.get(identity.key);
+    if (!record) {
+      return;
+    }
+
+    record.documents.delete(this.getDocumentKey(document));
+    if (record.documents.size > 0) {
+      return;
+    }
+
+    try {
+      await this.stopClientRecord(identity.key, record);
+    } catch (error) {
+      console.error(`Error stopping ${software} Language Server:`, error);
+      vscode.window.showWarningMessage(`Error stopping ${software} Language Server: ${error}`);
     }
   }
 
@@ -114,7 +163,8 @@ export class LSPManager {
   private async createLanguageClient(
     software: QuantumChemistrySoftware,
     config: LSPServerConfig,
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    identity: LSPClientIdentity
   ): Promise<LanguageClient | undefined> {
     try {
       // Verify the LSP executable exists
@@ -136,18 +186,37 @@ export class LSPManager {
         transport: TransportKind.stdio,
       };
 
+      const watcherPattern = this.createWatcherPattern(config.definition);
+      const fileEvents = identity.workspaceFolder
+        ? vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(identity.workspaceFolder, watcherPattern)
+          )
+        : vscode.workspace.createFileSystemWatcher(watcherPattern);
+
+      const documentSelector = identity.workspaceFolder
+        ? [
+            {
+              scheme: document.uri.scheme || 'file',
+              language: config.definition.languageId,
+              pattern: this.createWorkspaceDocumentPattern(
+                identity.workspaceFolder,
+                watcherPattern
+              ),
+            },
+          ]
+        : [{ scheme: document.uri.scheme || 'file', language: config.definition.languageId }];
+
       const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: config.definition.languageId }],
+        documentSelector,
+        workspaceFolder: identity.workspaceFolder,
         synchronize: {
-          fileEvents: vscode.workspace.createFileSystemWatcher(
-            this.createWatcherPattern(config.definition)
-          ),
+          fileEvents,
         },
       };
 
       return new LanguageClient(
-        `openqc-${software.toLowerCase()}`,
-        `OpenQC ${software} Language Server`,
+        `openqc-${software.toLowerCase()}-${this.sanitizeClientId(identity.key)}`,
+        `OpenQC ${software} Language Server${identity.label ? ` (${identity.label})` : ''}`,
         serverOptions,
         clientOptions
       );
@@ -204,19 +273,61 @@ export class LSPManager {
     return `**/{${filePatterns.join(',')}}`;
   }
 
-  dispose(): void {
-    const stopPromises = Array.from(this.clients.entries()).map(async ([languageId, client]) => {
+  private createWorkspaceDocumentPattern(
+    workspaceFolder: vscode.WorkspaceFolder,
+    watcherPattern: string
+  ): string {
+    const workspacePath = workspaceFolder.uri.fsPath.replace(/\\/g, '/').replace(/\/+$/, '');
+    return `${workspacePath}/${watcherPattern}`;
+  }
+
+  private getClientIdentity(languageId: string, document: vscode.TextDocument): LSPClientIdentity {
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    if (workspaceFolder) {
+      return {
+        key: `${languageId}:workspace:${this.uriToString(workspaceFolder.uri)}`,
+        label: workspaceFolder.name,
+        workspaceFolder,
+      };
+    }
+
+    return {
+      key: `${languageId}:document:${this.getDocumentKey(document)}`,
+      label: '',
+    };
+  }
+
+  private getDocumentKey(document: vscode.TextDocument): string {
+    return this.uriToString(document.uri) || document.fileName;
+  }
+
+  private uriToString(uri: vscode.Uri): string {
+    return typeof uri.toString === 'function' ? uri.toString() : uri.fsPath;
+  }
+
+  private sanitizeClientId(value: string): string {
+    return value.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
+  private async stopClientRecord(clientKey: string, record: LSPClientRecord): Promise<void> {
+    try {
+      if (record.client.needsStop()) {
+        await record.client.stop();
+      }
+    } finally {
+      this.clients.delete(clientKey);
+    }
+  }
+
+  async dispose(): Promise<void> {
+    const stopPromises = Array.from(this.clients.entries()).map(async ([clientKey, record]) => {
       try {
-        if (client.needsStop()) {
-          await client.stop();
-        }
+        await this.stopClientRecord(clientKey, record);
       } catch (error) {
-        console.error(`Error stopping ${languageId} Language Server during dispose:`, error);
+        console.error(`Error stopping ${record.languageId} Language Server during dispose:`, error);
       }
     });
 
-    Promise.all(stopPromises).then(() => {
-      this.clients.clear();
-    });
+    await Promise.all(stopPromises);
   }
 }

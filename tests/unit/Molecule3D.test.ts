@@ -121,6 +121,22 @@ Test
       }
     });
 
+    it('should handle Gaussian atomic numbers across the periodic table', () => {
+      const content = `%chk=test.chk
+# HF/6-31G*
+
+Test
+
+0 1
+54 0.0 0.0 0.0
+78 0.0 0.0 1.0
+92 0.0 1.0 0.0
+118 1.0 0.0 0.0
+`;
+      const atoms = visualizer.parseAtoms(content, 'Gaussian' as QuantumChemistrySoftware);
+      expect(atoms.map(atom => atom.element)).toEqual(['Xe', 'Pt', 'U', 'Og']);
+    });
+
     it('should handle Gaussian with unknown atomic numbers', () => {
       const content = `%chk=test.chk
 # HF/6-31G*
