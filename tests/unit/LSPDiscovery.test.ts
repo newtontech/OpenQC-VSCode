@@ -1,3 +1,4 @@
+import packageJson from '../../package.json';
 import { LSPDiscovery, LSPServerDefinition } from '../../src/utils/LSPDiscovery';
 
 type MockContext = {
@@ -115,6 +116,49 @@ describe('LSPDiscovery', () => {
       'openqc.lsp.discovery.cache',
       expect.objectContaining({ data: definitions, timestamp: now })
     );
+  });
+
+  it('keeps canonical LSP defaults aligned with contributed configuration defaults', () => {
+    const properties = packageJson.contributes.configuration.properties as Record<
+      string,
+      { default: unknown }
+    >;
+
+    for (const definition of LSPDiscovery.getDefaultDefinitions()) {
+      expect(properties[`openqc.lsp.${definition.languageId}.enabled`]?.default).toBe(
+        definition.enabled
+      );
+      expect(properties[`openqc.lsp.${definition.languageId}.path`]?.default).toBe(
+        definition.executable
+      );
+    }
+  });
+
+  it('keeps canonical LSP defaults aligned with contributed language patterns', () => {
+    const languages = packageJson.contributes.languages as Array<{
+      id: string;
+      extensions?: string[];
+      filenames?: string[];
+    }>;
+
+    for (const definition of LSPDiscovery.getDefaultDefinitions()) {
+      const language = languages.find(candidate => candidate.id === definition.languageId);
+
+      expect(language).toBeDefined();
+      expect(language?.extensions || []).toEqual(
+        definition.fileExtensions.map(extension => `.${extension}`)
+      );
+      expect(language?.filenames || []).toEqual(definition.fileNames || []);
+    }
+  });
+
+  it('returns cloned canonical defaults to avoid shared-state drift', () => {
+    const first = LSPDiscovery.getDefaultDefinitions();
+    const second = LSPDiscovery.getDefaultDefinitions();
+
+    first[0].fileExtensions.push('mutated');
+
+    expect(second[0].fileExtensions).not.toContain('mutated');
   });
 
   it('uses fresh persisted cache without calling GitHub', async () => {

@@ -1,4 +1,5 @@
 import { LSPManager } from '../../src/managers/LSPManager';
+import { LSPDiscovery } from '../../src/utils/LSPDiscovery';
 
 // Mock functions object - declared with var for hoisting compatibility
 const mockFunctions: {
@@ -82,10 +83,14 @@ jest.mock('vscode-languageclient/node', () => ({
 describe('LSPManager', () => {
   let lspManager: LSPManager;
   let mockDocument: any;
+  let mockDiscovery: Pick<LSPDiscovery, 'fetchLSPRepositories'>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    lspManager = new LSPManager();
+    mockDiscovery = {
+      fetchLSPRepositories: jest.fn().mockResolvedValue(LSPDiscovery.getDefaultDefinitions()),
+    };
+    lspManager = new LSPManager(undefined, mockDiscovery as LSPDiscovery);
     mockDocument = {
       uri: { fsPath: '/test/file.com' },
       fileName: '/test/file.com',
@@ -110,8 +115,23 @@ describe('LSPManager', () => {
   describe('startLSPForDocument', () => {
     it('should start LSP for a valid document', async () => {
       await lspManager.startLSPForDocument(mockDocument);
+      expect(mockDiscovery.fetchLSPRepositories).toHaveBeenCalled();
       expect(mockFunctions.showInfo).toHaveBeenCalledWith(
         expect.stringContaining('Language Server started')
+      );
+    });
+
+    it('should use discovery defaults for executable path and watcher patterns', async () => {
+      await lspManager.startLSPForDocument(mockDocument);
+
+      expect(mockFunctions.exec).toHaveBeenCalledWith('which gaussian-lsp', expect.any(Function));
+      expect(mockFunctions.languageClient).toHaveBeenCalledWith(
+        'openqc-gaussian',
+        'OpenQC Gaussian Language Server',
+        expect.objectContaining({ command: 'gaussian-lsp' }),
+        expect.objectContaining({
+          documentSelector: [{ scheme: 'file', language: 'gaussian' }],
+        })
       );
     });
 
@@ -138,6 +158,25 @@ describe('LSPManager', () => {
       await lspManager.startLSPForDocument(mockDocument);
       expect(mockFunctions.showError).toHaveBeenCalledWith(
         expect.stringContaining('Failed to start')
+      );
+    });
+
+    it('should preserve user executable path overrides over discovery defaults', async () => {
+      const vscode = require('vscode');
+      vscode.workspace.getConfiguration.mockReturnValueOnce({
+        get: jest.fn((key: string, defaultValue?: any) => {
+          if (key === 'gaussian.enabled') return true;
+          if (key === 'gaussian.path') return '/opt/openqc/custom-gaussian-lsp';
+          return defaultValue;
+        }),
+      });
+      lspManager = new LSPManager(undefined, mockDiscovery as LSPDiscovery);
+
+      await lspManager.startLSPForDocument(mockDocument);
+
+      expect(mockFunctions.exec).toHaveBeenCalledWith(
+        'which /opt/openqc/custom-gaussian-lsp',
+        expect.any(Function)
       );
     });
 

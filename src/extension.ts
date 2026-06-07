@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
   fileTypeDetector = new FileTypeDetector();
 
   // Initialize LSP Manager
-  lspManager = new LSPManager();
+  lspManager = new LSPManager(context);
 
   // Initialize visualization providers
   structureViewer = new StructureViewer(context.extensionUri);

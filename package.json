@@ -64,7 +64,11 @@
           "INCAR",
           "POSCAR",
           "KPOINTS",
-          "POTCAR"
+          "POTCAR",
+          "CONTCAR",
+          "OSZICAR",
+          "OUTCAR",
+          "vasprun.xml"
         ],
         "configuration": "./language-configurations/vasp.json"
       },
