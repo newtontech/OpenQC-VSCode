@@ -111,7 +111,7 @@ A: Try:
 
 ### Q: How can I contribute?
 
-A: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Areas include:
+A: See [CONTRIBUTING.md](https://github.com/newtontech/OpenQC-VSCode/blob/master/CONTRIBUTING.md) for guidelines. Areas include:
 - Bug fixes
 - New features
 - Documentation
@@ -135,7 +135,7 @@ A: Yes! Open a feature request on GitHub. Check existing issues first to avoid d
 
 ### Q: What features are planned?
 
-A: See our [roadmap](PLAN.md). Highlights include:
+A: See our [roadmap](https://github.com/newtontech/OpenQC-VSCode/blob/master/PLAN.md). Highlights include:
 - Format conversion between packages
 - Output file parsing and visualization
 - Real-time calculation monitoring

@@ -169,4 +169,4 @@ class Molecule3D {
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines.
+See [CONTRIBUTING.md](https://github.com/newtontech/OpenQC-VSCode/blob/master/CONTRIBUTING.md) for development guidelines.

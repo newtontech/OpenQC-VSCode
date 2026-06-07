@@ -580,6 +580,9 @@
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
   },
+  "overrides": {
+    "vite": "^6.4.3"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/newtontech/OpenQC-VSCode.git"
