@@ -7,15 +7,7 @@
 
 jest.setTimeout(15000);
 
-// Mock util.promisify - must be before imports
-const mockExecAsync = jest.fn();
-jest.mock('util', () => {
-  const actualUtil = jest.requireActual('util');
-  return {
-    ...actualUtil,
-    promisify: jest.fn(() => mockExecAsync),
-  };
-});
+const mockSpawn = jest.fn();
 
 import { FormatConverter, SupportedFormat, type ConversionResult } from '../../../src/converters';
 
@@ -56,12 +48,47 @@ jest.mock(
 
 // Mock child_process
 jest.mock('child_process', () => ({
-  exec: jest.fn(),
-  spawn: jest.fn(),
+  spawn: mockSpawn,
 }));
 
 describe('FormatConverter', () => {
   let converter: FormatConverter;
+
+  function mockPythonResult(stdout = '', stderr = '', code = 0): void {
+    mockSpawn.mockImplementationOnce(() => {
+      const { EventEmitter } = require('events');
+      const child = new EventEmitter();
+      child.stdout = new EventEmitter();
+      child.stderr = new EventEmitter();
+
+      process.nextTick(() => {
+        if (stdout) {
+          child.stdout.emit('data', Buffer.from(stdout));
+        }
+        if (stderr) {
+          child.stderr.emit('data', Buffer.from(stderr));
+        }
+        child.emit('close', code);
+      });
+
+      return child;
+    });
+  }
+
+  function mockPythonError(error: Error): void {
+    mockSpawn.mockImplementationOnce(() => {
+      const { EventEmitter } = require('events');
+      const child = new EventEmitter();
+      child.stdout = new EventEmitter();
+      child.stderr = new EventEmitter();
+
+      process.nextTick(() => {
+        child.emit('error', error);
+      });
+
+      return child;
+    });
+  }
 
   beforeEach(() => {
     converter = new FormatConverter();
@@ -226,29 +253,27 @@ describe('FormatConverter', () => {
   describe('Backend Integration', () => {
     describe('checkBackend', () => {
       beforeEach(() => {
-        mockExecAsync.mockClear();
+        mockSpawn.mockClear();
       });
 
       it('should return true when Python and dpdata are available', async () => {
-        mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9.0', stderr: '' });
-        mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });
+        mockPythonResult('Python 3.9.0');
+        mockPythonResult();
 
         const result = await converter.checkBackend();
         expect(result).toBe(true);
       });
 
       it('should return false when Python is not available', async () => {
-        mockExecAsync.mockRejectedValueOnce(new Error('Command not found'));
+        mockPythonError(new Error('Command not found'));
 
         const result = await converter.checkBackend();
         expect(result).toBe(false);
       });
 
       it('should return false when dpdata is not installed', async () => {
-        mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9.0', stderr: '' });
-        mockExecAsync.mockRejectedValueOnce(
-          new Error('ModuleNotFoundError: No module named dpdata')
-        );
+        mockPythonResult('Python 3.9.0');
+        mockPythonResult('', 'ModuleNotFoundError: No module named dpdata', 1);
 
         const result = await converter.checkBackend();
         expect(result).toBe(false);
@@ -259,7 +284,7 @@ describe('FormatConverter', () => {
   describe('Single File Conversion', () => {
     describe('convert', () => {
       beforeEach(() => {
-        mockExecAsync.mockClear();
+        mockSpawn.mockClear();
       });
 
       it('should successfully convert VASP to XYZ', async () => {
@@ -272,18 +297,22 @@ describe('FormatConverter', () => {
           output_file: '/test/output.xyz',
         };
 
-        mockExecAsync.mockResolvedValueOnce({
-          stdout: JSON.stringify(mockResult),
-          stderr: '',
-        });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.convert('/test/POSCAR', '/test/output.xyz');
 
         expect(result).toEqual(mockResult);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining(['/test/POSCAR', '/test/output.xyz', '--json']),
+          { shell: false }
+        );
+        expect(mockSpawn.mock.calls[0][1][0]).toMatch(/python[/\\]format_converter\.py$/);
+        expect(mockSpawn.mock.calls[0][1][0]).not.toMatch(/out[/\\]python[/\\]/);
       });
 
       it('should handle conversion errors gracefully', async () => {
-        mockExecAsync.mockRejectedValueOnce(new Error('Conversion failed'));
+        mockPythonResult('', 'Conversion failed', 1);
 
         const result = await converter.convert('/test/POSCAR', '/test/output.xyz');
 
@@ -294,7 +323,7 @@ describe('FormatConverter', () => {
 
       it('should pass from_format parameter when specified', async () => {
         const mockResult: ConversionResult = { success: true };
-        mockExecAsync.mockResolvedValueOnce({ stdout: JSON.stringify(mockResult), stderr: '' });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.convert(
           '/test/input',
@@ -304,16 +333,34 @@ describe('FormatConverter', () => {
         );
 
         expect(result.success).toBe(true);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining([
+            '/test/input',
+            '/test/output',
+            '--from',
+            SupportedFormat.VASP,
+            '--to',
+            SupportedFormat.XYZ,
+            '--json',
+          ]),
+          { shell: false }
+        );
       });
 
       it('should pass no-metadata flag when preserveMetadata is false', async () => {
         const converterNoMeta = new FormatConverter({ preserveMetadata: false });
         const mockResult: ConversionResult = { success: true };
-        mockExecAsync.mockResolvedValueOnce({ stdout: JSON.stringify(mockResult), stderr: '' });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converterNoMeta.convert('/test/input', '/test/output');
 
         expect(result.success).toBe(true);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining(['--no-metadata', '--json']),
+          { shell: false }
+        );
       });
     });
   });
@@ -321,7 +368,7 @@ describe('FormatConverter', () => {
   describe('Batch Conversion', () => {
     describe('batchConvert', () => {
       beforeEach(() => {
-        mockExecAsync.mockClear();
+        mockSpawn.mockClear();
       });
 
       it('should successfully convert multiple files', async () => {
@@ -333,10 +380,7 @@ describe('FormatConverter', () => {
           results: [],
         };
 
-        mockExecAsync.mockResolvedValueOnce({
-          stdout: JSON.stringify(mockResult),
-          stderr: '',
-        });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.batchConvert(
           ['/test/file1.xyz', '/test/file2.xyz', '/test/file3.xyz'],
@@ -358,10 +402,7 @@ describe('FormatConverter', () => {
           results: [],
         };
 
-        mockExecAsync.mockResolvedValueOnce({
-          stdout: JSON.stringify(mockResult),
-          stderr: '',
-        });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.batchConvert(
           ['/test/file1.xyz', '/test/file2.xyz', '/test/file3.xyz'],
@@ -376,7 +417,7 @@ describe('FormatConverter', () => {
 
       it('should pass from_format parameter when specified', async () => {
         const mockResult = { success: true, total: 1, successful: 1, failed: 0, results: [] };
-        mockExecAsync.mockResolvedValueOnce({ stdout: JSON.stringify(mockResult), stderr: '' });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.batchConvert(
           ['/test/input.xyz'],
@@ -393,7 +434,7 @@ describe('FormatConverter', () => {
   describe('Current Document Conversion', () => {
     describe('convertCurrentDocument', () => {
       beforeEach(() => {
-        mockExecAsync.mockClear();
+        mockSpawn.mockClear();
       });
 
       it('should convert active document when available', async () => {
@@ -401,7 +442,7 @@ describe('FormatConverter', () => {
           success: true,
           output_file: '/test/input.xyz',
         };
-        mockExecAsync.mockResolvedValueOnce({ stdout: JSON.stringify(mockResult), stderr: '' });
+        mockPythonResult(JSON.stringify(mockResult));
 
         const result = await converter.convertCurrentDocument(SupportedFormat.XYZ);
 

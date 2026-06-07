@@ -5,15 +5,7 @@
 
 jest.setTimeout(15000);
 
-// Mock util.promisify - must be before imports
-const mockExecAsync = jest.fn();
-jest.mock('util', () => {
-  const actualUtil = jest.requireActual('util');
-  return {
-    ...actualUtil,
-    promisify: jest.fn(() => mockExecAsync),
-  };
-});
+const mockSpawn = jest.fn();
 
 // Mock vscode module FIRST before imports
 jest.mock(
@@ -77,8 +69,7 @@ jest.mock(
 
 // Mock child_process
 jest.mock('child_process', () => ({
-  exec: jest.fn(),
-  spawn: jest.fn(),
+  spawn: mockSpawn,
 }));
 
 import { FormatConverter, SupportedFormat, quickConvert } from '../../../src/converters';
@@ -98,6 +89,42 @@ const {
 
 describe('FormatConverter Extended Tests', () => {
   let converter: FormatConverter;
+
+  function mockPythonResult(stdout = '', stderr = '', code = 0): void {
+    mockSpawn.mockImplementationOnce(() => {
+      const { EventEmitter } = require('events');
+      const child = new EventEmitter();
+      child.stdout = new EventEmitter();
+      child.stderr = new EventEmitter();
+
+      process.nextTick(() => {
+        if (stdout) {
+          child.stdout.emit('data', Buffer.from(stdout));
+        }
+        if (stderr) {
+          child.stderr.emit('data', Buffer.from(stderr));
+        }
+        child.emit('close', code);
+      });
+
+      return child;
+    });
+  }
+
+  function mockPythonError(error: Error): void {
+    mockSpawn.mockImplementationOnce(() => {
+      const { EventEmitter } = require('events');
+      const child = new EventEmitter();
+      child.stdout = new EventEmitter();
+      child.stderr = new EventEmitter();
+
+      process.nextTick(() => {
+        child.emit('error', error);
+      });
+
+      return child;
+    });
+  }
 
   beforeEach(() => {
     converter = new FormatConverter();
@@ -148,7 +175,7 @@ describe('FormatConverter Extended Tests', () => {
 
   describe('quickConvert helper function', () => {
     it('should show setup instructions when backend not available', async () => {
-      mockExecAsync.mockRejectedValueOnce(new Error('Python not found'));
+      mockPythonError(new Error('Python not found'));
 
       await quickConvert(SupportedFormat.XYZ);
 
@@ -157,13 +184,10 @@ describe('FormatConverter Extended Tests', () => {
 
     it('should show error message when conversion fails', async () => {
       // checkBackend passes
-      mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9', stderr: '' });
-      mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });
+      mockPythonResult('Python 3.9');
+      mockPythonResult();
       // conversion fails
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: JSON.stringify({ success: false, error: 'Test error' }),
-        stderr: '',
-      });
+      mockPythonResult(JSON.stringify({ success: false, error: 'Test error' }));
 
       await quickConvert(SupportedFormat.XYZ);
 
@@ -172,13 +196,10 @@ describe('FormatConverter Extended Tests', () => {
 
     it('should handle successful conversion with Open File action', async () => {
       // checkBackend passes
-      mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9', stderr: '' });
-      mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });
+      mockPythonResult('Python 3.9');
+      mockPythonResult();
       // conversion succeeds
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: JSON.stringify({ success: true, output_file: '/test/output.xyz' }),
-        stderr: '',
-      });
+      mockPythonResult(JSON.stringify({ success: true, output_file: '/test/output.xyz' }));
 
       mockShowInformationMessage.mockResolvedValue('Open File');
       mockOpenTextDocument.mockResolvedValue({});
@@ -193,13 +214,10 @@ describe('FormatConverter Extended Tests', () => {
 
     it('should handle successful conversion with Copy to Clipboard action', async () => {
       // checkBackend passes
-      mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9', stderr: '' });
-      mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });
+      mockPythonResult('Python 3.9');
+      mockPythonResult();
       // conversion succeeds
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: JSON.stringify({ success: true, output_file: '/test/output.xyz' }),
-        stderr: '',
-      });
+      mockPythonResult(JSON.stringify({ success: true, output_file: '/test/output.xyz' }));
 
       mockShowInformationMessage.mockResolvedValue('Copy to Clipboard');
       mockReadFile.mockResolvedValue(Buffer.from('test content'));
@@ -211,13 +229,10 @@ describe('FormatConverter Extended Tests', () => {
 
     it('should handle successful conversion with no action (dismiss)', async () => {
       // checkBackend passes
-      mockExecAsync.mockResolvedValueOnce({ stdout: 'Python 3.9', stderr: '' });
-      mockExecAsync.mockResolvedValueOnce({ stdout: '', stderr: '' });
+      mockPythonResult('Python 3.9');
+      mockPythonResult();
       // conversion succeeds
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: JSON.stringify({ success: true, output_file: '/test/output.xyz' }),
-        stderr: '',
-      });
+      mockPythonResult(JSON.stringify({ success: true, output_file: '/test/output.xyz' }));
 
       mockShowInformationMessage.mockResolvedValue(undefined);
 
@@ -229,10 +244,7 @@ describe('FormatConverter Extended Tests', () => {
 
   describe('Error handling paths', () => {
     it('should handle JSON parse errors in convert', async () => {
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: 'invalid json',
-        stderr: '',
-      });
+      mockPythonResult('invalid json');
 
       const result = await converter.convert('/test/input', '/test/output');
 
@@ -241,10 +253,7 @@ describe('FormatConverter Extended Tests', () => {
     });
 
     it('should handle empty output in batch convert', async () => {
-      mockExecAsync.mockResolvedValueOnce({
-        stdout: '',
-        stderr: '',
-      });
+      mockPythonResult();
 
       const result = await converter.batchConvert(
         ['/test/input.xyz'],
