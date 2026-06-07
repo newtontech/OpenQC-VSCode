@@ -42,6 +42,14 @@ export class LSPManager {
     this.discovery = discovery || new LSPDiscovery(context);
   }
 
+  /**
+   * Start the matching LSP client for a quantum chemistry document.
+   *
+   * Detects the document's software format, resolves the configured language server,
+   * and reuses an existing workspace-scoped client when one is already running.
+   *
+   * @param document - VS Code document that should be attached to an LSP client.
+   */
   async startLSPForDocument(document: vscode.TextDocument): Promise<void> {
     const software = this.fileTypeDetector.detectSoftware(document);
     if (!software) {
@@ -111,6 +119,11 @@ export class LSPManager {
     }
   }
 
+  /**
+   * Stop tracking a document and shut down its LSP client when no documents remain.
+   *
+   * @param document - VS Code document that should be detached from its LSP client.
+   */
   async stopLSPForDocument(document: vscode.TextDocument): Promise<void> {
     const software = this.fileTypeDetector.detectSoftware(document);
     if (!software) {
@@ -142,6 +155,11 @@ export class LSPManager {
     }
   }
 
+  /**
+   * Restart the LSP client associated with a quantum chemistry document.
+   *
+   * @param document - VS Code document whose detected language server should be restarted.
+   */
   async restartLSPForDocument(document: vscode.TextDocument): Promise<void> {
     const software = this.fileTypeDetector.detectSoftware(document);
     if (!software) {
@@ -319,6 +337,9 @@ export class LSPManager {
     }
   }
 
+  /**
+   * Stop all managed LSP clients and clear their records.
+   */
   async dispose(): Promise<void> {
     const stopPromises = Array.from(this.clients.entries()).map(async ([clientKey, record]) => {
       try {

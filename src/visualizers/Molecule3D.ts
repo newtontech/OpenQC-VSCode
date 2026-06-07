@@ -3,6 +3,16 @@ import { getElementSymbol } from './atomicData';
 import { Atom } from './types';
 
 export class Molecule3D {
+  /**
+   * Parse atomic coordinates from quantum chemistry input content.
+   *
+   * Routes to the parser for the detected software format and returns the atoms
+   * that can be displayed by the molecule visualizer.
+   *
+   * @param content - Raw input file content.
+   * @param software - Detected quantum chemistry software format.
+   * @returns Parsed atoms with element symbols and 3D coordinates.
+   */
   parseAtoms(content: string, software: QuantumChemistrySoftware): Atom[] {
     switch (software) {
       case 'CP2K':

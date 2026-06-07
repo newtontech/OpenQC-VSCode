@@ -158,6 +158,14 @@ export class HoverProvider implements vscode.HoverProvider {
     this.fileTypeDetector = new FileTypeDetector();
   }
 
+  /**
+   * Provide hover documentation for recognized quantum chemistry parameters.
+   *
+   * @param document - Document containing the hover target.
+   * @param position - Cursor position for the hover request.
+   * @param token - Cancellation token supplied by VS Code.
+   * @returns Hover markdown for a known parameter, or null when no match is found.
+   */
   provideHover(
     document: vscode.TextDocument,
     position: vscode.Position,
