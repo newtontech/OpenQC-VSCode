@@ -63,7 +63,7 @@ vscode.commands.executeCommand('openqc.restartLSP');
 ```json
 {
   "openqc.lsp.cp2k.enabled": true,
-  "openqc.lsp.cp2k.path": "cp2k-lsp-enhanced",
+  "openqc.lsp.cp2k.path": "cp2k-language-server",
   "openqc.lsp.vasp.enabled": true,
   "openqc.lsp.vasp.path": "vasp-lsp",
   "openqc.lsp.gaussian.enabled": true,
