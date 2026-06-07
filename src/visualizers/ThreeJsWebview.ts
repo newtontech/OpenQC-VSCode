@@ -79,15 +79,23 @@ export class ThreeJsWebview {
    */
   private getWebviewContent(): string {
     const nonce = getNonce();
+    const cspSource = this.panel.webview.cspSource;
+    const csp = [
+      `default-src 'none';`,
+      `script-src 'nonce-${nonce}';`,
+      `style-src 'nonce-${nonce}';`,
+      `img-src ${cspSource} data: blob:;`,
+      `media-src ${cspSource};`,
+    ].join(' ');
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
     <title>3D Molecular Visualization</title>
-    <style>
+    <style nonce="${nonce}">
         body {
             margin: 0;
             padding: 0;
@@ -186,11 +194,14 @@ export class ThreeJsWebview {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="loading" class="loading" style="display: none;">
+        <div id="loading" class="loading hidden">
             <div class="spinner"></div>
             <div>Loading structure...</div>
         </div>
@@ -221,7 +232,7 @@ export class ThreeJsWebview {
             </div>
         </div>
 
-        <div class="info-panel" id="info-panel" style="display: none;">
+        <div class="info-panel hidden" id="info-panel">
             <div id="atom-count">Atoms: 0</div>
             <div id="bond-count">Bonds: 0</div>
         </div>

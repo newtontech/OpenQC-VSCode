@@ -22,26 +22,36 @@ jest.mock('../../src/managers/FileTypeDetector', () => ({
 
 // Mock vscode module
 jest.mock('vscode', () => {
-  let currentPanel: any = null;
-
-  const mockPanel = {
-    reveal: jest.fn(),
-    onDidDispose: jest.fn(callback => callback()),
-    webview: { html: '' },
-    dispose: jest.fn(),
-  };
-
   return {
     Uri: {
-      file: (path: string) => ({ fsPath: path, scheme: 'file' }),
+      file: (path: string) => ({
+        path,
+        fsPath: path,
+        scheme: 'file',
+        toString: () => path,
+      }),
+      joinPath: (base: any, ...paths: string[]) => {
+        const basePath = base.path || base.fsPath || base.toString();
+        const joinedPath = [basePath, ...paths].join('/').replace(/\/+/g, '/');
+        return {
+          path: joinedPath,
+          fsPath: joinedPath,
+          scheme: base.scheme || 'file',
+          toString: () => joinedPath,
+        };
+      },
     },
     window: {
-      createWebviewPanel: jest.fn(() => {
-        if (!currentPanel) {
-          currentPanel = mockPanel;
-        }
-        return currentPanel;
-      }),
+      createWebviewPanel: jest.fn(() => ({
+        reveal: jest.fn(),
+        onDidDispose: jest.fn(),
+        webview: {
+          html: '',
+          asWebviewUri: jest.fn((uri: any) => uri),
+          cspSource: 'vscode-resource:',
+        },
+        dispose: jest.fn(),
+      })),
       showWarningMessage: jest.fn(),
     },
     ViewColumn: {
@@ -130,7 +140,15 @@ describe('DataPlotter', () => {
         'openqcDataPlotter',
         'OpenQC: Data Plotter',
         expect.any(Number),
-        expect.any(Object)
+        expect.objectContaining({
+          enableScripts: true,
+          localResourceRoots: expect.arrayContaining([
+            expect.objectContaining({
+              fsPath: expect.stringContaining('node_modules/plotly.js-dist-min'),
+            }),
+          ]),
+          retainContextWhenHidden: true,
+        })
       );
     });
 
@@ -309,8 +327,11 @@ FINAL SINGLE POINT ENERGY      -76.38462354
 
       plotter.show(mockEditor);
 
-      // Panel created
-      expect(vscode.window.createWebviewPanel).toHaveBeenCalled();
+      const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
+      expect(panel.webview.html).toContain('node_modules/plotly.js-dist-min/plotly.min.js');
+      expect(panel.webview.html).toContain('Content-Security-Policy');
+      expect(panel.webview.html).not.toContain('https://cdn.plot.ly');
+      expect(panel.webview.html).not.toContain("'unsafe-inline'");
     });
 
     it('should show software badge in header', () => {

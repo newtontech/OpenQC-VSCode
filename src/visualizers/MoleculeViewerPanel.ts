@@ -34,7 +34,7 @@ export class MoleculeViewerPanel {
       MoleculeViewerPanel.viewType,
       '3D Molecule Viewer',
       column || vscode.ViewColumn.One,
-      MoleculeViewerWebview.getWebviewOptions()
+      MoleculeViewerWebview.getWebviewOptions(extensionUri)
     );
 
     MoleculeViewerPanel.currentPanel = new MoleculeViewerPanel(
@@ -71,7 +71,10 @@ export class MoleculeViewerPanel {
     this._panel = panel;
 
     // Set the webview's initial HTML content
-    this._panel.webview.html = MoleculeViewerWebview.generateWebviewHTML();
+    this._panel.webview.html = MoleculeViewerWebview.generateWebviewHTML(
+      this._panel.webview,
+      this._extensionUri
+    );
 
     // Listen for when the panel is disposed
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);

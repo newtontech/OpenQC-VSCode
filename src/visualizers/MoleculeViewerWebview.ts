@@ -5,9 +5,12 @@ export class MoleculeViewerWebview {
    * Generate the HTML content for the molecule viewer webview
    * @returns HTML string with embedded JavaScript
    */
-  static generateWebviewHTML(): string {
-    const csp = this.getCSP();
+  static generateWebviewHTML(webview: vscode.Webview, extensionUri: vscode.Uri): string {
     const nonce = this.getNonce();
+    const nglScriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(extensionUri, 'node_modules', 'ngl', 'dist', 'ngl.js')
+    );
+    const csp = this.getCSP(webview.cspSource, nonce);
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -16,7 +19,7 @@ export class MoleculeViewerWebview {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="${csp}">
   <title>3D Molecular Structure Viewer</title>
-  <style>
+  <style nonce="${nonce}">
     body {
       margin: 0;
       padding: 0;
@@ -120,8 +123,8 @@ export class MoleculeViewerWebview {
     <div id="error"></div>
   </div>
 
-  <script src="https://unpkg.com/ngl@2.2.1/dist/ngl.js"></script>
-  <script>
+  <script nonce="${nonce}" src="${nglScriptUri}"></script>
+  <script nonce="${nonce}">
     (function() {
       const vscode = acquireVsCodeApi();
       let stage = null;
@@ -339,22 +342,26 @@ export class MoleculeViewerWebview {
   /**
    * Get webview options
    */
-  static getWebviewOptions(): vscode.WebviewOptions {
+  static getWebviewOptions(extensionUri?: vscode.Uri): vscode.WebviewOptions {
     return {
       enableScripts: true,
+      localResourceRoots: extensionUri
+        ? [vscode.Uri.joinPath(extensionUri, 'node_modules', 'ngl', 'dist')]
+        : undefined,
     };
   }
 
   /**
    * Generate Content Security Policy for the webview
    */
-  static getCSP(): string {
+  static getCSP(cspSource: string, nonce: string): string {
     return [
       `default-src 'none';`,
-      `script-src https://unpkg.com https://cdn.jsdelivr.net 'nonce-${this.getNonce()}';`,
-      `style-src 'unsafe-inline';`,
-      `img-src https: data:;`,
-      `font-src https: data:;`,
+      `script-src 'nonce-${nonce}' ${cspSource};`,
+      `style-src 'nonce-${nonce}';`,
+      `img-src ${cspSource} data: blob:;`,
+      `font-src ${cspSource};`,
+      `media-src ${cspSource};`,
     ].join(' ');
   }
 

@@ -604,9 +604,13 @@
     "vitepress": "^1.6.4"
   },
   "dependencies": {
+    "3dmol": "^2.0.6",
+    "ngl": "^2.2.1",
+    "plotly.js-dist-min": "^2.27.0",
     "vscode-languageclient": "^9.0.1"
   },
   "overrides": {
+    "three": "^0.183.2",
     "vite": "^6.4.3"
   },
   "repository": {

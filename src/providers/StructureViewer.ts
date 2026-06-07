@@ -38,7 +38,9 @@ export class StructureViewer {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [this.extensionUri],
+          localResourceRoots: [
+            vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build'),
+          ],
           retainContextWhenHidden: true,
         }
       );
@@ -74,7 +76,9 @@ export class StructureViewer {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [this.extensionUri],
+          localResourceRoots: [
+            vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build'),
+          ],
           retainContextWhenHidden: true,
         }
       );
@@ -95,7 +99,7 @@ export class StructureViewer {
     const content = document.getText();
     const atoms = this.molecule3D.parseAtoms(content, software);
 
-    this.panel.webview.html = this.get3DViewerHtml(atoms, software);
+    this.panel.webview.html = this.get3DViewerHtml(atoms, software, this.panel.webview);
   }
 
   private updatePreviewContent(
@@ -109,7 +113,7 @@ export class StructureViewer {
     const content = document.getText();
     const previewData = this.parseInputPreview(content, software);
 
-    this.panel.webview.html = this.getPreviewHtml(previewData, software);
+    this.panel.webview.html = this.getPreviewHtml(previewData, software, this.panel.webview);
   }
 
   private parseInputPreview(content: string, software: QuantumChemistrySoftware): any {
@@ -230,16 +234,27 @@ export class StructureViewer {
     return sections;
   }
 
-  private get3DViewerHtml(atoms: any[], software: QuantumChemistrySoftware): string {
-    const atomsJson = JSON.stringify(atoms);
+  private get3DViewerHtml(
+    atoms: any[],
+    software: QuantumChemistrySoftware,
+    webview: vscode.Webview
+  ): string {
+    const nonce = getNonce();
+    const threeDmolUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build', '3Dmol-min.js')
+    );
+    const csp = getWebviewCsp(webview.cspSource, nonce);
+    const atomsJson = escapeScriptJson(atoms);
+    const softwareLabel = escapeHtml(software);
 
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>OpenQC: Molecular Structure - ${software}</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.6/3Dmol-min.js"></script>
-    <style>
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
+    <title>OpenQC: Molecular Structure - ${softwareLabel}</title>
+    <script nonce="${nonce}" src="${threeDmolUri}"></script>
+    <style nonce="${nonce}">
         body { 
             margin: 0; 
             padding: 0; 
@@ -298,6 +313,11 @@ export class StructureViewer {
         .control-btn:hover {
             background: #1177bb;
         }
+        .empty-state {
+            padding: 50px;
+            text-align: center;
+            color: #888;
+        }
         #info {
             position: absolute;
             top: 20px;
@@ -313,25 +333,25 @@ export class StructureViewer {
 <body>
     <div id="header">
         <span id="title">Molecular Structure Viewer</span>
-        <span id="software-badge">${software}</span>
+        <span id="software-badge">${softwareLabel}</span>
     </div>
     <div id="container">
         <div id="viewer"></div>
         <div id="controls">
-            <button class="control-btn" onclick="setStyle('stick')">Stick</button>
-            <button class="control-btn" onclick="setStyle('sphere')">Sphere</button>
-            <button class="control-btn" onclick="setStyle('line')">Line</button>
-            <button class="control-btn" onclick="setStyle('cartoon')">Cartoon</button>
+            <button class="control-btn" data-style="stick">Stick</button>
+            <button class="control-btn" data-style="sphere">Sphere</button>
+            <button class="control-btn" data-style="line">Line</button>
+            <button class="control-btn" data-style="cartoon">Cartoon</button>
             <br>
-            <button class="control-btn" onclick="viewer.spin(true)">Spin</button>
-            <button class="control-btn" onclick="viewer.spin(false)">Stop</button>
-            <button class="control-btn" onclick="viewer.zoomTo()">Reset View</button>
+            <button class="control-btn" id="spin">Spin</button>
+            <button class="control-btn" id="stop">Stop</button>
+            <button class="control-btn" id="reset-view">Reset View</button>
         </div>
         <div id="info">
             <div>Atoms: <span id="atom-count">0</span></div>
         </div>
     </div>
-    <script>
+    <script nonce="${nonce}">
         let viewer = null;
         const atoms = ${atomsJson};
         
@@ -349,10 +369,19 @@ export class StructureViewer {
                 
                 document.getElementById('atom-count').textContent = atoms.length;
             } else {
-                element.innerHTML = '<div style="padding: 50px; text-align: center; color: #888;">' +
-                    'No atomic coordinates found in file.<br>' +
-                    'Supported formats: XYZ, POSCAR, Gaussian, etc.</div>';
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = 'No atomic coordinates found in file.<br>' +
+                    'Supported formats: XYZ, POSCAR, Gaussian, etc.';
+                element.appendChild(emptyState);
             }
+
+            document.querySelectorAll('[data-style]').forEach((button) => {
+                button.addEventListener('click', () => setStyle(button.dataset.style));
+            });
+            document.getElementById('spin').addEventListener('click', () => viewer && viewer.spin(true));
+            document.getElementById('stop').addEventListener('click', () => viewer && viewer.spin(false));
+            document.getElementById('reset-view').addEventListener('click', () => viewer && viewer.zoomTo());
         });
         
         function setStyle(style) {
@@ -377,13 +406,22 @@ export class StructureViewer {
 </html>`;
   }
 
-  private getPreviewHtml(data: any, software: QuantumChemistrySoftware): string {
+  private getPreviewHtml(
+    data: any,
+    software: QuantumChemistrySoftware,
+    webview: vscode.Webview
+  ): string {
+    const nonce = getNonce();
+    const csp = getWebviewCsp(webview.cspSource, nonce, false);
+    const softwareLabel = escapeHtml(software);
+
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>OpenQC: Input Preview - ${software}</title>
-    <style>
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
+    <title>OpenQC: Input Preview - ${softwareLabel}</title>
+    <style nonce="${nonce}">
         body { 
             margin: 0; 
             padding: 0; 
@@ -459,7 +497,7 @@ export class StructureViewer {
 <body>
     <div id="header">
         <div id="title">Input File Preview</div>
-        <div id="software">${software}</div>
+        <div id="software">${softwareLabel}</div>
     </div>
     <div id="content">
         ${
@@ -473,7 +511,7 @@ export class StructureViewer {
                     (s: any) => `
                     <div class="param-row">
                         <span class="badge">SECTION</span>
-                        <span class="param-name">${s.name}</span>
+                        <span class="param-name">${escapeHtml(s.name)}</span>
                     </div>
                 `
                   )
@@ -494,8 +532,8 @@ export class StructureViewer {
                   .map(
                     (p: any) => `
                     <div class="param-row">
-                        <span class="param-name">${p.name}</span>
-                        <span class="param-value">${p.value}</span>
+                        <span class="param-name">${escapeHtml(p.name)}</span>
+                        <span class="param-value">${escapeHtml(p.value)}</span>
                     </div>
                 `
                   )
@@ -509,4 +547,42 @@ export class StructureViewer {
 </body>
 </html>`;
   }
+}
+
+function getWebviewCsp(cspSource: string, nonce: string, allowScripts = true): string {
+  return [
+    `default-src 'none';`,
+    allowScripts ? `script-src 'nonce-${nonce}' ${cspSource};` : `script-src 'none';`,
+    `style-src 'nonce-${nonce}';`,
+    `img-src ${cspSource} data: blob:;`,
+    `font-src ${cspSource};`,
+    `media-src ${cspSource};`,
+  ].join(' ');
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeScriptJson(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003C')
+    .replace(/>/g, '\\u003E')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+function getNonce(): string {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }

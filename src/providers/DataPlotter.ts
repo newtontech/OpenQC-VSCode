@@ -34,7 +34,9 @@ export class DataPlotter {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [this.extensionUri],
+          localResourceRoots: [
+            vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plotly.js-dist-min'),
+          ],
           retainContextWhenHidden: true,
         }
       );
@@ -55,7 +57,7 @@ export class DataPlotter {
     const content = document.getText();
     const plotData = this.extractPlotData(content, software);
 
-    this.panel.webview.html = this.getPlotterHtml(plotData, software);
+    this.panel.webview.html = this.getPlotterHtml(plotData, software, this.panel.webview);
   }
 
   private extractPlotData(content: string, software: QuantumChemistrySoftware): any {
@@ -246,16 +248,27 @@ export class DataPlotter {
     return plots;
   }
 
-  private getPlotterHtml(data: any, software: QuantumChemistrySoftware): string {
-    const plotsJson = JSON.stringify(data.plots);
+  private getPlotterHtml(
+    data: any,
+    software: QuantumChemistrySoftware,
+    webview: vscode.Webview
+  ): string {
+    const nonce = getNonce();
+    const plotlyUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plotly.js-dist-min', 'plotly.min.js')
+    );
+    const csp = getWebviewCsp(webview.cspSource, nonce);
+    const plotsJson = escapeScriptJson(data.plots);
+    const softwareLabel = escapeHtml(software);
 
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>OpenQC: Data Plotter - ${software}</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <style>
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
+    <title>OpenQC: Data Plotter - ${softwareLabel}</title>
+    <script nonce="${nonce}" src="${plotlyUri}"></script>
+    <style nonce="${nonce}">
         body { 
             margin: 0; 
             padding: 0; 
@@ -314,12 +327,12 @@ export class DataPlotter {
 <body>
     <div id="header">
         <span id="title">Data Plotter</span>
-        <span id="software-badge">${software}</span>
+        <span id="software-badge">${softwareLabel}</span>
     </div>
     <div id="container">
         <div id="plots"></div>
     </div>
-    <script>
+    <script nonce="${nonce}">
         const plots = ${plotsJson};
         const container = document.getElementById('plots');
         
@@ -327,8 +340,14 @@ export class DataPlotter {
             plots.forEach((plot, index) => {
                 const plotDiv = document.createElement('div');
                 plotDiv.className = 'plot-container';
-                plotDiv.innerHTML = '<div class="plot-title">' + plot.title + '</div>' +
-                    '<div class="plot-area" id="plot-' + index + '"></div>';
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'plot-title';
+                titleDiv.textContent = plot.title;
+                const plotArea = document.createElement('div');
+                plotArea.className = 'plot-area';
+                plotArea.id = 'plot-' + index;
+                plotDiv.appendChild(titleDiv);
+                plotDiv.appendChild(plotArea);
                 container.appendChild(plotDiv);
                 
                 const layout = {
@@ -375,4 +394,42 @@ export class DataPlotter {
 </body>
 </html>`;
   }
+}
+
+function getWebviewCsp(cspSource: string, nonce: string): string {
+  return [
+    `default-src 'none';`,
+    `script-src 'nonce-${nonce}' ${cspSource};`,
+    `style-src 'nonce-${nonce}';`,
+    `img-src ${cspSource} data: blob:;`,
+    `font-src ${cspSource};`,
+    `media-src ${cspSource};`,
+  ].join(' ');
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeScriptJson(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003C')
+    .replace(/>/g, '\\u003E')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+function getNonce(): string {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }

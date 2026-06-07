@@ -23,13 +23,32 @@ jest.mock('vscode', () => {
     onDidDispose: jest.fn(callback => {
       currentPanel = null;
     }),
-    webview: { html: '' },
+    webview: {
+      html: '',
+      asWebviewUri: jest.fn((uri: any) => uri),
+      cspSource: 'vscode-resource:',
+    },
     dispose: jest.fn(),
   };
 
   return {
     Uri: {
-      file: (path: string) => ({ fsPath: path, scheme: 'file' }),
+      file: (path: string) => ({
+        path,
+        fsPath: path,
+        scheme: 'file',
+        toString: () => path,
+      }),
+      joinPath: (base: any, ...paths: string[]) => {
+        const basePath = base.path || base.fsPath || base.toString();
+        const joinedPath = [basePath, ...paths].join('/').replace(/\/+/g, '/');
+        return {
+          path: joinedPath,
+          fsPath: joinedPath,
+          scheme: base.scheme || 'file',
+          toString: () => joinedPath,
+        };
+      },
     },
     window: {
       createWebviewPanel: jest.fn(() => {
@@ -100,7 +119,11 @@ Direct
         vscode.ViewColumn.Two,
         expect.objectContaining({
           enableScripts: true,
-          localResourceRoots: [mockUri],
+          localResourceRoots: expect.arrayContaining([
+            expect.objectContaining({
+              fsPath: expect.stringContaining('node_modules/3dmol/build'),
+            }),
+          ]),
           retainContextWhenHidden: true,
         })
       );
@@ -154,7 +177,11 @@ Direct
         expect.any(Number),
         expect.objectContaining({
           enableScripts: true,
-          localResourceRoots: [mockUri],
+          localResourceRoots: expect.arrayContaining([
+            expect.objectContaining({
+              fsPath: expect.stringContaining('node_modules/3dmol/build'),
+            }),
+          ]),
           retainContextWhenHidden: true,
         })
       );
@@ -264,8 +291,27 @@ O 0.0 0.0 0.0`,
 
       viewer.show(mockEditor);
 
-      // Verify the function was called
-      expect(vscode.window.createWebviewPanel).toHaveBeenCalled();
+      const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
+      expect(panel.webview.html).toContain('data-style="stick"');
+      expect(panel.webview.html).toContain('data-style="sphere"');
+      expect(panel.webview.html).not.toContain('onclick=');
+    });
+
+    it('loads 3Dmol locally with a strict CSP', () => {
+      const mockEditor = {
+        document: {
+          fileName: '/test/POSCAR',
+          getText: () => 'Si\n1.0',
+        },
+      } as unknown as vscode.TextEditor;
+
+      viewer.show(mockEditor);
+
+      const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
+      expect(panel.webview.html).toContain('node_modules/3dmol/build/3Dmol-min.js');
+      expect(panel.webview.html).toContain('Content-Security-Policy');
+      expect(panel.webview.html).not.toContain('https://cdnjs.cloudflare.com');
+      expect(panel.webview.html).not.toContain("'unsafe-inline'");
     });
   });
 });

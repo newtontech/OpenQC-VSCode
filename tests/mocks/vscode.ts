@@ -10,6 +10,7 @@ export const window = {
       onDidReceiveMessage: jest.fn(),
       postMessage: jest.fn(),
       asWebviewUri: jest.fn((uri: any) => uri),
+      cspSource: 'vscode-resource:',
     },
     onDidDispose: jest.fn((cb: () => void) => ({ dispose: jest.fn() })),
     reveal: jest.fn(),
@@ -73,6 +74,16 @@ export const Uri = {
     scheme: 'file',
     toString: () => uri,
   })),
+  joinPath: jest.fn((base: any, ...paths: string[]) => {
+    const basePath = base.path || base.fsPath || base.toString();
+    const joinedPath = [basePath, ...paths].join('/').replace(/\/+/g, '/');
+    return {
+      path: joinedPath,
+      fsPath: joinedPath,
+      scheme: base.scheme || 'file',
+      toString: () => joinedPath,
+    };
+  }),
 };
 
 export const EventEmitter = jest.fn().mockImplementation(() => ({

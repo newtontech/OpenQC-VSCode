@@ -7,7 +7,22 @@ import {
 // Mock vscode module
 jest.mock('vscode', () => ({
   Uri: {
-    file: (path: string) => ({ fsPath: path, scheme: 'file' }),
+    file: (path: string) => ({
+      path,
+      fsPath: path,
+      scheme: 'file',
+      toString: () => path,
+    }),
+    joinPath: (base: any, ...paths: string[]) => {
+      const basePath = base.path || base.fsPath || base.toString();
+      const joinedPath = [basePath, ...paths].join('/').replace(/\/+/g, '/');
+      return {
+        path: joinedPath,
+        fsPath: joinedPath,
+        scheme: base.scheme || 'file',
+        toString: () => joinedPath,
+      };
+    },
   },
   window: {
     createWebviewPanel: jest.fn(),
@@ -31,6 +46,8 @@ jest.mock('vscode', () => ({
     webview = {
       postMessage: jest.fn(),
       onDidReceiveMessage: jest.fn(),
+      asWebviewUri: jest.fn((uri: any) => uri),
+      cspSource: 'vscode-resource:',
     };
     reveal = jest.fn();
     dispose = jest.fn();
@@ -47,6 +64,8 @@ describe('MoleculeViewerPanel', () => {
       webview: {
         postMessage: jest.fn(),
         onDidReceiveMessage: jest.fn(),
+        asWebviewUri: jest.fn((uri: any) => uri),
+        cspSource: 'vscode-resource:',
         html: '',
       },
       onDidDispose: jest.fn(),
