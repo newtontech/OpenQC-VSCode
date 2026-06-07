@@ -8,8 +8,13 @@ import {
   HoverProvider,
   DefinitionProvider,
 } from './providers/lsp';
+import { registerASECommands } from './ase/commands';
+import { registerMigrationCommands } from './commands/migrationCommands';
+import { registerAICommands } from './ai/aiCommands';
+import { registerExportCommands } from './commands/exportCommands';
 import { FileTypeDetector } from './managers/FileTypeDetector';
 import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
+import { OpenQCConverterProvider } from './sidebar/OpenQCConverterProvider';
 import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
 import { StructureConverter } from './visualizers/StructureConverter';
 import { Molecule3D } from './visualizers/Molecule3D';
@@ -24,6 +29,7 @@ let diagnosticsProvider: DiagnosticsProvider;
 let fileTypeDetector: FileTypeDetector;
 let moleculeProvider: MoleculeTreeProvider;
 let jobProvider: JobTreeProvider;
+let converterProvider: OpenQCConverterProvider;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('OpenQC-VSCode extension is now active!');
@@ -45,11 +51,17 @@ export function activate(context: vscode.ExtensionContext) {
   moleculeProvider = new MoleculeTreeProvider(context);
   jobProvider = new JobTreeProvider(context);
 
+  // Initialize OpenQC Converter Sidebar Provider
+  converterProvider = new OpenQCConverterProvider(context.extensionUri);
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(OpenQCConverterProvider.viewType, converterProvider)
+  );
+
+  // Set converter enabled context
+  vscode.commands.executeCommand('setContext', 'openqc.converterEnabled', true);
+
   // Initialize LSP providers
   diagnosticsProvider = new DiagnosticsProvider();
-  const completionProvider = new CompletionProvider();
-  const hoverProvider = new HoverProvider();
-  const definitionProvider = new DefinitionProvider();
 
   registerFormatConversionCommands(context);
 
@@ -323,32 +335,22 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   ];
 
+  // Register ASE commands
+  registerMigrationCommands(context);
+  registerAICommands(context);
+  registerExportCommands(context);
+
+  console.log('OpenQC-VSCode: All providers registered successfully!');
+}
+
+  // Show Converter Panel command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('openqc.showConverterPanel', () => {
+      vscode.commands.executeCommand('openqc-converter-panel.focus');
+    })
+  );
+
   context.subscriptions.push(...disposables);
-  context.subscriptions.push(diagnosticsProvider);
-  context.subscriptions.push(moleculeProvider);
-  context.subscriptions.push(jobProvider);
-
-  // Register tree views
-  const moleculeTreeView = vscode.window.createTreeView('openqc.molecules', {
-    treeDataProvider: moleculeProvider,
-    showCollapseAll: true,
-  });
-
-  const jobTreeView = vscode.window.createTreeView('openqc.jobs', {
-    treeDataProvider: jobProvider,
-    showCollapseAll: true,
-  });
-
-  context.subscriptions.push(moleculeTreeView);
-  context.subscriptions.push(jobTreeView);
-
-  // Start LSP and validate for already open documents
-  vscode.window.visibleTextEditors.forEach(async editor => {
-    await lspManager.startLSPForDocument(editor.document);
-    if (fileTypeDetector.detectSoftware(editor.document)) {
-      await diagnosticsProvider.validateDocument(editor.document);
-    }
-  });
 }
 
 export async function deactivate() {

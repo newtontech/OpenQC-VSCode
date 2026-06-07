@@ -71,12 +71,12 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 - [ ] Camera controls (rotate, zoom, pan)
 - [ ] Multiple representation modes (ball-stick, space-filling, wireframe)
 
-#### Week 7-8: Interactive Editing ✅ COMPLETE (2026-03-05)
-- [x] Click-to-select atoms
-- [x] Real-time coordinate editing in 3D view
-- [x] Bond distance/angle measurements
-- [x] Unit cell visualization for periodic systems
-- [x] Export modified structures back to input format ✅ COMPLETE (2026-03-05)
+#### Week 7-8: Interactive Editing
+- [ ] Click-to-select atoms
+- [ ] Real-time coordinate editing in 3D view
+- [ ] Bond distance/angle measurements
+- [ ] Unit cell visualization for periodic systems
+- [ ] Export modified structures back to input format
 
 ### Technology Stack
 - **3D Engine**: Three.js or NGL Viewer
@@ -170,15 +170,10 @@ interface LSPServerDefinition {
 ## Phase 3: ASE Integration & Cross-Code Migration (Weeks 10-15)
 
 ### Objectives
-- **Primary**: Evaluate ASE as an optional intermediate layer before making it
-  part of the default architecture
+- **Primary**: Full ASE integration as the "universal intermediate layer"
 - Cross-code workflow migration (VASP ↔ CP2K ↔ QE ↔ Gaussian ↔ ORCA)
 - Seamless format conversion with ASE Atoms as the bridge
 - Integration with external tools and automated workflows
-
-Architecture note: [ASE Integration Architecture Evaluation](docs/architecture/ASE_INTEGRATION_EVALUATION.md)
-recommends keeping dpdata as the default converter and adding ASE only behind
-specific optional migration workflows.
 
 ### Why ASE?
 ASE (Atomic Simulation Environment) provides:
@@ -287,20 +282,13 @@ ASE (Atomic Simulation Environment) provides:
 
 ### Deliverables
 
-#### Week 20-21: Performance ✅ COMPLETE
+#### Week 20-21: Performance
 - [x] Lazy loading for large structures
 - [x] WebWorker for heavy computations
 - [x] Caching and incremental parsing
 - [x] Memory optimization for 10k+ atom systems
 
-
-**Implementation Status** (2026-03-05):
-- ✅ `src/performance/lazyLoading.ts` - Lazy loading with viewport optimization
-- ✅ `src/performance/computeWorker.ts` - WebWorker for background computations
-- ✅ `src/performance/workerManager.ts` - Worker pool management with priority queue
-- ✅ Test coverage: 82.83% for performance module
-
-#### Week 22-23: Community & Documentation ⏳ PENDING
+#### Week 22-23: Community & Documentation
 - [ ] Extension marketplace listing
 - [ ] Comprehensive documentation website
 - [ ] Video tutorials and quick-start guide
@@ -314,40 +302,14 @@ ASE (Atomic Simulation Environment) provides:
 
 ---
 
-## Phase 6: Ecosystem Integrations (Deferred)
+## Phase 6: Enterprise & Ecosystem (Future)
 
-Phase 6 is no longer a commitment to build enterprise-only features. The
-current roadmap prioritizes the public researcher workflow: stable parsers,
-visualization, conversion, documentation, examples, and extension packaging.
-
-### Out of Scope Until Demand Is Proven
-- [ ] HPC cluster integration beyond documenting VS Code Remote and task-based workflows
-- [ ] Collaborative editing or real-time sync
+### Potential Features
+- [ ] HPC cluster integration (Slurm, PBS job submission)
+- [ ] Collaborative editing (real-time sync)
+- [ ] Database integration (Materials Project, NOMAD)
 - [ ] Custom plugin API for proprietary formats
-- [ ] Enterprise support and training programs
-- [ ] First-party cloud computing infrastructure
-
-### Still in Scope
-- [ ] Documented local and remote workflow recipes using existing VS Code capabilities
-- [ ] Lightweight links or import/export helpers for public scientific databases when requested
-- [ ] Community contribution guidelines for adding formats, examples, and LSP backends
-- [ ] Extension points that fall naturally out of repeated contributor needs
-
-### Reconsideration Criteria
-Deferred items should only return to the active roadmap when they meet all of
-the following criteria:
-
-1. At least three independent users or organizations request the capability with concrete workflows.
-2. A maintainer can identify a small, testable first increment that does not compete with core parser, visualization, conversion, or documentation work.
-3. The feature can rely on existing standards or external tools instead of creating OpenQC-owned infrastructure.
-4. The maintenance owner, support expectations, and security boundary are documented before implementation starts.
-
-### Rationale
-The Phase 6 items are high-cost and maintenance-heavy relative to the current
-open-source goal. There is no roadmap evidence of committed users, funding, or
-support capacity for real-time collaboration, proprietary plugin APIs, managed
-HPC submission, or enterprise services. OpenQC should integrate with existing
-tools where practical and avoid building features before demonstrated demand.
+- [ ] Enterprise support and training
 
 ---
 
@@ -422,7 +384,7 @@ tools where practical and avoid building features before demonstrated demand.
 | Phase 3 | 6 weeks | ASE integration complete | Week 15 |
 | Phase 4 | 4 weeks | AI features live | Week 19 |
 | Phase 5 | 4 weeks | Production-ready release | Week 23 |
-| Phase 6 | Deferred | Demand-proven ecosystem integrations | Future |
+| Phase 6 | Ongoing | Enterprise features | Future |
 
 ---
 
