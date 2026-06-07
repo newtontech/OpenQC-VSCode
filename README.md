@@ -25,7 +25,20 @@ Tired of switching between different editors for VASP, Gaussian, ORCA, CP2K, and
 
 ## 🎯 Supported Software
 
+OpenQC is the VS Code-facing workspace for the newtontech computational chemistry LSP family. It should stay aligned with the standalone language servers in `newtontech/gaussian-lsp`, `newtontech/orca-lsp`, `newtontech/gamess-lsp`, `newtontech/qe-lsp`, and `newtontech/cp2k-lsp-enhanced`.
+
 We support **10+ major computational chemistry packages** with more on the way:
+
+### LSP Alignment Matrix
+
+| Format | Standalone LSP | OpenQC role |
+|--------|----------------|-------------|
+| Gaussian | `newtontech/gaussian-lsp` | Extension integration, syntax, visualization entry points |
+| ORCA | `newtontech/orca-lsp` | Extension integration, syntax, visualization entry points |
+| GAMESS (US) | `newtontech/gamess-lsp` | Extension integration, snippets, validation entry points |
+| Quantum ESPRESSO | `newtontech/qe-lsp` | Extension integration and shared UX conventions |
+| CP2K | `newtontech/cp2k-lsp-enhanced` | Extension integration with CP2K parser/linter tooling |
+| VASP / NWChem / others | OpenQC modules or future LSPs | Keep APIs compatible with the same LSP contract |
 
 ### ✅ Fully Supported (Now)
 
@@ -217,6 +230,28 @@ OpenQC works out of the box, but you can customize it:
 - [ ] Natural language input generation
 - [ ] Workflow automation
 - [ ] Cloud computing integration
+
+## Marketplace Release Checklist
+
+- Confirm `package.json` version, publisher, display name, icon, and keywords.
+- Run the TypeScript build and extension packaging command from a clean checkout.
+- Smoke test each aligned LSP family member: Gaussian, ORCA, GAMESS, QE, and CP2K.
+- Smoke test VASP and NWChem sample files that are handled directly by OpenQC.
+- Capture or refresh screenshots for syntax highlighting, diagnostics, 3D visualization, and validation.
+- Publish release notes that list supported formats, known parser gaps, VS Code version tested, and LSP versions or commit SHAs.
+
+## Issue Triage Policy
+
+Use labels to keep the roadmap readable:
+
+- `lsp-alignment`: behavior that must stay consistent with standalone newtontech LSP repositories.
+- `parser`: file parsing, validation, or format detection.
+- `visualization`: 3D viewer, rendering, structures, or export.
+- `language-support`: syntax highlighting, completion, diagnostics.
+- `marketplace`: packaging, install, icon, metadata, release notes.
+- `good-first-issue`: small parser fixtures, docs, examples, or screenshots.
+
+Every bug should include a minimal input file or a redacted snippet that reproduces the behavior.
 
 ---
 
