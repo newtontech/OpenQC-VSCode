@@ -21,6 +21,20 @@ export class CP2KParser extends BaseParser {
   private parsedResult: ParseResult | null = null;
   private sectionInfos: Map<string, CP2KSectionInfo> = new Map();
 
+  /** Attach a closed section to its parent (if any) or the top-level sections array. */
+  private attachSection(
+    sectionStack: CP2KSectionInfo[],
+    closedSection: ParsedSection,
+    sections: ParsedSection[]
+  ): void {
+    const parent = sectionStack[sectionStack.length - 1];
+    if (parent) {
+      (parent.subsections ??= []).push(closedSection);
+    } else {
+      sections.push(closedSection);
+    }
+  }
+
   parseInput(): ParseResult {
     if (this.parsedResult) {
       return this.parsedResult;
@@ -53,15 +67,7 @@ export class CP2KParser extends BaseParser {
           if (sectionStack.length > 0) {
             const closedSection = sectionStack.pop()!;
             closedSection.endLine = i;
-
-            if (sectionStack.length > 0) {
-              if (!sectionStack[sectionStack.length - 1].subsections) {
-                sectionStack[sectionStack.length - 1].subsections = [];
-              }
-              sectionStack[sectionStack.length - 1].subsections!.push(closedSection);
-            } else {
-              sections.push(closedSection);
-            }
+            this.attachSection(sectionStack, closedSection, sections);
           }
         } else {
           // Extract element name for KIND and XC_FUNCTIONAL sections
@@ -109,15 +115,7 @@ export class CP2KParser extends BaseParser {
     while (sectionStack.length > 0) {
       const section = sectionStack.pop()!;
       section.endLine = this.lines.length - 1;
-
-      if (sectionStack.length > 0) {
-        if (!sectionStack[sectionStack.length - 1].subsections) {
-          sectionStack[sectionStack.length - 1].subsections = [];
-        }
-        sectionStack[sectionStack.length - 1].subsections!.push(section);
-      } else {
-        sections.push(section);
-      }
+      this.attachSection(sectionStack, section, sections);
 
       errors.push({
         message: `Section ${section.name} not properly closed`,

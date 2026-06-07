@@ -1,3 +1,4 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 export type QuantumChemistrySoftware =
@@ -71,9 +72,8 @@ export class FileTypeDetector {
    * @returns Detected software name, or null when no supported format matches.
    */
   detectSoftware(document: vscode.TextDocument): QuantumChemistrySoftware | null {
-    const filename = document.fileName;
-    const basename = filename.split('/').pop()?.split('\\').pop() || '';
-    const extension = basename.includes('.') ? basename.slice(basename.lastIndexOf('.')) : '';
+    const basename = path.basename(document.fileName);
+    const extension = path.extname(basename);
     const content = document.getText();
 
     // Check filename matches first
