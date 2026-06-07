@@ -11,6 +11,95 @@ import {
 export class QEParser extends BaseParser {
   private parsedResult: ParseResult | null = null;
 
+  /** Dispatch table for non-namelist section handlers keyed by section prefix. */
+  private readonly sectionHandlers: Array<{
+    prefix: string;
+    handler: (trimmed: string) => ParsedSection;
+  }> = [
+    {
+      prefix: 'ATOMIC_SPECIES',
+      handler: (trimmed: string) => ({
+        name: 'ATOMIC_SPECIES',
+        startLine: 0,
+        endLine: 0,
+        parameters: [],
+      }),
+    },
+    {
+      prefix: 'ATOMIC_POSITIONS',
+      handler: (trimmed: string) => {
+        const parts = trimmed.split(/\s+/);
+        return {
+          name: 'ATOMIC_POSITIONS',
+          startLine: 0,
+          endLine: 0,
+          parameters: [
+            {
+              name: 'Units',
+              value: parts[1] || 'alat',
+              line: 0,
+            },
+          ],
+        };
+      },
+    },
+    {
+      prefix: 'K_POINTS',
+      handler: (trimmed: string) => {
+        const parts = trimmed.split(/\s+/);
+        return {
+          name: 'K_POINTS',
+          startLine: 0,
+          endLine: 0,
+          parameters: [
+            {
+              name: 'Type',
+              value: parts[1] || 'automatic',
+              line: 0,
+            },
+          ],
+        };
+      },
+    },
+    {
+      prefix: 'CELL_PARAMETERS',
+      handler: (trimmed: string) => {
+        const parts = trimmed.split(/\s+/);
+        return {
+          name: 'CELL_PARAMETERS',
+          startLine: 0,
+          endLine: 0,
+          parameters: [
+            {
+              name: 'Units',
+              value: parts[1] || 'alat',
+              line: 0,
+            },
+          ],
+        };
+      },
+    },
+  ];
+
+  /** Finalize and push the current section onto the sections array. */
+  private finalizeSection(sections: ParsedSection[], section: ParsedSection | null): void {
+    if (section) {
+      sections.push(section);
+    }
+  }
+
+  /** Find a matching handler for the given trimmed line, or return null. */
+  private findSectionHandler(
+    trimmed: string
+  ): { handler: (trimmed: string) => ParsedSection; line: string } | null {
+    for (const entry of this.sectionHandlers) {
+      if (trimmed.startsWith(entry.prefix)) {
+        return { handler: entry.handler, line: trimmed };
+      }
+    }
+    return null;
+  }
+
   parseInput(): ParseResult {
     if (this.parsedResult) {
       return this.parsedResult;
@@ -39,7 +128,7 @@ export class QEParser extends BaseParser {
         if (namelistName.startsWith('END')) {
           if (currentSection) {
             currentSection.endLine = i;
-            sections.push(currentSection);
+            this.finalizeSection(sections, currentSection);
             currentSection = null;
           }
           inNamelist = false;
@@ -56,73 +145,26 @@ export class QEParser extends BaseParser {
         const params = this.parseNamelistLine(trimmed, i);
         currentSection.parameters.push(...params);
         parameters.push(...params);
-      } else if (trimmed.startsWith('ATOMIC_SPECIES')) {
-        if (currentSection) {
-          currentSection.endLine = i - 1;
-          sections.push(currentSection);
+      } else {
+        // Check if this line starts a known non-namelist section
+        const match = this.findSectionHandler(trimmed);
+        if (match) {
+          // End the current section before starting a new one
+          if (currentSection) {
+            currentSection.endLine = i - 1;
+            this.finalizeSection(sections, currentSection);
+          }
+          currentSection = match.handler(trimmed);
+          currentSection.startLine = i;
+          currentSection.endLine = i;
+          // Update line numbers in parameters
+          for (const param of currentSection.parameters) {
+            param.line = i;
+          }
+        } else if (currentSection) {
+          // Continue the current section
+          currentSection.endLine = i;
         }
-        currentSection = {
-          name: 'ATOMIC_SPECIES',
-          startLine: i,
-          endLine: i,
-          parameters: [],
-        };
-      } else if (trimmed.startsWith('ATOMIC_POSITIONS')) {
-        if (currentSection) {
-          currentSection.endLine = i - 1;
-          sections.push(currentSection);
-        }
-        const parts = trimmed.split(/\s+/);
-        currentSection = {
-          name: 'ATOMIC_POSITIONS',
-          startLine: i,
-          endLine: i,
-          parameters: [
-            {
-              name: 'Units',
-              value: parts[1] || 'alat',
-              line: i,
-            },
-          ],
-        };
-      } else if (trimmed.startsWith('K_POINTS')) {
-        if (currentSection) {
-          currentSection.endLine = i - 1;
-          sections.push(currentSection);
-        }
-        const parts = trimmed.split(/\s+/);
-        currentSection = {
-          name: 'K_POINTS',
-          startLine: i,
-          endLine: i,
-          parameters: [
-            {
-              name: 'Type',
-              value: parts[1] || 'automatic',
-              line: i,
-            },
-          ],
-        };
-      } else if (trimmed.startsWith('CELL_PARAMETERS')) {
-        if (currentSection) {
-          currentSection.endLine = i - 1;
-          sections.push(currentSection);
-        }
-        const parts = trimmed.split(/\s+/);
-        currentSection = {
-          name: 'CELL_PARAMETERS',
-          startLine: i,
-          endLine: i,
-          parameters: [
-            {
-              name: 'Units',
-              value: parts[1] || 'alat',
-              line: i,
-            },
-          ],
-        };
-      } else if (currentSection) {
-        currentSection.endLine = i;
       }
     }
 
