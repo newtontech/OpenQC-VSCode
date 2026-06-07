@@ -221,15 +221,15 @@ OpenQC works out of the box, but you can customize it:
 
 ### Medium Term (v2.5)
 - [ ] Real-time calculation monitoring
-- [ ] Integration with job schedulers (SLURM, PBS)
+- [ ] Remote workflow documentation using existing VS Code capabilities
 - [ ] Parameter templates and wizards
-- [ ] Collaboration features
+- [ ] Community examples for common calculation workflows
 
 ### Long Term (v3.0)
 - [ ] AI-powered parameter optimization
 - [ ] Natural language input generation
 - [ ] Workflow automation
-- [ ] Cloud computing integration
+- [ ] Demand-proven ecosystem integrations from the [roadmap](PLAN.md)
 
 ## Marketplace Release Checklist
 

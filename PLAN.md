@@ -307,14 +307,40 @@ ASE (Atomic Simulation Environment) provides:
 
 ---
 
-## Phase 6: Enterprise & Ecosystem (Future)
+## Phase 6: Ecosystem Integrations (Deferred)
 
-### Potential Features
-- [ ] HPC cluster integration (Slurm, PBS job submission)
-- [ ] Collaborative editing (real-time sync)
-- [ ] Database integration (Materials Project, NOMAD)
+Phase 6 is no longer a commitment to build enterprise-only features. The
+current roadmap prioritizes the public researcher workflow: stable parsers,
+visualization, conversion, documentation, examples, and extension packaging.
+
+### Out of Scope Until Demand Is Proven
+- [ ] HPC cluster integration beyond documenting VS Code Remote and task-based workflows
+- [ ] Collaborative editing or real-time sync
 - [ ] Custom plugin API for proprietary formats
-- [ ] Enterprise support and training
+- [ ] Enterprise support and training programs
+- [ ] First-party cloud computing infrastructure
+
+### Still in Scope
+- [ ] Documented local and remote workflow recipes using existing VS Code capabilities
+- [ ] Lightweight links or import/export helpers for public scientific databases when requested
+- [ ] Community contribution guidelines for adding formats, examples, and LSP backends
+- [ ] Extension points that fall naturally out of repeated contributor needs
+
+### Reconsideration Criteria
+Deferred items should only return to the active roadmap when they meet all of
+the following criteria:
+
+1. At least three independent users or organizations request the capability with concrete workflows.
+2. A maintainer can identify a small, testable first increment that does not compete with core parser, visualization, conversion, or documentation work.
+3. The feature can rely on existing standards or external tools instead of creating OpenQC-owned infrastructure.
+4. The maintenance owner, support expectations, and security boundary are documented before implementation starts.
+
+### Rationale
+The Phase 6 items are high-cost and maintenance-heavy relative to the current
+open-source goal. There is no roadmap evidence of committed users, funding, or
+support capacity for real-time collaboration, proprietary plugin APIs, managed
+HPC submission, or enterprise services. OpenQC should integrate with existing
+tools where practical and avoid building features before demonstrated demand.
 
 ---
 
@@ -389,7 +415,7 @@ ASE (Atomic Simulation Environment) provides:
 | Phase 3 | 6 weeks | ASE integration complete | Week 15 |
 | Phase 4 | 4 weeks | AI features live | Week 19 |
 | Phase 5 | 4 weeks | Production-ready release | Week 23 |
-| Phase 6 | Ongoing | Enterprise features | Future |
+| Phase 6 | Deferred | Demand-proven ecosystem integrations | Future |
 
 ---
 
