@@ -5,6 +5,16 @@ Slurm job management interface.
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 from datetime import datetime
+import re
+
+
+_SLURM_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+
+
+def _validate_slurm_token(value: str, name: str) -> str:
+    if not isinstance(value, str) or not _SLURM_ID_RE.fullmatch(value):
+        raise ValueError(f"{name} contains unsupported characters")
+    return value
 
 
 @dataclass
@@ -53,11 +63,12 @@ class SlurmInterface:
         Returns:
             Job ID
         """
-        cmd = f"sbatch {script_path}"
+        args = ["sbatch"]
         if job_name:
-            cmd += f" --job-name={job_name}"
+            args.append(f"--job-name={_validate_slurm_token(job_name, 'job_name')}")
+        args.append(script_path)
         
-        exit_code, stdout, stderr = self.ssh.execute(cmd)
+        exit_code, stdout, stderr = self.ssh.execute_args(args)
         
         if exit_code != 0:
             raise RuntimeError(f"Job submission failed: {stderr}")
@@ -69,13 +80,21 @@ class SlurmInterface:
     
     def cancel_job(self, job_id: str) -> bool:
         """Cancel a running job."""
-        exit_code, stdout, stderr = self.ssh.execute(f"scancel {job_id}")
+        exit_code, stdout, stderr = self.ssh.execute_args([
+            "scancel",
+            _validate_slurm_token(job_id, "job_id")
+        ])
         return exit_code == 0
     
     def get_job_status(self, job_id: str) -> Optional[SlurmJob]:
         """Get status of a specific job."""
-        cmd = f"squeue -j {job_id} --format='%i %j %u %T %P %D %C %l %M' --noheader"
-        exit_code, stdout, stderr = self.ssh.execute(cmd)
+        exit_code, stdout, stderr = self.ssh.execute_args([
+            "squeue",
+            "-j",
+            _validate_slurm_token(job_id, "job_id"),
+            "--format=%i %j %u %T %P %D %C %l %M",
+            "--noheader"
+        ])
         
         if exit_code != 0 or not stdout.strip():
             return None
@@ -97,11 +116,15 @@ class SlurmInterface:
     
     def list_jobs(self, user: Optional[str] = None) -> List[SlurmJob]:
         """List all jobs (optionally filtered by user)."""
-        cmd = "squeue --format='%i %j %u %T %P %D %C %l %M' --noheader"
+        args = [
+            "squeue",
+            "--format=%i %j %u %T %P %D %C %l %M",
+            "--noheader"
+        ]
         if user:
-            cmd += f" --user={user}"
+            args.append(f"--user={_validate_slurm_token(user, 'user')}")
         
-        exit_code, stdout, stderr = self.ssh.execute(cmd)
+        exit_code, stdout, stderr = self.ssh.execute_args(args)
         
         if exit_code != 0:
             return []
@@ -126,8 +149,11 @@ class SlurmInterface:
     
     def get_queue_info(self) -> Dict[str, Any]:
         """Get queue/partition information."""
-        cmd = "sinfo --format='%P %a %l %D %T' --noheader"
-        exit_code, stdout, stderr = self.ssh.execute(cmd)
+        exit_code, stdout, stderr = self.ssh.execute_args([
+            "sinfo",
+            "--format=%P %a %l %D %T",
+            "--noheader"
+        ])
         
         if exit_code != 0:
             return {}

@@ -53,7 +53,7 @@ class FileTransfer:
             try:
                 sftp.stat(remote_dir)
             except FileNotFoundError:
-                self.ssh.execute(f"mkdir -p {remote_dir}")
+                self.ssh.execute_args(["mkdir", "-p", remote_dir])
             
             sftp.put(local_path, remote_path, callback=callback)
             return True
