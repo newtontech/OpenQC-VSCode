@@ -225,8 +225,8 @@ export function activate(context: vscode.ExtensionContext) {
         `Results: ${item.label}`,
         vscode.ViewColumn.Two,
         {
-          enableScripts: true,
           retainContextWhenHidden: true,
+          localResourceRoots: [],
         }
       );
 
@@ -244,7 +244,7 @@ export function activate(context: vscode.ExtensionContext) {
         output: `Results for ${item.label}\n\nSoftware: ${item.software}\nStatus: ${item.status}\n\nSample output data would appear here.\n\nFor completed jobs, this would include:\n- Final energies\n- Optimized geometries\n- Convergence data\n- Properties calculated\n\nFor failed jobs, this would include:\n- Error messages\n- Stack traces\n- Diagnostic information`,
       };
 
-      panel.webview.html = getResultsHtml(resultsData);
+      panel.webview.html = getResultsHtml(resultsData, panel.webview.cspSource);
     }),
 
     // Sidebar: Export data
@@ -350,13 +350,32 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 
-function getResultsHtml(data: any): string {
+function getResultsHtml(data: any, cspSource: string): string {
+  const nonce = getNonce();
+  const csp = [
+    `default-src 'none';`,
+    `script-src 'none';`,
+    `style-src 'nonce-${nonce}';`,
+    `img-src ${cspSource} data:;`,
+    `font-src ${cspSource};`,
+  ].join(' ');
+  const jobName = escapeHtml(data.jobName);
+  const jobId = escapeHtml(data.jobId);
+  const software = escapeHtml(data.software);
+  const status = escapeHtml(data.status);
+  const duration = escapeHtml(data.duration || 'N/A');
+  const startTime = data.startTime ? escapeHtml(new Date(data.startTime).toLocaleString()) : '';
+  const endTime = data.endTime ? escapeHtml(new Date(data.endTime).toLocaleString()) : '';
+  const output = escapeHtml(data.output);
+  const statusColor = data.status === 'completed' ? '#3c9' : '#f66';
+
   return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Results: ${data.jobName}</title>
-    <style>
+    <meta http-equiv="Content-Security-Policy" content="${csp}">
+    <title>Results: ${jobName}</title>
+    <style nonce="${nonce}">
         body {
             margin: 0;
             padding: 0;
@@ -380,7 +399,7 @@ function getResultsHtml(data: any): string {
             border-radius: 3px;
             font-size: 11px;
             text-transform: uppercase;
-            background: ${data.status === 'completed' ? '#3c9' : '#f66'};
+            background: ${statusColor};
             color: white;
         }
         #content {
@@ -430,44 +449,44 @@ function getResultsHtml(data: any): string {
 </head>
 <body>
     <div id="header">
-        <div id="title">${data.jobName}</div>
-        <div><span id="status">${data.status}</span> ${data.software}</div>
+        <div id="title">${jobName}</div>
+        <div><span id="status">${status}</span> ${software}</div>
     </div>
     <div id="content">
         <div class="info-section">
             <h3>Job Information</h3>
             <div class="info-row">
                 <span class="info-label">Job ID:</span>
-                <span class="info-value">${data.jobId}</span>
+                <span class="info-value">${jobId}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Software:</span>
-                <span class="info-value">${data.software}</span>
+                <span class="info-value">${software}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Status:</span>
-                <span class="info-value">${data.status}</span>
+                <span class="info-value">${status}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Duration:</span>
-                <span class="info-value">${data.duration || 'N/A'}</span>
+                <span class="info-value">${duration}</span>
             </div>
             ${
-              data.startTime
+              startTime
                 ? `
             <div class="info-row">
                 <span class="info-label">Started:</span>
-                <span class="info-value">${new Date(data.startTime).toLocaleString()}</span>
+                <span class="info-value">${startTime}</span>
             </div>
             `
                 : ''
             }
             ${
-              data.endTime
+              endTime
                 ? `
             <div class="info-row">
                 <span class="info-label">Completed:</span>
-                <span class="info-value">${new Date(data.endTime).toLocaleString()}</span>
+                <span class="info-value">${endTime}</span>
             </div>
             `
                 : ''
@@ -475,11 +494,29 @@ function getResultsHtml(data: any): string {
         </div>
         <div class="info-section">
             <h3>Output</h3>
-            <div id="output">${data.output}</div>
+            <div id="output">${output}</div>
         </div>
     </div>
 </body>
 </html>`;
+}
+
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getNonce(): string {
+  let text = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
 }
 
 export function deactivate() {
