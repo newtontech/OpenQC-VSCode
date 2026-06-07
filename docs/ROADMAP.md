@@ -18,4 +18,5 @@
 
 - Add conversion between common input formats.
 - Add batch structure preview and image export.
-- Add calculation monitoring integrations for local or cluster workflows.
+- Document calculation workflows that use existing VS Code Remote, tasks, and terminal capabilities.
+- Consider ecosystem integrations only after concrete user demand is documented in the project roadmap.
