@@ -170,10 +170,15 @@ interface LSPServerDefinition {
 ## Phase 3: ASE Integration & Cross-Code Migration (Weeks 10-15)
 
 ### Objectives
-- **Primary**: Full ASE integration as the "universal intermediate layer"
+- **Primary**: Evaluate ASE as an optional intermediate layer before making it
+  part of the default architecture
 - Cross-code workflow migration (VASP ↔ CP2K ↔ QE ↔ Gaussian ↔ ORCA)
 - Seamless format conversion with ASE Atoms as the bridge
 - Integration with external tools and automated workflows
+
+Architecture note: [ASE Integration Architecture Evaluation](docs/architecture/ASE_INTEGRATION_EVALUATION.md)
+recommends keeping dpdata as the default converter and adding ASE only behind
+specific optional migration workflows.
 
 ### Why ASE?
 ASE (Atomic Simulation Environment) provides:

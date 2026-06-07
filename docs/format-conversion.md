@@ -42,6 +42,13 @@ Or install the core dependency:
 pip install dpdata
 ```
 
+ASE is not required for the current converter. Install it only for future
+advanced structure manipulation or migration experiments:
+
+```bash
+pip install -r python/requirements-ase.txt
+```
+
 ## Usage
 
 ### Command Line
@@ -141,6 +148,7 @@ The converter preserves metadata during conversion:
 ## Future Enhancements
 
 - Support for additional formats (CASTEP, VASP OUTCAR, etc.)
-- Direct integration with ASE for advanced structure operations
+- Optional ASE integration for advanced structure operations; see
+  [ASE Integration Architecture Evaluation](./architecture/ASE_INTEGRATION_EVALUATION.md)
 - Preview of conversion results before saving
 - Custom format templates

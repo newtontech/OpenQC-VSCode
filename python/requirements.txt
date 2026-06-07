@@ -4,9 +4,6 @@
 # Core format conversion library
 dpdata>=0.3.0
 
-# Optional dependencies for enhanced functionality
-ase>=3.22.0  # Atomic Simulation Environment
-
 # Optional for crystallographic formats
 pymatgen>=2022.0.0  # Materials Project library
 
