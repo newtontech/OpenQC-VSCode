@@ -1,5 +1,13 @@
 import * as vscode from 'vscode';
 
+interface StoredMolecule {
+  id: string;
+  label: string;
+  formula: string;
+  atomCount: number;
+  filePath?: string;
+}
+
 /**
  * Represents a molecule item in the tree view
  */
@@ -122,7 +130,7 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
    */
   private loadMolecules(): void {
     try {
-      const saved = this.context.workspaceState.get<MoleculeItem[]>('openqc.molecules', []);
+      const saved = this.context.workspaceState.get<StoredMolecule[]>('openqc.molecules', []);
       this.molecules = saved
         .filter(m => m && m.id)
         .map(m => new MoleculeItem(m.id, m.label, m.formula, m.atomCount, m.filePath));
@@ -144,7 +152,15 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
    */
   private async saveMolecules(): Promise<void> {
     try {
-      await this.context.workspaceState.update('openqc.molecules', this.molecules);
+      const stored: StoredMolecule[] = this.molecules.map(molecule => ({
+        id: molecule.id,
+        label: molecule.label,
+        formula: molecule.formula,
+        atomCount: molecule.atomCount,
+        filePath: molecule.filePath,
+      }));
+
+      await this.context.workspaceState.update('openqc.molecules', stored);
     } catch (error) {
       console.error('Failed to save molecules:', error);
     }
