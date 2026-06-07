@@ -1,5 +1,6 @@
 import packageJson from '../../package.json';
 import { LSPDiscovery, LSPServerDefinition } from '../../src/utils/LSPDiscovery';
+import { Logger } from '../../src/utils/Logger';
 
 type MockContext = {
   globalState: {
@@ -56,11 +57,17 @@ describe('LSPDiscovery', () => {
   let logSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
   let dateSpy: jest.SpyInstance;
+  let loggerErrorSpy: jest.SpyInstance;
+  let loggerWarnSpy: jest.SpyInstance;
+  let loggerInfoSpy: jest.SpyInstance;
 
   beforeEach(() => {
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
     dateSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    loggerErrorSpy = jest.spyOn(Logger.getInstance(), 'error').mockImplementation(() => undefined);
+    loggerWarnSpy = jest.spyOn(Logger.getInstance(), 'warn').mockImplementation(() => undefined);
+    loggerInfoSpy = jest.spyOn(Logger.getInstance(), 'info').mockImplementation(() => undefined);
     (global as any).fetch = jest.fn();
   });
 
@@ -68,6 +75,9 @@ describe('LSPDiscovery', () => {
     logSpy.mockRestore();
     errorSpy.mockRestore();
     dateSpy.mockRestore();
+    loggerErrorSpy.mockRestore();
+    loggerWarnSpy.mockRestore();
+    loggerInfoSpy.mockRestore();
     delete (global as any).fetch;
   });
 
@@ -207,7 +217,8 @@ describe('LSPDiscovery', () => {
     const definitions = await new LSPDiscovery(createContext(cached) as any).fetchLSPRepositories();
 
     expect(definitions).toBe(cached.data);
-    expect(errorSpy).toHaveBeenCalled();
+    expect(loggerErrorSpy).toHaveBeenCalled();
+    expect(loggerWarnSpy).toHaveBeenCalled();
   });
 
   it('uses fallback definitions when GitHub fails and no cache exists', async () => {

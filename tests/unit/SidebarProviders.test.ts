@@ -29,12 +29,31 @@ jest.mock('vscode', () => ({
     fire = jest.fn();
   },
   workspace: {
-    getConfiguration: jest.fn(() => ({
-      get: jest.fn((key: string, defaultValue: any) => defaultValue),
-    })),
+    getConfiguration: jest.fn((section?: string) => {
+      if (section === 'openqc.logging') {
+        return {
+          get: jest.fn((key: string, defaultValue: any) => {
+            if (key === 'level') return 'info';
+            if (key === 'showUserMessages') return true;
+            return defaultValue;
+          }),
+        };
+      }
+      return {
+        get: jest.fn((key: string, defaultValue: any) => defaultValue),
+      };
+    }),
   },
   window: {
     showInformationMessage: jest.fn(),
+    showWarningMessage: jest.fn(),
+    showErrorMessage: jest.fn(),
+    createOutputChannel: jest.fn(() => ({
+      appendLine: jest.fn(),
+      clear: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn(),
+    })),
   },
 }));
 

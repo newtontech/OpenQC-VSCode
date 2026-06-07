@@ -606,6 +606,17 @@
           "minimum": 0,
           "maximum": 2,
           "description": "AI temperature (creativity vs determinism)"
+        },
+        "openqc.logging.level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info",
+          "description": "Set the logging level for OpenQC extension"
+        },
+        "openqc.logging.showUserMessages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show error/warning messages to user via VS Code UI"
         }
       }
     },

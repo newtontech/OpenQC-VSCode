@@ -7,6 +7,7 @@ import {
 } from 'vscode-languageclient/node';
 import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
 import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
+import { createComponentLogger } from '../utils/Logger';
 
 interface LSPServerConfig {
   name: string;
@@ -35,6 +36,7 @@ export class LSPManager {
   private config: vscode.WorkspaceConfiguration;
   private discovery: LSPDiscovery;
   private serverDefinitions: LSPServerDefinition[] = LSPDiscovery.getDefaultDefinitions();
+  private logger = createComponentLogger('LSPManager');
 
   constructor(context?: vscode.ExtensionContext, discovery?: LSPDiscovery) {
     this.fileTypeDetector = new FileTypeDetector();
@@ -109,11 +111,10 @@ export class LSPManager {
           documents: new Set([documentKey]),
           languageId: serverConfig.definition.languageId,
         });
-        vscode.window.showInformationMessage(`${software} Language Server started`);
+        this.logger.info(`${software} Language Server started`, true);
       }
     } catch (error) {
-      console.error(`Error starting ${software} Language Server:`, error);
-      vscode.window.showErrorMessage(`Failed to start ${software} Language Server: ${error}`);
+      this.logger.error(`Failed to start ${software} Language Server`, error as Error, true);
       // Clean up the client if it was added
       this.clients.delete(identity.key);
     }
