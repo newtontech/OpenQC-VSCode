@@ -447,10 +447,26 @@
           "when": "editorLangId =~ /^(cp2k|vasp|gaussian|orca|qe|gamess|nwchem)$/"
         }
       ],
-      "submenus": [
+      "openqc.convertSubMenu": [
         {
-          "id": "openqc.convertSubMenu",
-          "label": "Convert Format"
+          "command": "openqc.convertFormat",
+          "group": "1_convert"
+        },
+        {
+          "command": "openqc.convertToXYZ",
+          "group": "2_quick"
+        },
+        {
+          "command": "openqc.convertToPDB",
+          "group": "2_quick"
+        },
+        {
+          "command": "openqc.convertToVASP",
+          "group": "2_quick"
+        },
+        {
+          "command": "openqc.convertToGaussian",
+          "group": "2_quick"
         }
       ],
       "commandPalette": [
@@ -532,7 +548,13 @@
           "group": "inline"
         }
       ]
-    }
+    },
+    "submenus": [
+      {
+        "id": "openqc.convertSubMenu",
+        "label": "Convert Format"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -540,11 +562,14 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
+    "typecheck": "tsc --noEmit",
     "test": "jest --coverage",
     "test:unit": "jest --testPathPattern=tests/unit --coverage",
-    "test:integration": "jest --testPathPattern=tests/integration --passWithNoTests",
+    "test:integration": "jest --testPathPattern=tests/integration",
     "test:coverage": "jest --coverage",
-    "test:e2e": "node ./out/src/test/runTest.js",
+    "test:e2e": "node ./out/test/runTest.js",
+    "package:vsix": "npx @vscode/vsce package",
+    "ci:pr": "npm run compile && npm run lint && npm run typecheck && npm run format:check && npm run test:unit && npm run test:integration",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
