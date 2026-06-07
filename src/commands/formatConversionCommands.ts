@@ -177,7 +177,7 @@ async function convertFile(filePath: string, targetFormat: SupportedFormat): Pro
       cancellable: false,
     },
     async () => {
-      const result = await converter.convert(filePath, outputPath);
+      const result = await converter.convert(filePath, outputPath, undefined, targetFormat);
 
       if (result.success) {
         const action = await vscode.window.showInformationMessage(

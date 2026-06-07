@@ -302,6 +302,13 @@ describe('FormatConverter', () => {
         const result = await converter.convert('/test/POSCAR', '/test/output.xyz');
 
         expect(result).toEqual(mockResult);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining(['/test/POSCAR', '/test/output.xyz', '--json']),
+          { shell: false }
+        );
+        expect(mockSpawn.mock.calls[0][1][0]).toMatch(/python[/\\]format_converter\.py$/);
+        expect(mockSpawn.mock.calls[0][1][0]).not.toMatch(/out[/\\]python[/\\]/);
       });
 
       it('should handle conversion errors gracefully', async () => {
@@ -326,6 +333,19 @@ describe('FormatConverter', () => {
         );
 
         expect(result.success).toBe(true);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining([
+            '/test/input',
+            '/test/output',
+            '--from',
+            SupportedFormat.VASP,
+            '--to',
+            SupportedFormat.XYZ,
+            '--json',
+          ]),
+          { shell: false }
+        );
       });
 
       it('should pass no-metadata flag when preserveMetadata is false', async () => {
@@ -336,6 +356,11 @@ describe('FormatConverter', () => {
         const result = await converterNoMeta.convert('/test/input', '/test/output');
 
         expect(result.success).toBe(true);
+        expect(mockSpawn).toHaveBeenCalledWith(
+          'python3',
+          expect.arrayContaining(['--no-metadata', '--json']),
+          { shell: false }
+        );
       });
     });
   });

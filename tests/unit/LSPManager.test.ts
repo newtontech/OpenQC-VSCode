@@ -28,7 +28,7 @@ jest.mock('vscode', () => ({
         if (key.includes('enabled')) return true;
         if (key.includes('path')) {
           const softwareMap: Record<string, string> = {
-            cp2k: 'cp2k-lsp-enhanced',
+            cp2k: 'cp2k-language-server',
             gaussian: 'gaussian-lsp',
             vasp: 'vasp-lsp',
             orca: 'orca-lsp',

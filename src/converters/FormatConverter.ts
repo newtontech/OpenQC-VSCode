@@ -100,7 +100,8 @@ export class FormatConverter {
   constructor(config: FormatConverterConfig = {}) {
     this.config = {
       pythonPath: config.pythonPath || 'python3',
-      scriptPath: config.scriptPath || path.resolve(__dirname, '../../python/format_converter.py'),
+      scriptPath:
+        config.scriptPath || path.resolve(__dirname, '../../../python/format_converter.py'),
       preserveMetadata: config.preserveMetadata ?? true,
     };
     this.outputChannel = vscode.window.createOutputChannel('OpenQC Format Converter');
