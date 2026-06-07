@@ -67,7 +67,7 @@ A: Language servers provide intelligent features like auto-completion, hover inf
 ### Q: How do I install language servers?
 
 A: Each quantum chemistry package has its own LSP:
-- CP2K: `cp2k-lsp-enhanced`
+- CP2K: `cp2k-language-server`
 - VASP: `vasp-lsp`
 - Gaussian: `gaussian-lsp`
 - ORCA: `orca-lsp`
@@ -111,7 +111,7 @@ A: Try:
 
 ### Q: How can I contribute?
 
-A: See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. Areas include:
+A: See [CONTRIBUTING.md](https://github.com/newtontech/OpenQC-VSCode/blob/master/CONTRIBUTING.md) for guidelines. Areas include:
 - Bug fixes
 - New features
 - Documentation
@@ -135,7 +135,7 @@ A: Yes! Open a feature request on GitHub. Check existing issues first to avoid d
 
 ### Q: What features are planned?
 
-A: See our [roadmap](PLAN.md). Highlights include:
+A: See our [roadmap](https://github.com/newtontech/OpenQC-VSCode/blob/master/PLAN.md). Highlights include:
 - Format conversion between packages
 - Output file parsing and visualization
 - Real-time calculation monitoring

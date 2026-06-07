@@ -14,6 +14,7 @@ import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
 import { StructureConverter } from './visualizers/StructureConverter';
 import { Molecule3D } from './visualizers/Molecule3D';
 import { createParser } from './parsers';
+import { registerFormatConversionCommands } from './commands/formatConversionCommands';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -48,6 +49,8 @@ export function activate(context: vscode.ExtensionContext) {
   const completionProvider = new CompletionProvider();
   const hoverProvider = new HoverProvider();
   const definitionProvider = new DefinitionProvider();
+
+  registerFormatConversionCommands(context);
 
   // Language IDs for quantum chemistry software
   const languageIds = ['cp2k', 'vasp', 'gaussian', 'orca', 'qe', 'gamess', 'nwchem'];

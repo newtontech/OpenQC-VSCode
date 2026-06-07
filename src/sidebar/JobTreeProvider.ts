@@ -5,6 +5,16 @@ import * as vscode from 'vscode';
  */
 export type JobStatus = 'running' | 'completed' | 'failed' | 'queued' | 'cancelled';
 
+interface StoredJob {
+  id: string;
+  label: string;
+  status: JobStatus;
+  progress: number;
+  software: string;
+  startTime?: string;
+  endTime?: string;
+}
+
 /**
  * Represents a calculation job item in the tree view
  */
@@ -215,7 +225,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
    */
   private loadJobs(): void {
     try {
-      const saved = this.context.workspaceState.get<any[]>('openqc.jobs', []);
+      const saved = this.context.workspaceState.get<StoredJob[]>('openqc.jobs', []);
       this.jobs = saved
         .filter(j => j && j.id)
         .map(
@@ -248,7 +258,17 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
    */
   private async saveJobs(): Promise<void> {
     try {
-      await this.context.workspaceState.update('openqc.jobs', this.jobs);
+      const stored: StoredJob[] = this.jobs.map(job => ({
+        id: job.id,
+        label: job.label,
+        status: job.status,
+        progress: job.progress,
+        software: job.software,
+        startTime: job.startTime?.toISOString(),
+        endTime: job.endTime?.toISOString(),
+      }));
+
+      await this.context.workspaceState.update('openqc.jobs', stored);
     } catch (error) {
       console.error('Failed to save jobs:', error);
     }
