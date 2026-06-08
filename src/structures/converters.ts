@@ -256,10 +256,7 @@ export function openQCStructureToMolecularStructure(
  * @returns An OpenQCStructure of kind 'periodic' (or 'molecule' if no lattice).
  * @throws Error if the POSCAR content cannot be parsed.
  */
-export function poscarToOpenQCStructure(
-  content: string,
-  filename?: string
-): OpenQCStructure {
+export function poscarToOpenQCStructure(content: string, filename?: string): OpenQCStructure {
   const lines = content.split('\n');
 
   if (lines.length < 8) {
@@ -297,8 +294,7 @@ export function poscarToOpenQCStructure(
   const modeLine = lines[7].trim().toLowerCase();
   const isSelective = modeLine.startsWith('s');
   const isDirect =
-    modeLine.startsWith('d') ||
-    (!isSelective && !modeLine.startsWith('c') && modeLine !== '');
+    modeLine.startsWith('d') || (!isSelective && !modeLine.startsWith('c') && modeLine !== '');
   const coordLine = isSelective || isDirect || modeLine.startsWith('c') ? 8 : 7;
   const coordinateMode = isDirect ? 'fractional' : 'cartesian';
 

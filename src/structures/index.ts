@@ -17,10 +17,7 @@ export {
   type OpenQCStructureSchemaVersion,
 } from './OpenQCStructure';
 
-export {
-  validateOpenQCStructure,
-  type ValidationResult,
-} from './validation';
+export { validateOpenQCStructure, type ValidationResult } from './validation';
 
 export {
   openQCStructureToXYZ,

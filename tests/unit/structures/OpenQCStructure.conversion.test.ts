@@ -79,9 +79,7 @@ describe('xyzToOpenQCStructure', () => {
   });
 
   it('throws on non-numeric atom count', () => {
-    expect(() => xyzToOpenQCStructure('abc\ntest\nH 0 0 0\n')).toThrow(
-      'positive integer'
-    );
+    expect(() => xyzToOpenQCStructure('abc\ntest\nH 0 0 0\n')).toThrow('positive integer');
   });
 
   it('throws on zero atom count', () => {
@@ -90,9 +88,7 @@ describe('xyzToOpenQCStructure', () => {
 
   it('throws when no valid atoms found', () => {
     // Atom count says 1 but the line is malformed
-    expect(() => xyzToOpenQCStructure('1\ntest\nbad line\n')).toThrow(
-      'no valid atom lines'
-    );
+    expect(() => xyzToOpenQCStructure('1\ntest\nbad line\n')).toThrow('no valid atom lines');
   });
 
   it('passes through source metadata', () => {
@@ -171,9 +167,7 @@ describe('molecularStructureToOpenQCStructure', () => {
         { element: 'C', x: 0, y: 0, z: 0 },
         { element: 'O', x: 1.13, y: 0, z: 0 },
       ],
-      bonds: [
-        { atomIndex1: 0, atomIndex2: 1, length: 1.13, order: 2 },
-      ],
+      bonds: [{ atomIndex1: 0, atomIndex2: 1, length: 1.13, order: 2 }],
     };
 
     const structure = molecularStructureToOpenQCStructure(ms);
@@ -315,54 +309,47 @@ describe('createOpenQCStructure', () => {
   });
 
   it('creates a periodic structure when cell is provided', () => {
-    const structure = createOpenQCStructure(
-      [{ element: 'Si', x: 0, y: 0, z: 0 }],
-      {
-        kind: 'periodic',
-        cell: {
-          a: [5.43, 0, 0],
-          b: [0, 5.43, 0],
-          c: [0, 0, 5.43],
-          pbc: [true, true, true],
-        },
-      }
-    );
+    const structure = createOpenQCStructure([{ element: 'Si', x: 0, y: 0, z: 0 }], {
+      kind: 'periodic',
+      cell: {
+        a: [5.43, 0, 0],
+        b: [0, 5.43, 0],
+        c: [0, 0, 5.43],
+        pbc: [true, true, true],
+      },
+    });
 
     expect(structure.kind).toBe('periodic');
     expect(structure.cell).toBeDefined();
   });
 
   it('infers periodic kind from cell presence when kind not specified', () => {
-    const structure = createOpenQCStructure(
-      [{ element: 'Si', x: 0, y: 0, z: 0 }],
-      {
-        cell: {
-          a: [5.43, 0, 0],
-          b: [0, 5.43, 0],
-          c: [0, 0, 5.43],
-          pbc: [true, true, true],
-        },
-      }
-    );
+    const structure = createOpenQCStructure([{ element: 'Si', x: 0, y: 0, z: 0 }], {
+      cell: {
+        a: [5.43, 0, 0],
+        b: [0, 5.43, 0],
+        c: [0, 0, 5.43],
+        pbc: [true, true, true],
+      },
+    });
 
     expect(structure.kind).toBe('periodic');
   });
 
   it('sets charge and multiplicity in metadata', () => {
-    const structure = createOpenQCStructure(
-      [{ element: 'H', x: 0, y: 0, z: 0 }],
-      { charge: 1, multiplicity: 2 }
-    );
+    const structure = createOpenQCStructure([{ element: 'H', x: 0, y: 0, z: 0 }], {
+      charge: 1,
+      multiplicity: 2,
+    });
 
     expect(structure.metadata?.charge).toBe(1);
     expect(structure.metadata?.multiplicity).toBe(2);
   });
 
   it('sets the name', () => {
-    const structure = createOpenQCStructure(
-      [{ element: 'H', x: 0, y: 0, z: 0 }],
-      { name: 'Test molecule' }
-    );
+    const structure = createOpenQCStructure([{ element: 'H', x: 0, y: 0, z: 0 }], {
+      name: 'Test molecule',
+    });
 
     expect(structure.name).toBe('Test molecule');
   });
