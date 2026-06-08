@@ -782,8 +782,8 @@
     "@types/node": "18.x",
     "@types/three": "^0.183.1",
     "@types/vscode": "^1.120.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.60.1",
+    "@typescript-eslint/parser": "^8.60.1",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^8.56.0",
     "glob": "^13.0.6",
@@ -797,7 +797,7 @@
     "sharp": "^0.34.5",
     "three": "^0.183.2",
     "ts-jest": "^29.4.11",
-    "typescript": "^5.3.3",
+    "typescript": "^6.0.3",
     "vitepress": "^1.6.4"
   },
   "dependencies": {
