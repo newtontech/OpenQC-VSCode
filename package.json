@@ -816,7 +816,7 @@
   "dependencies": {
     "3dmol": "^2.5.5",
     "ngl": "^2.2.1",
-    "plotly.js-dist-min": "^2.27.0",
+    "plotly.js-dist-min": "^3.6.0",
     "vscode-languageclient": "^9.0.1"
   },
   "overrides": {
