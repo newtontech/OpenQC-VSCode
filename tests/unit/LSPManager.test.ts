@@ -63,6 +63,9 @@ jest.mock('vscode', () => ({
     base,
     pattern,
   })),
+  env: {
+    remoteName: undefined,
+  },
 }));
 
 // Mock the command resolver's isExecutableAvailable to always succeed in tests
@@ -94,6 +97,7 @@ describe('LSPManager', () => {
     const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
     (isExecutableAvailable as jest.Mock).mockResolvedValue(true);
     const vscode = require('vscode');
+    vscode.env.remoteName = undefined;
     vscode.workspace.getWorkspaceFolder.mockReturnValue(undefined);
     mockDiscovery = {
       fetchLSPRepositories: jest.fn().mockResolvedValue(LSPDiscovery.getDefaultDefinitions()),
@@ -275,6 +279,25 @@ describe('LSPManager', () => {
       await lspManager.startLSPForDocument(mockDocument);
       expect(mockFunctions.showError).toHaveBeenCalledWith(
         expect.stringContaining('Failed to start')
+      );
+    });
+
+    it('should include remote host context in executable startup errors', async () => {
+      const vscode = require('vscode');
+      const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
+      vscode.env.remoteName = 'ssh-remote';
+      (isExecutableAvailable as jest.Mock).mockResolvedValueOnce(false);
+
+      await lspManager.startLSPForDocument(mockDocument);
+
+      expect(mockFunctions.showError).toHaveBeenCalledWith(
+        expect.stringContaining('remote extension host (Remote SSH)')
+      );
+      expect(mockFunctions.showError).toHaveBeenCalledWith(
+        expect.stringContaining('openqc.lsp.gaussian.command')
+      );
+      expect(mockFunctions.showError).toHaveBeenCalledWith(
+        expect.stringContaining('remote workspace environment')
       );
     });
 

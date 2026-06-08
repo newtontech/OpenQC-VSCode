@@ -54,6 +54,10 @@
     "onView:openqc-sidebar"
   ],
   "main": "./out/extension.js",
+  "extensionKind": [
+    "workspace",
+    "ui"
+  ],
   "contributes": {
     "languages": [
       {
@@ -477,13 +481,13 @@
         "openqc.lsp.cp2k.path": {
           "type": "string",
           "default": "cp2k-language-server",
-          "description": "Path to CP2K Language Server executable (deprecated: use command instead)",
+          "description": "Path to CP2K Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.cp2k.command instead."
         },
         "openqc.lsp.cp2k.command": {
           "type": "string",
           "default": "cp2k-language-server",
-          "description": "Command to start the CP2K Language Server (executable name or absolute path)"
+          "description": "Command to start the CP2K Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.cp2k.args": {
           "type": "array",
@@ -511,13 +515,13 @@
         "openqc.lsp.vasp.path": {
           "type": "string",
           "default": "vasp-lsp",
-          "description": "Path to VASP Language Server executable (deprecated: use command instead)",
+          "description": "Path to VASP Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.vasp.command instead."
         },
         "openqc.lsp.vasp.command": {
           "type": "string",
           "default": "vasp-lsp",
-          "description": "Command to start the VASP Language Server (executable name or absolute path)"
+          "description": "Command to start the VASP Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.vasp.args": {
           "type": "array",
@@ -545,13 +549,13 @@
         "openqc.lsp.gaussian.path": {
           "type": "string",
           "default": "gaussian-lsp",
-          "description": "Path to Gaussian Language Server executable (deprecated: use command instead)",
+          "description": "Path to Gaussian Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.gaussian.command instead."
         },
         "openqc.lsp.gaussian.command": {
           "type": "string",
           "default": "gaussian-lsp",
-          "description": "Command to start the Gaussian Language Server (executable name or absolute path)"
+          "description": "Command to start the Gaussian Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.gaussian.args": {
           "type": "array",
@@ -579,13 +583,13 @@
         "openqc.lsp.orca.path": {
           "type": "string",
           "default": "orca-lsp",
-          "description": "Path to ORCA Language Server executable (deprecated: use command instead)",
+          "description": "Path to ORCA Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.orca.command instead."
         },
         "openqc.lsp.orca.command": {
           "type": "string",
           "default": "orca-lsp",
-          "description": "Command to start the ORCA Language Server (executable name or absolute path)"
+          "description": "Command to start the ORCA Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.orca.args": {
           "type": "array",
@@ -613,13 +617,13 @@
         "openqc.lsp.qe.path": {
           "type": "string",
           "default": "qe-lsp",
-          "description": "Path to Quantum ESPRESSO Language Server executable (deprecated: use command instead)",
+          "description": "Path to Quantum ESPRESSO Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.qe.command instead."
         },
         "openqc.lsp.qe.command": {
           "type": "string",
           "default": "qe-lsp",
-          "description": "Command to start the Quantum ESPRESSO Language Server (executable name or absolute path)"
+          "description": "Command to start the Quantum ESPRESSO Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.qe.args": {
           "type": "array",
@@ -647,13 +651,13 @@
         "openqc.lsp.gamess.path": {
           "type": "string",
           "default": "gamess-lsp",
-          "description": "Path to GAMESS Language Server executable (deprecated: use command instead)",
+          "description": "Path to GAMESS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.gamess.command instead."
         },
         "openqc.lsp.gamess.command": {
           "type": "string",
           "default": "gamess-lsp",
-          "description": "Command to start the GAMESS Language Server (executable name or absolute path)"
+          "description": "Command to start the GAMESS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.gamess.args": {
           "type": "array",
@@ -681,13 +685,13 @@
         "openqc.lsp.nwchem.path": {
           "type": "string",
           "default": "nwchem-lsp",
-          "description": "Path to NWChem Language Server executable (deprecated: use command instead)",
+          "description": "Path to NWChem Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
           "deprecationMessage": "Use openqc.lsp.nwchem.command instead."
         },
         "openqc.lsp.nwchem.command": {
           "type": "string",
           "default": "nwchem-lsp",
-          "description": "Command to start the NWChem Language Server (executable name or absolute path)"
+          "description": "Command to start the NWChem Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
         },
         "openqc.lsp.nwchem.args": {
           "type": "array",
