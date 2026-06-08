@@ -7,13 +7,11 @@ const mockFunctions: {
   showInfo: jest.Mock;
   showWarning: jest.Mock;
   showError: jest.Mock;
-  exec: jest.Mock;
   languageClient: jest.Mock;
 } = {
   showInfo: jest.fn(),
   showWarning: jest.fn(),
   showError: jest.fn(),
-  exec: jest.fn(),
   languageClient: jest.fn(),
 };
 
@@ -67,24 +65,14 @@ jest.mock('vscode', () => ({
   })),
 }));
 
-// Mock child_process
-jest.mock('child_process', () => ({
-  exec: (...args: any[]) => mockFunctions.exec(...args),
-}));
-
-// Mock util - promisify should return a function that returns a Promise
-jest.mock('util', () => ({
-  promisify: jest.fn((fn: Function) => {
-    return (...args: any[]) => {
-      return new Promise((resolve, reject) => {
-        fn(...args, (err: any, result: any) => {
-          if (err) reject(err);
-          else resolve(result);
-        });
-      });
-    };
-  }),
-}));
+// Mock the command resolver's isExecutableAvailable to always succeed in tests
+jest.mock('../../src/lsp/commandResolver', () => {
+  const actual = jest.requireActual('../../src/lsp/commandResolver');
+  return {
+    ...actual,
+    isExecutableAvailable: jest.fn().mockResolvedValue(true),
+  };
+});
 
 // Mock vscode-languageclient/node
 jest.mock('vscode-languageclient/node', () => ({
@@ -102,6 +90,9 @@ describe('LSPManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Logger.resetInstance();
+    // Reset the isExecutableAvailable mock to default (true)
+    const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
+    (isExecutableAvailable as jest.Mock).mockResolvedValue(true);
     const vscode = require('vscode');
     vscode.workspace.getWorkspaceFolder.mockReturnValue(undefined);
     mockDiscovery = {
@@ -115,9 +106,6 @@ describe('LSPManager', () => {
       getText: jest.fn().mockReturnValue('%chk=test.chk\n# B3LYP/6-31G(d)\n\n0 1\nH 0 0 0'),
     } as any;
     // Default mock implementations
-    mockFunctions.exec.mockImplementation((cmd: string, callback: Function) => {
-      callback(null, { stdout: '/usr/bin/test' });
-    });
     mockFunctions.languageClient.mockImplementation(() => ({
       start: jest.fn().mockResolvedValue(undefined),
       stop: jest.fn().mockResolvedValue(undefined),
@@ -140,10 +128,12 @@ describe('LSPManager', () => {
       );
     });
 
-    it('should use discovery defaults for executable path and watcher patterns', async () => {
+    it('should use cross-platform command resolution for executable checks', async () => {
+      const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
       await lspManager.startLSPForDocument(mockDocument);
 
-      expect(mockFunctions.exec).toHaveBeenCalledWith('which gaussian-lsp', expect.any(Function));
+      // isExecutableAvailable should be called (from the mocked module)
+      expect(isExecutableAvailable).toHaveBeenCalled();
       expect(mockFunctions.languageClient).toHaveBeenCalledWith(
         expect.stringContaining('openqc-gaussian-'),
         'OpenQC Gaussian Language Server',
@@ -280,9 +270,8 @@ describe('LSPManager', () => {
     });
 
     it('should handle errors when LSP executable is not found', async () => {
-      mockFunctions.exec.mockImplementationOnce((cmd: string, callback: Function) => {
-        callback(new Error('command not found'), null);
-      });
+      const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
+      (isExecutableAvailable as jest.Mock).mockResolvedValueOnce(false);
       await lspManager.startLSPForDocument(mockDocument);
       expect(mockFunctions.showError).toHaveBeenCalledWith(
         expect.stringContaining('Failed to start')
@@ -302,9 +291,37 @@ describe('LSPManager', () => {
 
       await lspManager.startLSPForDocument(mockDocument);
 
-      expect(mockFunctions.exec).toHaveBeenCalledWith(
-        'which /opt/openqc/custom-gaussian-lsp',
-        expect.any(Function)
+      // The resolved command should be the custom path, not the default executable.
+      // The path contains '/' so it is treated as a filesystem path (fs.access check),
+      // but in test environment fs.access will fail since the file doesn't exist.
+      // We need to make execFile succeed OR check the LanguageClient was constructed
+      // with the overridden command.
+      expect(mockFunctions.languageClient).toHaveBeenCalledWith(
+        expect.stringContaining('openqc-gaussian-'),
+        expect.any(String),
+        expect.objectContaining({ command: '/opt/openqc/custom-gaussian-lsp' }),
+        expect.any(Object)
+      );
+    });
+
+    it('should handle paths with spaces in user config', async () => {
+      const vscode = require('vscode');
+      vscode.workspace.getConfiguration.mockReturnValueOnce({
+        get: jest.fn((key: string, defaultValue?: any) => {
+          if (key === 'gaussian.enabled') return true;
+          if (key === 'gaussian.path') return '/opt/my tools/gaussian-lsp';
+          return defaultValue;
+        }),
+      });
+      lspManager = new LSPManager(undefined, mockDiscovery as LSPDiscovery);
+
+      await lspManager.startLSPForDocument(mockDocument);
+
+      expect(mockFunctions.languageClient).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        expect.objectContaining({ command: '/opt/my tools/gaussian-lsp' }),
+        expect.any(Object)
       );
     });
 
@@ -517,7 +534,7 @@ describe('LSPManager', () => {
       );
     });
 
-    it('should wait between stop and start', async () => {
+    it('should not use a fixed delay between stop and start', async () => {
       mockFunctions.languageClient.mockImplementation(() => ({
         start: jest.fn().mockResolvedValue(undefined),
         stop: jest.fn().mockResolvedValue(undefined),
@@ -525,7 +542,10 @@ describe('LSPManager', () => {
       }));
       const startTime = Date.now();
       await lspManager.restartLSPForDocument(mockDocument);
-      expect(Date.now() - startTime).toBeGreaterThanOrEqual(500);
+      const elapsed = Date.now() - startTime;
+      // Should complete well under 500ms since there is no longer a fixed sleep.
+      // Allow generous overhead for test execution but assert no 500ms delay.
+      expect(elapsed).toBeLessThan(500);
     });
   });
 
