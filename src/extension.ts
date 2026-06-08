@@ -196,6 +196,26 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
+    vscode.commands.registerCommand('openqc.lsp.showStatus', () => {
+      lspManager.showStatus();
+    }),
+
+    vscode.commands.registerCommand('openqc.lsp.showLogs', () => {
+      lspManager.showLogs();
+    }),
+
+    vscode.commands.registerCommand('openqc.lsp.restartCurrent', async () => {
+      await lspManager.restartCurrent();
+    }),
+
+    vscode.commands.registerCommand('openqc.lsp.selectExecutable', async () => {
+      await lspManager.selectExecutable();
+    }),
+
+    vscode.commands.registerCommand('openqc.lsp.generateCompatibilityReport', async () => {
+      await lspManager.generateCompatibilityReport();
+    }),
+
     // Validate current document
     vscode.commands.registerCommand('openqc.validate', async () => {
       const editor = vscode.window.activeTextEditor;

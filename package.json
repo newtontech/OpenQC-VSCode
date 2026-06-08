@@ -48,6 +48,11 @@
     "onCommand:openqc.startLSP",
     "onCommand:openqc.stopLSP",
     "onCommand:openqc.restartLSP",
+    "onCommand:openqc.lsp.showStatus",
+    "onCommand:openqc.lsp.showLogs",
+    "onCommand:openqc.lsp.restartCurrent",
+    "onCommand:openqc.lsp.selectExecutable",
+    "onCommand:openqc.lsp.generateCompatibilityReport",
     "onCommand:openqc.visualizeStructure",
     "onCommand:openqc.plotData",
     "onCommand:openqc.validate",
@@ -223,6 +228,31 @@
         "command": "openqc.restartLSP",
         "title": "OpenQC: Restart Language Server",
         "icon": "$(debug-restart)"
+      },
+      {
+        "command": "openqc.lsp.showStatus",
+        "title": "OpenQC LSP: Show Status",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "openqc.lsp.showLogs",
+        "title": "OpenQC LSP: Show Logs",
+        "icon": "$(output)"
+      },
+      {
+        "command": "openqc.lsp.restartCurrent",
+        "title": "OpenQC LSP: Restart Current",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "openqc.lsp.selectExecutable",
+        "title": "OpenQC LSP: Select Executable",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "openqc.lsp.generateCompatibilityReport",
+        "title": "OpenQC LSP: Generate Compatibility Report",
+        "icon": "$(report)"
       },
       {
         "command": "openqc.validate",
