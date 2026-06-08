@@ -22,6 +22,7 @@ import { createParser } from './parsers';
 import { registerFormatConversionCommands } from './commands/formatConversionCommands';
 import { renderResultsWebviewHtml } from './webviews/resultsWebview';
 import { Logger, LogLevel } from './utils/Logger';
+import { getLanguageFeaturePolicy, readLanguageFeatureMode } from './languageFeatures';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -45,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   logger.info('OpenQC-VSCode extension activated');
+  const languageFeaturePolicy = getLanguageFeaturePolicy(readLanguageFeatureMode());
 
   // Set sidebar enabled context
   vscode.commands.executeCommand('setContext', 'openqc.sidebar.enabled', true);
@@ -72,10 +74,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Set converter enabled context
   vscode.commands.executeCommand('setContext', 'openqc.converterEnabled', true);
 
-  // Initialize LSP providers
-  completionProvider = new CompletionProvider();
-  hoverProvider = new HoverProvider();
-  definitionProvider = new DefinitionProvider();
   diagnosticsProvider = new DiagnosticsProvider();
 
   registerFormatConversionCommands(context);
@@ -84,37 +82,51 @@ export function activate(context: vscode.ExtensionContext) {
   const languageIds = ['cp2k', 'vasp', 'gaussian', 'orca', 'qe', 'gamess', 'nwchem'];
 
   // Register language providers
-  const disposables = [
-    // Completion provider
-    vscode.languages.registerCompletionItemProvider(
-      languageIds,
-      completionProvider,
-      '=',
-      ' ',
-      '\n'
-    ),
+  const disposables: vscode.Disposable[] = [];
 
-    // Hover provider
-    vscode.languages.registerHoverProvider(languageIds, hoverProvider),
+  if (languageFeaturePolicy.registerLocalProviders) {
+    completionProvider = new CompletionProvider();
+    hoverProvider = new HoverProvider();
+    definitionProvider = new DefinitionProvider();
 
-    // Definition provider
-    vscode.languages.registerDefinitionProvider(languageIds, definitionProvider),
+    disposables.push(
+      // Completion provider
+      vscode.languages.registerCompletionItemProvider(
+        languageIds,
+        completionProvider,
+        '=',
+        ' ',
+        '\n'
+      ),
 
-    // Validation on document change
-    vscode.workspace.onDidChangeTextDocument(event => {
-      diagnosticsProvider.validateDocument(event.document);
-    }),
+      // Hover provider
+      vscode.languages.registerHoverProvider(languageIds, hoverProvider),
 
-    // Validation on document save
-    vscode.workspace.onDidSaveTextDocument(document => {
-      diagnosticsProvider.validateDocument(document);
-    }),
+      // Definition provider
+      vscode.languages.registerDefinitionProvider(languageIds, definitionProvider)
+    );
+  }
 
-    // Clear diagnostics on document close
-    vscode.workspace.onDidCloseTextDocument(document => {
-      diagnosticsProvider.clearDiagnostics(document);
-    }),
+  if (languageFeaturePolicy.registerLocalDiagnostics) {
+    disposables.push(
+      // Validation on document change
+      vscode.workspace.onDidChangeTextDocument(event => {
+        diagnosticsProvider.validateDocument(event.document);
+      }),
 
+      // Validation on document save
+      vscode.workspace.onDidSaveTextDocument(document => {
+        diagnosticsProvider.validateDocument(document);
+      }),
+
+      // Clear diagnostics on document close
+      vscode.workspace.onDidCloseTextDocument(document => {
+        diagnosticsProvider.clearDiagnostics(document);
+      })
+    );
+  }
+
+  disposables.push(
     // Visualization commands
     vscode.commands.registerCommand('openqc.visualizeStructure', async () => {
       const editor = vscode.window.activeTextEditor;
@@ -188,7 +200,11 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('openqc.validate', async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor) {
-        await diagnosticsProvider.validateDocument(editor.document);
+        if (languageFeaturePolicy.validateWithLocalDiagnostics) {
+          await diagnosticsProvider.validateDocument(editor.document);
+        } else {
+          await lspManager.startLSPForDocument(editor.document);
+        }
         vscode.window.showInformationMessage('Input file validated');
       }
     }),
@@ -336,9 +352,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Auto-start LSP on document open
     vscode.workspace.onDidOpenTextDocument(async document => {
-      await lspManager.startLSPForDocument(document);
-      // Also validate the document
-      if (fileTypeDetector.detectSoftware(document)) {
+      if (languageFeaturePolicy.autoStartLsp) {
+        await lspManager.startLSPForDocument(document);
+      }
+      if (
+        languageFeaturePolicy.validateWithLocalDiagnostics &&
+        fileTypeDetector.detectSoftware(document)
+      ) {
         await diagnosticsProvider.validateDocument(document);
       }
     }),
@@ -346,9 +366,11 @@ export function activate(context: vscode.ExtensionContext) {
     // Clean up LSP on document close
     vscode.workspace.onDidCloseTextDocument(async document => {
       await lspManager.stopLSPForDocument(document);
-      diagnosticsProvider.clearDiagnostics(document);
-    }),
-  ];
+      if (languageFeaturePolicy.registerLocalDiagnostics) {
+        diagnosticsProvider.clearDiagnostics(document);
+      }
+    })
+  );
 
   // Register ASE commands
   registerMigrationCommands(context);

@@ -459,6 +459,16 @@
     "configuration": {
       "title": "OpenQC",
       "properties": {
+        "openqc.languageFeatures.mode": {
+          "type": "string",
+          "enum": [
+            "lsp",
+            "local",
+            "hybrid"
+          ],
+          "default": "lsp",
+          "description": "Controls ownership of OpenQC language features. 'lsp' uses external language servers only, 'local' uses built-in parser providers without auto-starting LSP, and 'hybrid' keeps LSP ownership while avoiding duplicate local diagnostics."
+        },
         "openqc.lsp.cp2k.enabled": {
           "type": "boolean",
           "default": true,
