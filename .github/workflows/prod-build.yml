@@ -46,7 +46,7 @@ jobs:
           retention-days: 30
 
       - name: Create Release Draft
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: prod-${{ github.sha }}
           name: Prod Build ${{ github.sha }}
