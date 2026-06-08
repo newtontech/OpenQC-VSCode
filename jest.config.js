@@ -2,6 +2,9 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  transform: {
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.tests.json' }],
+  },
   roots: ['<rootDir>'],
   testMatch: ['**/tests/**/*.test.ts'],
   testPathIgnorePatterns: ['<rootDir>/tests/unit/visualizers/ThreeJsRenderer.test.ts'],
