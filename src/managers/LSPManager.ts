@@ -20,6 +20,7 @@ import {
   describeExtensionHostContext,
   getExtensionHostContext,
 } from '../utils/extensionHostContext';
+import { LspLifecycleDetails, LspStatusService } from '../lsp/LspStatusService';
 
 interface LSPServerConfig {
   name: string;
@@ -38,6 +39,7 @@ interface LSPClientRecord {
   client: LanguageClient;
   documents: Set<string>;
   languageId: string;
+  lifecycleDetails: LspLifecycleDetails;
 }
 
 export class LSPManager {
@@ -48,11 +50,17 @@ export class LSPManager {
   private discovery: LSPDiscovery;
   private serverDefinitions: LSPServerDefinition[] = LSPManager.bundledDefinitions();
   private logger = createComponentLogger('LSPManager');
+  private statusService: LspStatusService;
 
-  constructor(context?: vscode.ExtensionContext, discovery?: LSPDiscovery) {
+  constructor(
+    context?: vscode.ExtensionContext,
+    discovery?: LSPDiscovery,
+    statusService?: LspStatusService
+  ) {
     this.fileTypeDetector = new FileTypeDetector();
     this.config = vscode.workspace.getConfiguration('openqc.lsp');
     this.discovery = discovery || new LSPDiscovery(context);
+    this.statusService = statusService || new LspStatusService();
   }
 
   /**
@@ -134,6 +142,14 @@ export class LSPManager {
     documentKey: string
   ): Promise<void> {
     const hostContextDescription = describeExtensionHostContext();
+    const lifecycleDetails = this.createLifecycleDetails(
+      software,
+      serverConfig,
+      identity,
+      hostContextDescription
+    );
+    this.statusService.starting(lifecycleDetails);
+
     try {
       const client = await this.createLanguageClient(software, serverConfig, document, identity);
       if (client) {
@@ -142,13 +158,15 @@ export class LSPManager {
           client,
           documents: new Set([documentKey]),
           languageId: serverConfig.definition.languageId,
+          lifecycleDetails,
         });
         this.logger.info(`${software} Language Server started in ${hostContextDescription}`);
-        vscode.window.showInformationMessage(`${software} Language Server started`);
+        this.statusService.running(lifecycleDetails);
       }
     } catch (error) {
       const message = `Failed to start ${software} Language Server in ${hostContextDescription}: ${error}`;
       this.logger.error(message, error as Error);
+      this.statusService.failed({ ...lifecycleDetails, message: String(error) });
       vscode.window.showErrorMessage(message);
       // Clean up the client if it was added
       this.clients.delete(identity.key);
@@ -222,10 +240,7 @@ export class LSPManager {
       const resolved = config.resolvedCommand;
       const hostContext = getExtensionHostContext();
       const hostContextDescription = describeExtensionHostContext(hostContext);
-      const commandSummary =
-        resolved.kind === 'pythonModule'
-          ? `${resolved.python} -m ${resolved.module}`
-          : resolved.command;
+      const commandSummary = this.summarizeResolvedCommand(resolved);
 
       // Verify the executable is available using a cross-platform check.
       // For pythonModule kind, check the python binary.
@@ -412,6 +427,7 @@ export class LSPManager {
       }
     } finally {
       this.clients.delete(clientKey);
+      this.statusService.stopped(record.lifecycleDetails);
     }
   }
 
@@ -440,6 +456,105 @@ export class LSPManager {
     }
   }
 
+  showStatus(): void {
+    this.statusService.showStatus();
+  }
+
+  showLogs(): void {
+    this.statusService.showLogs();
+  }
+
+  async restartCurrent(): Promise<void> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('No active text editor for OpenQC LSP restart');
+      return;
+    }
+
+    await this.restartLSPForDocument(editor.document);
+  }
+
+  async selectExecutable(): Promise<void> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('No active text editor for OpenQC LSP executable selection');
+      return;
+    }
+
+    const software = this.fileTypeDetector.detectSoftware(editor.document);
+    if (!software) {
+      vscode.window.showWarningMessage('Could not detect quantum chemistry software for this file');
+      return;
+    }
+
+    const serverConfig = await this.getServerConfig(software);
+    if (!serverConfig) {
+      vscode.window.showWarningMessage(`No bundled OpenQC LSP definition found for ${software}`);
+      return;
+    }
+
+    const languageId = serverConfig.definition.languageId;
+    const currentCommand =
+      serverConfig.resolvedCommand.kind === 'pythonModule'
+        ? serverConfig.resolvedCommand.python
+        : serverConfig.resolvedCommand.command;
+    const selectedCommand = await vscode.window.showInputBox({
+      prompt: `Executable command or absolute path for ${software} Language Server`,
+      value: currentCommand,
+      ignoreFocusOut: true,
+    });
+
+    if (!selectedCommand || selectedCommand.trim() === currentCommand) {
+      return;
+    }
+
+    await vscode.workspace
+      .getConfiguration()
+      .update(
+        `openqc.lsp.${languageId}.command`,
+        selectedCommand.trim(),
+        vscode.ConfigurationTarget.Workspace
+      );
+    const message = `Updated openqc.lsp.${languageId}.command to ${selectedCommand.trim()}`;
+    this.logger.info(message);
+    vscode.window.showInformationMessage(message);
+  }
+
+  async generateCompatibilityReport(): Promise<string> {
+    await this.refreshDiscoveredDefinitions();
+    const hostContextDescription = describeExtensionHostContext();
+    const lines = [
+      '# OpenQC LSP Compatibility Report',
+      '',
+      `Generated: ${new Date().toISOString()}`,
+      `Extension host: ${hostContextDescription}`,
+      '',
+      '## Bundled Language Servers',
+      '',
+    ];
+
+    for (const definition of this.serverDefinitions) {
+      const serverConfig = await this.getServerConfig(definition.name as QuantumChemistrySoftware);
+      if (!serverConfig) {
+        continue;
+      }
+
+      lines.push(
+        `- ${definition.name} (${definition.languageId})`,
+        `  - Enabled: ${serverConfig.enabled}`,
+        `  - Command: ${this.summarizeResolvedCommand(serverConfig.resolvedCommand)}`,
+        `  - Extensions: ${definition.fileExtensions.join(', ') || 'none'}`,
+        `  - Filenames: ${(definition.fileNames || []).join(', ') || 'none'}`
+      );
+    }
+
+    lines.push('', '## Current Session', '', this.statusService.getStatusReport());
+
+    const report = lines.join('\n');
+    this.statusService.appendCompatibilityReport(report);
+    return report;
+  }
+
   /**
    * Stop all managed LSP clients and clear their records.
    */
@@ -456,5 +571,31 @@ export class LSPManager {
     });
 
     await Promise.all(stopPromises);
+    this.statusService.dispose();
+  }
+
+  private createLifecycleDetails(
+    software: QuantumChemistrySoftware,
+    config: LSPServerConfig,
+    identity: LSPClientIdentity,
+    hostContextDescription: string
+  ): LspLifecycleDetails {
+    return {
+      key: identity.key,
+      software,
+      languageId: config.definition.languageId,
+      workspaceLabel: identity.label || 'single file',
+      workspaceIdentity: identity.key,
+      commandSummary: this.summarizeResolvedCommand(config.resolvedCommand),
+      hostContext: hostContextDescription,
+    };
+  }
+
+  private summarizeResolvedCommand(resolved: ResolvedLspCommand): string {
+    if (resolved.kind === 'pythonModule') {
+      return [resolved.python, '-m', resolved.module, ...resolved.args].join(' ');
+    }
+
+    return [resolved.command, ...resolved.args].join(' ');
   }
 }

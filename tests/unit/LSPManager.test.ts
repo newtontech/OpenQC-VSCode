@@ -8,11 +8,25 @@ const mockFunctions: {
   showWarning: jest.Mock;
   showError: jest.Mock;
   languageClient: jest.Mock;
+  statusBarItem: {
+    show: jest.Mock;
+    hide: jest.Mock;
+    dispose: jest.Mock;
+    text?: string;
+    tooltip?: string;
+    command?: string;
+    name?: string;
+  };
 } = {
   showInfo: jest.fn(),
   showWarning: jest.fn(),
   showError: jest.fn(),
   languageClient: jest.fn(),
+  statusBarItem: {
+    show: jest.fn(),
+    hide: jest.fn(),
+    dispose: jest.fn(),
+  },
 };
 
 // Mock vscode module
@@ -29,7 +43,10 @@ jest.mock('vscode', () => ({
       hide: jest.fn(),
       dispose: jest.fn(),
     })),
+    createStatusBarItem: jest.fn(() => mockFunctions.statusBarItem),
   },
+  StatusBarAlignment: { Left: 1, Right: 2 },
+  ConfigurationTarget: { Workspace: 1 },
   workspace: {
     getConfiguration: jest.fn(() => ({
       get: jest.fn((key: string, defaultValue?: any) => {
@@ -92,6 +109,10 @@ describe('LSPManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFunctions.statusBarItem.text = undefined;
+    mockFunctions.statusBarItem.tooltip = undefined;
+    mockFunctions.statusBarItem.command = undefined;
+    mockFunctions.statusBarItem.name = undefined;
     Logger.resetInstance();
     // Reset the isExecutableAvailable mock to default (true)
     const { isExecutableAvailable } = require('../../src/lsp/commandResolver');
@@ -127,9 +148,17 @@ describe('LSPManager', () => {
       await lspManager.startLSPForDocument(mockDocument);
       // Bundled registry is used instead of GitHub discovery during normal flows
       expect(mockDiscovery.fetchLSPRepositories).not.toHaveBeenCalled();
-      expect(mockFunctions.showInfo).toHaveBeenCalledWith(
+      expect(mockFunctions.showInfo).not.toHaveBeenCalled();
+      expect(mockFunctions.statusBarItem.text).toBe('$(check) OpenQC LSP: Gaussian running');
+    });
+
+    it('should not show automatic success popups after LSP startup', async () => {
+      await lspManager.startLSPForDocument(mockDocument);
+
+      expect(mockFunctions.showInfo).not.toHaveBeenCalledWith(
         expect.stringContaining('Language Server started')
       );
+      expect(mockFunctions.showError).not.toHaveBeenCalled();
     });
 
     it('should use cross-platform command resolution for executable checks', async () => {
@@ -527,7 +556,7 @@ describe('LSPManager', () => {
       await lspManager.restartLSPForDocument(mockDocument);
       expect(mockStop).toHaveBeenCalled();
       expect(mockStart).toHaveBeenCalledTimes(2); // Once for initial start, once for restart
-      expect(mockFunctions.showInfo).toHaveBeenCalledWith(
+      expect(mockFunctions.showInfo).not.toHaveBeenCalledWith(
         expect.stringContaining('Language Server started')
       );
     });
