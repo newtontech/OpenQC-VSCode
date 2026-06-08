@@ -10,7 +10,19 @@ import * as fs from 'fs';
 import { spawn } from 'child_process';
 import { Atom } from '../visualizers/types';
 
-export type ExportFormat = 'vasp' | 'cp2k' | 'qe' | 'gaussian' | 'orca' | 'nwchem' | 'gamess' | 'lammps' | 'xyz' | 'extxyz' | 'pdb' | 'cif';
+export type ExportFormat =
+  | 'vasp'
+  | 'cp2k'
+  | 'qe'
+  | 'gaussian'
+  | 'orca'
+  | 'nwchem'
+  | 'gamess'
+  | 'lammps'
+  | 'xyz'
+  | 'extxyz'
+  | 'pdb'
+  | 'cif';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -64,7 +76,10 @@ export class StructureExporter {
     }
   }
 
-  public async exportStructure(structure: StructureData, options: ExportOptions): Promise<ExportResult> {
+  public async exportStructure(
+    structure: StructureData,
+    options: ExportOptions
+  ): Promise<ExportResult> {
     // Simplified implementation
     return { success: false, error: 'Not implemented yet' };
   }
@@ -88,6 +103,19 @@ export class StructureExporter {
   }
 
   public static getSupportedFormats(): ExportFormat[] {
-    return ['vasp', 'cp2k', 'qe', 'gaussian', 'orca', 'nwchem', 'gamess', 'lammps', 'xyz', 'extxyz', 'pdb', 'cif'];
+    return [
+      'vasp',
+      'cp2k',
+      'qe',
+      'gaussian',
+      'orca',
+      'nwchem',
+      'gamess',
+      'lammps',
+      'xyz',
+      'extxyz',
+      'pdb',
+      'cif',
+    ];
   }
 }

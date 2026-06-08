@@ -231,7 +231,8 @@ export class LRUCache<T> {
     }
 
     try {
-      const cacheDir = this.config.cacheDir || path.join(this.context.globalStorageUri.fsPath, 'cache');
+      const cacheDir =
+        this.config.cacheDir || path.join(this.context.globalStorageUri.fsPath, 'cache');
       await fs.promises.mkdir(cacheDir, { recursive: true });
 
       const cacheFile = path.join(cacheDir, 'openqc-cache.json');
@@ -256,7 +257,8 @@ export class LRUCache<T> {
     }
 
     try {
-      const cacheDir = this.config.cacheDir || path.join(this.context.globalStorageUri.fsPath, 'cache');
+      const cacheDir =
+        this.config.cacheDir || path.join(this.context.globalStorageUri.fsPath, 'cache');
       const cacheFile = path.join(cacheDir, 'openqc-cache.json');
 
       if (!fs.existsSync(cacheFile)) {
@@ -388,11 +390,7 @@ export class CacheKeyGenerator {
   /**
    * Generate cache key for structure conversion
    */
-  static forConversion(
-    filepath: string,
-    sourceFormat: string,
-    targetFormat: string
-  ): string {
+  static forConversion(filepath: string, sourceFormat: string, targetFormat: string): string {
     return this.forFile(filepath, `convert:${sourceFormat}:${targetFormat}`);
   }
 
@@ -440,10 +438,7 @@ export class CacheManager {
       context
     );
 
-    this.propertyCache = new LRUCache<any>(
-      { maxSize: 10 * 1024 * 1024, maxEntries: 300 },
-      context
-    );
+    this.propertyCache = new LRUCache<any>({ maxSize: 10 * 1024 * 1024, maxEntries: 300 }, context);
   }
 
   static getInstance(context?: vscode.ExtensionContext): CacheManager {

@@ -2,7 +2,12 @@
  * Cache Manager Tests
  */
 
-import { LRUCache, CacheManager, CacheKeyGenerator, CacheStats } from '../../src/performance/cacheManager';
+import {
+  LRUCache,
+  CacheManager,
+  CacheKeyGenerator,
+  CacheStats,
+} from '../../src/performance/cacheManager';
 
 describe('LRUCache', () => {
   let cache: LRUCache<string>;
@@ -77,7 +82,7 @@ describe('LRUCache', () => {
   });
 
   describe('TTL Support', () => {
-    it('should expire entries after TTL', (done) => {
+    it('should expire entries after TTL', done => {
       const shortCache = new LRUCache<string>({
         maxSize: 1000,
         defaultTTL: 100, // 100ms

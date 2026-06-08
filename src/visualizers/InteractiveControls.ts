@@ -581,7 +581,7 @@ export class InteractiveControls {
 
     // Collect all atom data
     const structureData: { element: string; x: number; y: number; z: number }[] = [];
-    
+
     for (const [index, atomData] of atoms.entries()) {
       structureData.push({
         element: atomData.element,
@@ -598,6 +598,8 @@ export class InteractiveControls {
    * Check if there are modified atoms
    */
   public hasModifiedAtoms(): boolean {
-    return this.selectionState.selectedIndices.size > 0 || this.selectionState.highlightedAtom !== null;
+    return (
+      this.selectionState.selectedIndices.size > 0 || this.selectionState.highlightedAtom !== null
+    );
   }
 }

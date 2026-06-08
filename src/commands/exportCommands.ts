@@ -123,10 +123,7 @@ export function registerExportCommands(
     }
   );
 
-  context.subscriptions.push(
-    exportStructureCommand,
-    exportWithPickerCommand
-  );
+  context.subscriptions.push(exportStructureCommand, exportWithPickerCommand);
 }
 
 /**

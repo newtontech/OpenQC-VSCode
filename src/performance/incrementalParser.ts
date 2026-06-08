@@ -158,11 +158,7 @@ export class IncrementalParser<T> {
   /**
    * Full parse
    */
-  private async parseFull(
-    uri: string,
-    version: number,
-    content: string
-  ): Promise<ParseResult<T>> {
+  private async parseFull(uri: string, version: number, content: string): Promise<ParseResult<T>> {
     const ast = this.parseFunction(content);
 
     const result: ParseResult<T> = {
@@ -183,11 +179,7 @@ export class IncrementalParser<T> {
   /**
    * Parse partial content
    */
-  private async parsePartial(
-    content: string,
-    changes: ChangeSet,
-    previousAst: T
-  ): Promise<T> {
+  private async parsePartial(content: string, changes: ChangeSet, previousAst: T): Promise<T> {
     // This is a simplified implementation
     // In a real implementation, this would:
     // 1. Extract affected regions from previous AST
@@ -227,9 +219,7 @@ export class IncrementalParser<T> {
    * Check if incremental parsing should be used
    */
   private shouldUseIncremental(document: vscode.TextDocument): boolean {
-    return (
-      this.config.enableDiffing && document.lineCount >= this.config.minLinesForIncremental
-    );
+    return this.config.enableDiffing && document.lineCount >= this.config.minLinesForIncremental;
   }
 
   /**
