@@ -790,7 +790,7 @@
     "prettier": "^3.1.1",
     "sharp": "^0.34.5",
     "three": "^0.183.2",
-    "ts-jest": "^29.1.1",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.3.3",
     "vitepress": "^1.6.4"
   },
