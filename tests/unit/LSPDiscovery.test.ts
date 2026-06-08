@@ -28,27 +28,27 @@ const mockGitHubResponse = (body: unknown, status = 200, statusText = 'OK') => (
 
 const cp2kRepo = {
   name: 'cp2k-lsp-enhanced',
-  full_name: 'OpenQuantumChemistry/cp2k-lsp-enhanced',
+  full_name: 'newtontech/cp2k-lsp-enhanced',
   description: 'CP2K language server',
-  html_url: 'https://github.com/OpenQuantumChemistry/cp2k-lsp-enhanced',
+  html_url: 'https://github.com/newtontech/cp2k-lsp-enhanced',
   updated_at: '2026-06-01T00:00:00Z',
   pushed_at: '2026-06-02T00:00:00Z',
 };
 
 const gaussianRepo = {
   name: 'gaussian-lsp',
-  full_name: 'OpenQuantumChemistry/gaussian-lsp',
+  full_name: 'newtontech/gaussian-lsp',
   description: null,
-  html_url: 'https://github.com/OpenQuantumChemistry/gaussian-lsp',
+  html_url: 'https://github.com/newtontech/gaussian-lsp',
   updated_at: '2026-06-01T00:00:00Z',
   pushed_at: '2026-06-02T00:00:00Z',
 };
 
 const unknownRepo = {
   name: 'my-qc-lsp',
-  full_name: 'OpenQuantumChemistry/my-qc-lsp',
+  full_name: 'newtontech/my-qc-lsp',
   description: 'Custom LSP',
-  html_url: 'https://github.com/OpenQuantumChemistry/my-qc-lsp',
+  html_url: 'https://github.com/newtontech/my-qc-lsp',
   updated_at: '2026-06-01T00:00:00Z',
   pushed_at: '2026-06-02T00:00:00Z',
 };
@@ -95,7 +95,7 @@ describe('LSPDiscovery', () => {
     const definitions = await new LSPDiscovery(context as any).fetchLSPRepositories();
 
     expect((global as any).fetch).toHaveBeenCalledWith(
-      'https://api.github.com/orgs/OpenQuantumChemistry/repos?per_page=100&sort=updated',
+      'https://api.github.com/orgs/newtontech/repos?per_page=100&sort=updated',
       expect.objectContaining({
         headers: expect.objectContaining({
           Accept: 'application/vnd.github.v3+json',
@@ -177,12 +177,12 @@ describe('LSPDiscovery', () => {
         {
           id: 'cached-lsp',
           name: 'Cached',
-          repository: 'OpenQuantumChemistry/cached-lsp',
+          repository: 'newtontech/cached-lsp',
           executable: 'cached-lsp',
           languageId: 'cached',
           fileExtensions: ['inp'],
           enabled: true,
-          repositoryUrl: 'https://github.com/OpenQuantumChemistry/cached-lsp',
+          repositoryUrl: 'https://github.com/newtontech/cached-lsp',
         },
       ],
       timestamp: now - 1000,
@@ -202,12 +202,12 @@ describe('LSPDiscovery', () => {
         {
           id: 'stale-lsp',
           name: 'Stale',
-          repository: 'OpenQuantumChemistry/stale-lsp',
+          repository: 'newtontech/stale-lsp',
           executable: 'stale-lsp',
           languageId: 'stale',
           fileExtensions: ['inp'],
           enabled: true,
-          repositoryUrl: 'https://github.com/OpenQuantumChemistry/stale-lsp',
+          repositoryUrl: 'https://github.com/newtontech/stale-lsp',
         },
       ],
       timestamp: now - 2 * 60 * 60 * 1000,
@@ -239,12 +239,12 @@ describe('LSPDiscovery', () => {
         {
           id: 'cached-lsp',
           name: 'Cached',
-          repository: 'OpenQuantumChemistry/cached-lsp',
+          repository: 'newtontech/cached-lsp',
           executable: 'cached-lsp',
           languageId: 'cached',
           fileExtensions: ['inp'],
           enabled: true,
-          repositoryUrl: 'https://github.com/OpenQuantumChemistry/cached-lsp',
+          repositoryUrl: 'https://github.com/newtontech/cached-lsp',
         },
       ],
       timestamp: now,
@@ -267,12 +267,12 @@ describe('LSPDiscovery', () => {
         {
           id: 'gaussian-lsp',
           name: 'Gaussian',
-          repository: 'OpenQuantumChemistry/gaussian-lsp',
+          repository: 'newtontech/gaussian-lsp',
           executable: 'gaussian-lsp',
           languageId: 'gaussian',
           fileExtensions: ['gjf', 'com'],
           enabled: true,
-          repositoryUrl: 'https://github.com/OpenQuantumChemistry/gaussian-lsp',
+          repositoryUrl: 'https://github.com/newtontech/gaussian-lsp',
         },
       ],
       timestamp: now - 1000,

@@ -38,7 +38,20 @@
     "geometry optimization"
   ],
   "activationEvents": [
-    "*"
+    "onLanguage:cp2k",
+    "onLanguage:vasp",
+    "onLanguage:gaussian",
+    "onLanguage:orca",
+    "onLanguage:qe",
+    "onLanguage:gamess",
+    "onLanguage:nwchem",
+    "onCommand:openqc.startLSP",
+    "onCommand:openqc.stopLSP",
+    "onCommand:openqc.restartLSP",
+    "onCommand:openqc.visualizeStructure",
+    "onCommand:openqc.plotData",
+    "onCommand:openqc.validate",
+    "onView:openqc-sidebar"
   ],
   "main": "./out/extension.js",
   "contributes": {

@@ -1,13 +1,12 @@
 /**
  * LSP Discovery Module
  *
- * Dynamically fetches and manages Language Server Protocol (LSP) repositories
- * from the OpenQuantumChemistry GitHub organization.
- *
- * This eliminates the need for hardcoded LSP lists in package.json and LSPManager.ts
+ * Provides explicit (opt-in) GitHub-based LSP discovery for refreshing
+ * the server list. Normal document-open flows use the bundled registry
+ * from `src/lsp/registry.ts` instead.
  *
  * @module LSPDiscovery
- * @see https://github.com/newtontech/OpenQC-VSCode/issues/13
+ * @see https://github.com/newtontech/OpenQC-VSCode/issues/96
  */
 
 import * as vscode from 'vscode';
@@ -20,7 +19,7 @@ export interface LSPServerDefinition {
   /** Human-readable name, e.g., "VASP" */
   name: string;
 
-  /** Full GitHub repository path, e.g., "OpenQuantumChemistry/vasp-lsp" */
+  /** Full GitHub repository path, e.g., "newtontech/VASP-LSP" */
   repository: string;
 
   /** Executable name, e.g., "vasp-lsp" */
@@ -66,7 +65,7 @@ export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] = [
   {
     id: 'vasp-lsp',
     name: 'VASP',
-    repository: 'OpenQuantumChemistry/vasp-lsp',
+    repository: 'newtontech/VASP-LSP',
     executable: 'vasp-lsp',
     languageId: 'vasp',
     fileExtensions: [],
@@ -81,45 +80,45 @@ export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] = [
       'vasprun.xml',
     ],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/vasp-lsp',
+    repositoryUrl: 'https://github.com/newtontech/VASP-LSP',
   },
   {
     id: 'gaussian-lsp',
     name: 'Gaussian',
-    repository: 'OpenQuantumChemistry/gaussian-lsp',
+    repository: 'newtontech/gaussian-lsp',
     executable: 'gaussian-lsp',
     languageId: 'gaussian',
     fileExtensions: ['gjf', 'com'],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/gaussian-lsp',
+    repositoryUrl: 'https://github.com/newtontech/gaussian-lsp',
   },
   {
     id: 'orca-lsp',
     name: 'ORCA',
-    repository: 'OpenQuantumChemistry/orca-lsp',
+    repository: 'newtontech/orca-lsp',
     executable: 'orca-lsp',
     languageId: 'orca',
     fileExtensions: ['inp'],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/orca-lsp',
+    repositoryUrl: 'https://github.com/newtontech/orca-lsp',
   },
   {
     id: 'cp2k-lsp-enhanced',
     name: 'CP2K',
-    repository: 'OpenQuantumChemistry/cp2k-lsp-enhanced',
+    repository: 'newtontech/cp2k-lsp-enhanced',
     executable: 'cp2k-language-server',
     languageId: 'cp2k',
     fileExtensions: ['inp'],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/cp2k-lsp-enhanced',
+    repositoryUrl: 'https://github.com/newtontech/cp2k-lsp-enhanced',
   },
   {
     id: 'qe-lsp',
     name: 'Quantum ESPRESSO',
-    repository: 'OpenQuantumChemistry/qe-lsp',
+    repository: 'newtontech/qe-lsp',
     executable: 'qe-lsp',
     languageId: 'qe',
     fileExtensions: [
@@ -135,36 +134,36 @@ export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] = [
     ],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/qe-lsp',
+    repositoryUrl: 'https://github.com/newtontech/qe-lsp',
   },
   {
     id: 'gamess-lsp',
     name: 'GAMESS',
-    repository: 'OpenQuantumChemistry/gamess-lsp',
+    repository: 'newtontech/gamess-lsp',
     executable: 'gamess-lsp',
     languageId: 'gamess',
     fileExtensions: ['inp'],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/gamess-lsp',
+    repositoryUrl: 'https://github.com/newtontech/gamess-lsp',
   },
   {
     id: 'nwchem-lsp',
     name: 'NWChem',
-    repository: 'OpenQuantumChemistry/nwchem-lsp',
+    repository: 'newtontech/nwchem-lsp',
     executable: 'nwchem-lsp',
     languageId: 'nwchem',
     fileExtensions: ['nw', 'nwinp'],
     fileNames: [],
     enabled: true,
-    repositoryUrl: 'https://github.com/OpenQuantumChemistry/nwchem-lsp',
+    repositoryUrl: 'https://github.com/newtontech/nwchem-lsp',
   },
 ];
 
 export class LSPDiscovery {
   private static readonly CACHE_KEY = 'openqc.lsp.discovery.cache';
   private static readonly CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-  private static readonly GITHUB_API_URL = 'https://api.github.com/orgs/OpenQuantumChemistry/repos';
+  private static readonly GITHUB_API_URL = 'https://api.github.com/orgs/newtontech/repos';
 
   private context: vscode.ExtensionContext | undefined;
   private cache: CacheEntry | null = null;

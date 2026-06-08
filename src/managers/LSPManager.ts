@@ -8,6 +8,7 @@ import {
 import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
 import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
 import { createComponentLogger } from '../utils/Logger';
+import { listBundledLspServers } from '../lsp/registry';
 
 interface LSPServerConfig {
   name: string;
@@ -35,13 +36,33 @@ export class LSPManager {
   private fileTypeDetector: FileTypeDetector;
   private config: vscode.WorkspaceConfiguration;
   private discovery: LSPDiscovery;
-  private serverDefinitions: LSPServerDefinition[] = LSPDiscovery.getDefaultDefinitions();
+  private serverDefinitions: LSPServerDefinition[] = LSPManager.bundledDefinitions();
   private logger = createComponentLogger('LSPManager');
 
   constructor(context?: vscode.ExtensionContext, discovery?: LSPDiscovery) {
     this.fileTypeDetector = new FileTypeDetector();
     this.config = vscode.workspace.getConfiguration('openqc.lsp');
     this.discovery = discovery || new LSPDiscovery(context);
+  }
+
+  /**
+   * Build `LSPServerDefinition[]` from the bundled registry.
+   *
+   * This is the default source of server definitions used during normal
+   * document-open flows. No network calls are required.
+   */
+  private static bundledDefinitions(): LSPServerDefinition[] {
+    return listBundledLspServers().map(entry => ({
+      id: entry.id,
+      name: entry.name,
+      repository: entry.repository,
+      executable: entry.executable,
+      languageId: entry.languageId,
+      fileExtensions: [...entry.fileExtensions],
+      fileNames: [...entry.fileNames],
+      enabled: entry.enabled,
+      repositoryUrl: entry.repositoryUrl,
+    }));
   }
 
   /**
@@ -268,7 +289,7 @@ export class LSPManager {
   }
 
   private async refreshDiscoveredDefinitions(): Promise<void> {
-    this.serverDefinitions = await this.discovery.fetchLSPRepositories();
+    this.serverDefinitions = LSPManager.bundledDefinitions();
   }
 
   private findServerDefinition(
@@ -341,7 +362,8 @@ export class LSPManager {
   }
 
   /**
-   * Dynamically discover available LSPs from OpenQuantumChemistry GitHub organization
+   * Explicitly discover available LSPs from GitHub.
+   * This is an opt-in operation and does NOT run during normal document-open flows.
    */
   async discoverAvailableLSPs(): Promise<LSPServerDefinition[]> {
     try {

@@ -131,9 +131,10 @@ describe('LSPManager', () => {
   });
 
   describe('startLSPForDocument', () => {
-    it('should start LSP for a valid document', async () => {
+    it('should start LSP for a valid document using bundled registry (no GitHub call)', async () => {
       await lspManager.startLSPForDocument(mockDocument);
-      expect(mockDiscovery.fetchLSPRepositories).toHaveBeenCalled();
+      // Bundled registry is used instead of GitHub discovery during normal flows
+      expect(mockDiscovery.fetchLSPRepositories).not.toHaveBeenCalled();
       expect(mockFunctions.showInfo).toHaveBeenCalledWith(
         expect.stringContaining('Language Server started')
       );
