@@ -2,7 +2,7 @@
 
 This document provides a detailed feature-by-feature status for each standalone language server in the newtontech computational chemistry LSP family, plus its integration status in OpenQC.
 
-Last updated: 2026-06-08
+Last updated: 2026-06-08 (verified against upstream READMEs and `pyproject.toml` versions)
 
 ## Quick Reference
 
@@ -120,6 +120,8 @@ Last updated: 2026-06-08
 - **Inlay hints**: Inline information display for units, charge states (v0.4.0)
 - **Test command**: `pytest`
 - **Build/install**: `pip install nwchem-lsp` / `pip install -e ".[dev]"`
+- **Default branch**: `feature/nwchem-parser`
+- **Latest release**: v0.2.0 (2026-03-03) — note: pyproject.toml reports 0.5.0 on the default branch
 - **OpenQC integration**: Syntax highlighting, visualization entry points, molecule preview
 
 ### qe-lsp (v0.1.0)
@@ -149,8 +151,9 @@ Last updated: 2026-06-08
 - **Formatting**: INCAR (parameters grouped by category, aligned values), POSCAR (consistent coordinate precision), KPOINTS (normalized grid types)
 - **Code actions**: Add missing SIGMA when ISMEAR >= 0, add missing MAGMOM when ISPIN = 2, add missing LDAU parameters, remove conflicting NPAR/NCORE, fix common tag typos
 - **Test command**: `pytest --cov=src/vasp_lsp --cov-report=term-missing`
+- **Coverage**: 100%
 - **Build/install**: `pip install vasp-lsp` / `pip install -e ".[dev]"`
-- **Additional**: Includes VSCode extension in `editors/vscode/`; supports TCP mode for debugging (`vasp-lsp --tcp`)
+- **Additional**: Includes VSCode extension in `editors/vscode/`; supports TCP mode for debugging (`vasp-lsp --tcp`); full type annotations
 - **OpenQC integration**: Syntax highlighting, visualization entry points, structure preview (POSCAR)
 
 ### cp2k-lsp-enhanced (v0.9.1)
@@ -166,7 +169,9 @@ Last updated: 2026-06-08
 - **Code actions**: Not implemented
 - **Additional tools**: `cp2klint` (linter), `fromcp2k` (to JSON/YAML/AiiDA), `tocp2k` (from JSON/YAML), `cp2kgen` (generate variants), `cp2kget` (extract values from restart files)
 - **Test command**: `pytest`
+- **Server command**: `cp2k-language-server` (via stdio)
 - **Build/install**: `pip install cp2k-input-tools` (core) / `pip install cp2k-input-tools[lsp]` (with LSP) / `pip install cp2k-input-tools[yaml]` (with YAML)
+- **Default branch**: `develop`
 - **OpenQC integration**: Syntax highlighting, visualization entry points, CP2K parser/linter tooling alignment
 
 ## Build and Test Commands
@@ -185,6 +190,18 @@ All servers use the pygls framework and share a common build/test pattern:
 | Format check | `black --check src/ tests/` |
 | Lint | `ruff check src/ tests/` or `flake8 src/ tests/` |
 | Type check | `mypy src/` |
+
+#### Server commands
+
+| Server | `pip install` name | Server command |
+|--------|-------------------|----------------|
+| orca-lsp | `orca-lsp` | `orca-lsp` |
+| gamess-lsp | `gamess-lsp` | `gamess-lsp` |
+| gaussian-lsp | `gaussian-lsp` | `gaussian-lsp` |
+| nwchem-lsp | `nwchem-lsp` | `nwchem-lsp` |
+| qe-lsp | `qe-lsp` | `qe-lsp` |
+| VASP-LSP | `vasp-lsp` | `vasp-lsp --stdio` (also `--tcp` for debugging) |
+| cp2k-lsp-enhanced | `cp2k-input-tools[lsp]` | `cp2k-language-server` |
 
 ### OpenQC-VSCode
 
@@ -218,6 +235,70 @@ All servers use the pygls framework and share a common build/test pattern:
 - **Syntax Grammar**: All formats have TextMate grammars in OpenQC's `syntaxes/` directory.
 - **Visualization**: Formats that carry molecular or crystal structure information (coordinates) support the 3D viewer via the editor toolbar icon.
 - **Sidebar**: The Molecules sidebar tracks parsed structures from supported file types.
+
+## Editor Integration (Standalone)
+
+All standalone servers communicate via stdio and can be used with any LSP-capable editor. Below are tested configurations:
+
+### Neovim (nvim-lspconfig)
+
+```lua
+-- Example for gamess-lsp
+local lspconfig = require('lspconfig')
+lspconfig.gamess.setup {
+  cmd = {"gamess-lsp"},
+  filetypes = {"gamess"},
+  root_dir = lspconfig.util.root_pattern("*.inp"),
+}
+
+-- Example for nwchem-lsp
+lspconfig.nwchem.setup {
+  cmd = {"nwchem-lsp"},
+  filetypes = {"nw", "nwinp"},
+}
+
+-- Example for VASP-LSP
+require'lspconfig'.vasp_lsp.setup{}
+```
+
+### Emacs (lsp-mode)
+
+```elisp
+;; Example for gamess-lsp
+(lsp-register-client
+ (make-lsp-client :new-connection (lsp-stdio-connection "gamess-lsp")
+                  :major-modes '(gamess-mode)
+                  :server-id 'gamess-lsp))
+
+;; Example for nwchem-lsp
+(lsp-register-client
+ (make-lsp-client :new-connection (lsp-stdio-connection "nwchem-lsp")
+                  :major-modes '(nwchem-mode)
+                  :server-id 'nwchem-lsp))
+```
+
+### VS Code (without OpenQC)
+
+Add to `settings.json`:
+
+```json
+{
+  "languageserver": {
+    "gamess": {
+      "command": "gamess-lsp",
+      "filetypes": ["gamess"],
+      "rootPatterns": ["*.inp"]
+    },
+    "nwchem": {
+      "command": "nwchem-lsp",
+      "filetypes": ["nw", "nwinp"],
+      "rootPatterns": ["*.nw", "*.nwinp"]
+    }
+  }
+}
+```
+
+VASP-LSP ships its own VS Code extension under `editors/vscode/`.
 
 ## Alignment Rules
 
