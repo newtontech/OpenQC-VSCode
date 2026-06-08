@@ -111,10 +111,12 @@ export class LSPManager {
           documents: new Set([documentKey]),
           languageId: serverConfig.definition.languageId,
         });
-        this.logger.info(`${software} Language Server started`, true);
+        this.logger.info(`${software} Language Server started`);
+        vscode.window.showInformationMessage(`${software} Language Server started`);
       }
     } catch (error) {
-      this.logger.error(`Failed to start ${software} Language Server`, error as Error, true);
+      this.logger.error(`Failed to start ${software} Language Server`, error as Error);
+      vscode.window.showErrorMessage(`Failed to start ${software} Language Server: ${error}`);
       // Clean up the client if it was added
       this.clients.delete(identity.key);
     }
@@ -151,7 +153,7 @@ export class LSPManager {
     try {
       await this.stopClientRecord(identity.key, record);
     } catch (error) {
-      console.error(`Error stopping ${software} Language Server:`, error);
+      this.logger.error(`Error stopping ${software} Language Server`, error as Error);
       vscode.window.showWarningMessage(`Error stopping ${software} Language Server: ${error}`);
     }
   }
@@ -174,7 +176,7 @@ export class LSPManager {
       await new Promise(resolve => setTimeout(resolve, 500));
       await this.startLSPForDocument(document);
     } catch (error) {
-      console.error(`Error restarting ${software} Language Server:`, error);
+      this.logger.error(`Error restarting ${software} Language Server`, error as Error);
       vscode.window.showErrorMessage(`Failed to restart ${software} Language Server: ${error}`);
     }
   }
@@ -240,7 +242,7 @@ export class LSPManager {
         clientOptions
       );
     } catch (error) {
-      console.error(`Failed to create LanguageClient for ${software}:`, error);
+      this.logger.error(`Failed to create LanguageClient for ${software}`, error as Error);
       throw error;
     }
   }
@@ -370,7 +372,10 @@ export class LSPManager {
       try {
         await this.stopClientRecord(clientKey, record);
       } catch (error) {
-        console.error(`Error stopping ${record.languageId} Language Server during dispose:`, error);
+        this.logger.error(
+          `Error stopping ${record.languageId} Language Server during dispose`,
+          error as Error
+        );
       }
     });
 

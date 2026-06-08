@@ -99,6 +99,18 @@ export class Logger implements ILogger {
   }
 
   /**
+   * Reset the singleton instance (for testing only)
+   *
+   * Disposes the existing instance and allows a fresh one to be created.
+   */
+  static resetInstance(): void {
+    if (Logger.instance) {
+      Logger.instance.dispose();
+      Logger.instance = undefined as any;
+    }
+  }
+
+  /**
    * Update logger configuration
    *
    * @param config - New configuration values
@@ -197,13 +209,19 @@ export class Logger implements ILogger {
    */
   private log(level: string, message: string, ...args: any[]): void {
     const timestamp = new Date().toISOString();
-    const argsStr = args.length > 0 ? ' ' + args.map(a => {
-      try {
-        return JSON.stringify(a, null, 2);
-      } catch {
-        return String(a);
-      }
-    }).join(' ') : '';
+    const argsStr =
+      args.length > 0
+        ? ' ' +
+          args
+            .map(a => {
+              try {
+                return JSON.stringify(a, null, 2);
+              } catch {
+                return String(a);
+              }
+            })
+            .join(' ')
+        : '';
     this.outputChannel.appendLine(`[${timestamp}] [${level}] ${message}${argsStr}`);
   }
 
@@ -238,11 +256,16 @@ export class Logger implements ILogger {
    */
   static parseLogLevel(level: string): LogLevel {
     switch (level.toLowerCase()) {
-      case 'debug': return LogLevel.DEBUG;
-      case 'info': return LogLevel.INFO;
-      case 'warn': return LogLevel.WARN;
-      case 'error': return LogLevel.ERROR;
-      default: return LogLevel.INFO;
+      case 'debug':
+        return LogLevel.DEBUG;
+      case 'info':
+        return LogLevel.INFO;
+      case 'warn':
+        return LogLevel.WARN;
+      case 'error':
+        return LogLevel.ERROR;
+      default:
+        return LogLevel.INFO;
     }
   }
 }
@@ -262,10 +285,14 @@ export class Logger implements ILogger {
 export function createComponentLogger(component: string): ILogger {
   const baseLogger = Logger.getInstance();
   return {
-    debug: (message: string, ...args: any[]) => baseLogger.debug(`[${component}] ${message}`, ...args),
-    info: (message: string, ...args: any[]) => baseLogger.info(`[${component}] ${message}`, ...args),
-    warn: (message: string, showUser = false, ...args: any[]) => baseLogger.warn(`[${component}] ${message}`, showUser, ...args),
-    error: (message: string, error?: Error, showUser = false) => baseLogger.error(`[${component}] ${message}`, error, showUser),
+    debug: (message: string, ...args: any[]) =>
+      baseLogger.debug(`[${component}] ${message}`, ...args),
+    info: (message: string, ...args: any[]) =>
+      baseLogger.info(`[${component}] ${message}`, ...args),
+    warn: (message: string, showUser = false, ...args: any[]) =>
+      baseLogger.warn(`[${component}] ${message}`, showUser, ...args),
+    error: (message: string, error?: Error, showUser = false) =>
+      baseLogger.error(`[${component}] ${message}`, error, showUser),
     show: () => baseLogger.show(),
     clear: () => baseLogger.clear(),
     setConfig: (config: Partial<LoggerConfig>) => baseLogger.setConfig(config),
