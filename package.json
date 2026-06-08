@@ -607,6 +607,12 @@
           "maximum": 2,
           "description": "AI temperature (creativity vs determinism)"
         },
+        "openqc.locale": {
+          "type": "string",
+          "enum": ["en", "zh-CN"],
+          "default": "en",
+          "description": "Display language for OpenQC extension"
+        },
         "openqc.logging.level": {
           "type": "string",
           "enum": ["debug", "info", "warn", "error"],
