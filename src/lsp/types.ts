@@ -31,6 +31,9 @@ export interface LSPServerRegistryEntry {
   /** Executable name on PATH, e.g. "gaussian-lsp". */
   readonly executable: string;
 
+  /** Default arguments passed to the executable. Defaults to ["--stdio"]. */
+  readonly args?: readonly string[];
+
   /** VS Code language ID, e.g. "gaussian". */
   readonly languageId: string;
 

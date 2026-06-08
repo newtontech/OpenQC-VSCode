@@ -9,12 +9,18 @@ import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
 import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
 import { createComponentLogger } from '../utils/Logger';
 import { listBundledLspServers } from '../lsp/registry';
+import {
+  resolveLspCommand,
+  readCommandOverrides,
+  isExecutableAvailable,
+  ResolvedLspCommand,
+} from '../lsp/commandResolver';
+import { LSPServerRegistryEntry } from '../lsp/types';
 
 interface LSPServerConfig {
   name: string;
   enabled: boolean;
-  path: string;
-  args: string[];
+  resolvedCommand: ResolvedLspCommand;
   definition: LSPServerDefinition;
 }
 
@@ -193,8 +199,6 @@ export class LSPManager {
 
     try {
       await this.stopLSPForDocument(document);
-      // Add a small delay to ensure the process is fully terminated
-      await new Promise(resolve => setTimeout(resolve, 500));
       await this.startLSPForDocument(document);
     } catch (error) {
       this.logger.error(`Error restarting ${software} Language Server`, error as Error);
@@ -209,23 +213,37 @@ export class LSPManager {
     identity: LSPClientIdentity
   ): Promise<LanguageClient | undefined> {
     try {
-      // Verify the LSP executable exists
-      const { exec } = require('child_process');
-      const { promisify } = require('util');
-      const execAsync = promisify(exec);
+      const resolved = config.resolvedCommand;
 
-      try {
-        await execAsync(`which ${config.path}`);
-      } catch {
+      // Verify the executable is available using a cross-platform check.
+      // For pythonModule kind, check the python binary.
+      const executableToCheck =
+        resolved.kind === 'pythonModule' ? resolved.python : resolved.command;
+
+      const available = await isExecutableAvailable(executableToCheck);
+      if (!available) {
         throw new Error(
-          `LSP executable '${config.path}' not found in PATH. Please install ${software} LSP server.`
+          `LSP executable '${executableToCheck}' not found. Please install ${software} LSP server.`
         );
       }
 
+      let serverCommand: string;
+      let serverArgs: string[];
+      const serverEnv: Record<string, string> | undefined = resolved.env;
+
+      if (resolved.kind === 'pythonModule') {
+        serverCommand = resolved.python;
+        serverArgs = ['-m', resolved.module, ...resolved.args];
+      } else {
+        serverCommand = resolved.command;
+        serverArgs = resolved.args;
+      }
+
       const serverOptions: ServerOptions = {
-        command: config.path,
-        args: config.args,
+        command: serverCommand,
+        args: serverArgs,
         transport: TransportKind.stdio,
+        ...(serverEnv ? { options: { env: { ...process.env, ...serverEnv } } } : {}),
       };
 
       const watcherPattern = this.createWatcherPattern(config.definition);
@@ -278,14 +296,31 @@ export class LSPManager {
       return undefined;
     }
 
-    const softwareKey = definition.languageId;
+    const languageId = definition.languageId;
+    const overrides = readCommandOverrides(this.config, languageId);
+
+    // Find the matching registry entry for command resolution
+    const registryEntry = this.findRegistryEntry(languageId);
+    const resolvedCommand = registryEntry
+      ? resolveLspCommand(registryEntry, overrides)
+      : {
+          kind: 'pathOrCommand' as const,
+          command: overrides.command || overrides.path || definition.executable,
+          args: overrides.args ?? ['--stdio'],
+          env: overrides.env,
+        };
+
     return {
       name: `${definition.name} LSP`,
-      enabled: this.config.get<boolean>(`${softwareKey}.enabled`, definition.enabled),
-      path: this.config.get<string>(`${softwareKey}.path`, definition.executable),
-      args: ['--stdio'],
+      enabled: this.config.get<boolean>(`${languageId}.enabled`, definition.enabled),
+      resolvedCommand,
       definition,
     };
+  }
+
+  private findRegistryEntry(languageId: string): LSPServerRegistryEntry | undefined {
+    const allEntries = listBundledLspServers();
+    return allEntries.find(entry => entry.languageId === languageId);
   }
 
   private async refreshDiscoveredDefinitions(): Promise<void> {
