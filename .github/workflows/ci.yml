@@ -70,7 +70,7 @@ jobs:
         run: npm run format:check
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         if: matrix.node-version == '18.x'
         with:
           file: ./coverage/lcov.info
