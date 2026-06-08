@@ -33,6 +33,8 @@ We support **10+ major computational chemistry packages** with more on the way:
 
 ### LSP Alignment Matrix
 
+> For per-server parser status, diagnostics, completion, hover, formatting, code actions, and build commands, see the **[LSP Compatibility Matrix](docs/LSP_COMPATIBILITY.md)**.
+
 | Format | Standalone LSP | OpenQC role |
 |--------|----------------|-------------|
 | Gaussian | `newtontech/gaussian-lsp` | Extension integration, syntax, visualization entry points |
@@ -40,7 +42,9 @@ We support **10+ major computational chemistry packages** with more on the way:
 | GAMESS (US) | `newtontech/gamess-lsp` | Extension integration, snippets, validation entry points |
 | Quantum ESPRESSO | `newtontech/qe-lsp` | Extension integration and shared UX conventions |
 | CP2K | `newtontech/cp2k-lsp-enhanced` | Extension integration with CP2K parser/linter tooling |
-| VASP / NWChem / others | OpenQC modules or future LSPs | Keep APIs compatible with the same LSP contract |
+| VASP | `newtontech/VASP-LSP` | Extension integration, quick fixes, formatting |
+| NWChem | `newtontech/nwchem-lsp` | Extension integration, inlay hints, semantic highlighting |
+| Others | OpenQC modules or future LSPs | Keep APIs compatible with the same LSP contract |
 
 ### ✅ Fully Supported (Now)
 
