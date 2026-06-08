@@ -25,6 +25,9 @@ import { renderResultsWebviewHtml } from './webviews/resultsWebview';
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
 let dataPlotter: DataPlotter;
+let completionProvider: CompletionProvider;
+let hoverProvider: HoverProvider;
+let definitionProvider: DefinitionProvider;
 let diagnosticsProvider: DiagnosticsProvider;
 let fileTypeDetector: FileTypeDetector;
 let moleculeProvider: MoleculeTreeProvider;
@@ -61,6 +64,9 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.commands.executeCommand('setContext', 'openqc.converterEnabled', true);
 
   // Initialize LSP providers
+  completionProvider = new CompletionProvider();
+  hoverProvider = new HoverProvider();
+  definitionProvider = new DefinitionProvider();
   diagnosticsProvider = new DiagnosticsProvider();
 
   registerFormatConversionCommands(context);
@@ -340,9 +346,6 @@ export function activate(context: vscode.ExtensionContext) {
   registerAICommands(context);
   registerExportCommands(context);
 
-  console.log('OpenQC-VSCode: All providers registered successfully!');
-}
-
   // Show Converter Panel command
   context.subscriptions.push(
     vscode.commands.registerCommand('openqc.showConverterPanel', () => {
@@ -351,6 +354,8 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(...disposables);
+
+  console.log('OpenQC-VSCode: All providers registered successfully!');
 }
 
 export async function deactivate() {
