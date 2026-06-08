@@ -1,5 +1,6 @@
 import { JobItem, JobTreeProvider, JobStatus } from '../../../src/sidebar/JobTreeProvider';
 import * as vscode from 'vscode';
+import { Logger } from '../../../src/utils/Logger';
 
 jest.mock('vscode', () => ({
   TreeItem: class TreeItem {
@@ -28,6 +29,16 @@ jest.mock('vscode', () => ({
       this.listeners.forEach(l => l(event as T));
     };
   },
+  window: {
+    createOutputChannel: jest.fn(() => ({
+      appendLine: jest.fn(),
+      append: jest.fn(),
+      clear: jest.fn(),
+      show: jest.fn(),
+      hide: jest.fn(),
+      dispose: jest.fn(),
+    })),
+  },
   workspace: {
     getConfiguration: jest.fn(() => ({
       get: jest.fn((key: string, defaultValue: any) => defaultValue),
@@ -40,6 +51,7 @@ describe('JobTreeProvider Full Coverage', () => {
   let provider: JobTreeProvider;
 
   beforeEach(() => {
+    Logger.resetInstance();
     mockContext = {
       workspaceState: {
         get: jest.fn(() => []),
@@ -58,6 +70,7 @@ describe('JobTreeProvider Full Coverage', () => {
 
   afterEach(() => {
     provider.dispose();
+    Logger.resetInstance();
   });
 
   describe('JobItem icons', () => {

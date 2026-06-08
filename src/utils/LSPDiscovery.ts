@@ -11,6 +11,7 @@
  */
 
 import * as vscode from 'vscode';
+import { createComponentLogger } from './Logger';
 
 export interface LSPServerDefinition {
   /** Repository ID, e.g., "vasp-lsp" */
@@ -167,6 +168,7 @@ export class LSPDiscovery {
 
   private context: vscode.ExtensionContext | undefined;
   private cache: CacheEntry | null = null;
+  private logger = createComponentLogger('LSPDiscovery');
 
   /**
    * Known LSP to language mappings
@@ -190,7 +192,7 @@ export class LSPDiscovery {
       this.cache &&
       Date.now() - this.cache.timestamp < LSPDiscovery.CACHE_TTL_MS
     ) {
-      console.log('[LSPDiscovery] Using cached LSP list');
+      this.logger.debug('Using cached LSP list');
       return this.cache.data;
     }
 
@@ -208,19 +210,19 @@ export class LSPDiscovery {
       };
       this.saveCacheToStorage();
 
-      console.log(`[LSPDiscovery] Found ${definitions.length} LSP repositories`);
+      this.logger.info(`Found ${definitions.length} LSP repositories`);
       return definitions;
     } catch (error) {
-      console.error('[LSPDiscovery] Failed to fetch repositories:', error);
+      this.logger.error('Failed to fetch repositories from GitHub', error as Error);
 
       // Return cached data if available, even if expired
       if (this.cache) {
-        console.log('[LSPDiscovery] Returning stale cache due to error');
+        this.logger.warn('Returning stale cache due to error');
         return this.cache.data;
       }
 
       // Return hardcoded fallback
-      console.log('[LSPDiscovery] Returning hardcoded fallback');
+      this.logger.warn('Returning hardcoded fallback definitions');
       const fallback = this.getFallbackDefinitions();
       this.cache = { data: fallback, timestamp: Date.now() };
       return fallback;

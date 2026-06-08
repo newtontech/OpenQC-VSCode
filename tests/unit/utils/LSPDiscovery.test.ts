@@ -5,6 +5,15 @@ jest.mock('vscode', () => ({
   workspace: {
     getConfiguration: jest.fn(() => ({ get: jest.fn() })),
   },
+  window: {
+    createOutputChannel: jest.fn(() => ({
+      appendLine: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn(),
+    })),
+    showErrorMessage: jest.fn(),
+    showWarningMessage: jest.fn(),
+  },
 }));
 
 // Mock global fetch

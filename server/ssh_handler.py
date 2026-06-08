@@ -2,9 +2,12 @@
 SSH connection management for remote servers.
 """
 
+import logging
 import paramiko
 import shlex
 from typing import Optional, Sequence
+
+logger = logging.getLogger(__name__)
 
 
 class RemoteCommandError(RuntimeError):
@@ -85,10 +88,11 @@ class SSHHandler:
                 connect_kwargs['password'] = self.password
             
             self._client.connect(**connect_kwargs)
+            logger.info(f"SSH connection established to {self.host}")
             return True
-            
+
         except Exception as e:
-            print(f"SSH connection failed: {e}")
+            logger.error(f"SSH connection failed to {self.host}: {e}", exc_info=True)
             return False
     
     def disconnect(self) -> None:

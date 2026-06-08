@@ -9,8 +9,11 @@ Supported formats: VASP, Gaussian, ORCA, XYZ, PDB, CIF, and more.
 import sys
 import json
 import argparse
+import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def convert_format(
@@ -342,6 +345,7 @@ Examples:
 
     if args.batch:
         if not args.to_format:
+            logger.error("--to format required for batch conversion")
             print("Error: --to format required for batch conversion", file=sys.stderr)
             return 1
 
@@ -369,10 +373,12 @@ Examples:
         print(json.dumps(result, indent=2))
     else:
         if result.get("success"):
+            logger.info(f"Successfully converted to {result['output_format']} format")
             print(f"Successfully converted to {result['output_format']} format")
             print(f"Output: {result.get('output_file')}")
             print(f"Atoms: {result.get('atoms_count')}")
         else:
+            logger.error(f"Conversion failed: {result.get('error')}")
             print(f"Error: {result.get('error')}", file=sys.stderr)
             return 1
 

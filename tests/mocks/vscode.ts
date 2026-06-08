@@ -28,11 +28,24 @@ export const window = {
 };
 
 export const workspace = {
-  getConfiguration: jest.fn(() => ({
-    get: jest.fn((key: string, defaultValue?: any) => defaultValue),
-    update: jest.fn(),
-    has: jest.fn(() => true),
-  })),
+  getConfiguration: jest.fn((section?: string) => {
+    if (section === 'openqc.logging') {
+      return {
+        get: jest.fn((key: string, defaultValue?: any) => {
+          if (key === 'level') return 'info';
+          if (key === 'showUserMessages') return true;
+          return defaultValue;
+        }),
+        update: jest.fn(),
+        has: jest.fn(() => true),
+      };
+    }
+    return {
+      get: jest.fn((key: string, defaultValue?: any) => defaultValue),
+      update: jest.fn(),
+      has: jest.fn(() => true),
+    };
+  }),
   createFileSystemWatcher: jest.fn(() => ({
     onDidCreate: jest.fn(),
     onDidChange: jest.fn(),
