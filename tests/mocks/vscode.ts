@@ -68,6 +68,10 @@ export const commands = {
   registerCommand: jest.fn(() => ({ dispose: jest.fn() })),
 };
 
+export const env = {
+  remoteName: undefined,
+};
+
 export const ViewColumn = {
   One: 1,
   Two: 2,
@@ -113,6 +117,7 @@ export default {
   window,
   workspace,
   commands,
+  env,
   ViewColumn,
   Uri,
   EventEmitter,

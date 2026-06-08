@@ -16,6 +16,10 @@ import {
   ResolvedLspCommand,
 } from '../lsp/commandResolver';
 import { LSPServerRegistryEntry } from '../lsp/types';
+import {
+  describeExtensionHostContext,
+  getExtensionHostContext,
+} from '../utils/extensionHostContext';
 
 interface LSPServerConfig {
   name: string;
@@ -129,6 +133,7 @@ export class LSPManager {
     identity: LSPClientIdentity,
     documentKey: string
   ): Promise<void> {
+    const hostContextDescription = describeExtensionHostContext();
     try {
       const client = await this.createLanguageClient(software, serverConfig, document, identity);
       if (client) {
@@ -138,12 +143,13 @@ export class LSPManager {
           documents: new Set([documentKey]),
           languageId: serverConfig.definition.languageId,
         });
-        this.logger.info(`${software} Language Server started`);
+        this.logger.info(`${software} Language Server started in ${hostContextDescription}`);
         vscode.window.showInformationMessage(`${software} Language Server started`);
       }
     } catch (error) {
-      this.logger.error(`Failed to start ${software} Language Server`, error as Error);
-      vscode.window.showErrorMessage(`Failed to start ${software} Language Server: ${error}`);
+      const message = `Failed to start ${software} Language Server in ${hostContextDescription}: ${error}`;
+      this.logger.error(message, error as Error);
+      vscode.window.showErrorMessage(message);
       // Clean up the client if it was added
       this.clients.delete(identity.key);
     }
@@ -214,16 +220,29 @@ export class LSPManager {
   ): Promise<LanguageClient | undefined> {
     try {
       const resolved = config.resolvedCommand;
+      const hostContext = getExtensionHostContext();
+      const hostContextDescription = describeExtensionHostContext(hostContext);
+      const commandSummary =
+        resolved.kind === 'pythonModule'
+          ? `${resolved.python} -m ${resolved.module}`
+          : resolved.command;
 
       // Verify the executable is available using a cross-platform check.
       // For pythonModule kind, check the python binary.
       const executableToCheck =
         resolved.kind === 'pythonModule' ? resolved.python : resolved.command;
 
+      this.logger.info(
+        `Starting ${software} Language Server with '${commandSummary}' in ${hostContextDescription}`
+      );
+
       const available = await isExecutableAvailable(executableToCheck);
       if (!available) {
+        const settingKey = `openqc.lsp.${config.definition.languageId}.command`;
         throw new Error(
-          `LSP executable '${executableToCheck}' not found. Please install ${software} LSP server.`
+          `LSP executable '${executableToCheck}' not found in ${hostContext.label}. ` +
+            `Install ${software} LSP server or update ${settingKey} for that environment. ` +
+            hostContext.commandResolution
         );
       }
 
