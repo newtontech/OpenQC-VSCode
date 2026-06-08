@@ -4,10 +4,7 @@
 
 import { validateOpenQCStructure } from '../../../src/structures/validation';
 import { OPENQC_STRUCTURE_SCHEMA_VERSION } from '../../../src/structures/OpenQCStructure';
-import {
-  WATER_STRUCTURE,
-  SILICON_STRUCTURE,
-} from '../../../src/structures/fixtures';
+import { WATER_STRUCTURE, SILICON_STRUCTURE } from '../../../src/structures/fixtures';
 
 describe('validateOpenQCStructure', () => {
   // -----------------------------------------------------------------------
@@ -290,7 +287,10 @@ describe('validateOpenQCStructure', () => {
       const result = validateOpenQCStructure({
         schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
         kind: 'molecule',
-        atoms: [{ element: 'H', x: 0, y: 0, z: 0 }, { element: 'O', x: 1, y: 0, z: 0 }],
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
         bonds: [{ from: '0', to: 1 } as any],
       });
       expect(result.valid).toBe(false);
