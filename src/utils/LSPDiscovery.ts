@@ -223,7 +223,9 @@ export class LSPDiscovery {
 
       // Return hardcoded fallback
       this.logger.warn('Returning hardcoded fallback definitions');
-      return this.getFallbackDefinitions();
+      const fallback = this.getFallbackDefinitions();
+      this.cache = { data: fallback, timestamp: Date.now() };
+      return fallback;
     }
   }
 
