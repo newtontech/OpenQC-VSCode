@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { createComponentLogger } from '../utils/Logger';
 
 /**
  * Job status types
@@ -98,6 +99,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
 
   private jobs: JobItem[] = [];
   private autoRefreshInterval: ReturnType<typeof setInterval> | undefined;
+  private logger = createComponentLogger('JobTreeProvider');
 
   constructor(private context: vscode.ExtensionContext) {
     this.loadJobs();
@@ -246,7 +248,8 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
         this.addSampleJobs();
       }
     } catch (error) {
-      console.error('Failed to load jobs:', error);
+      this.logger.error('Failed to load jobs from workspace state', error as Error);
+      this.logger.debug('Falling back to sample jobs after load failure');
       this.jobs = [];
       // Add sample jobs as fallback
       this.addSampleJobs();
@@ -270,7 +273,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
 
       await this.context.workspaceState.update('openqc.jobs', stored);
     } catch (error) {
-      console.error('Failed to save jobs:', error);
+      this.logger.error('Failed to save jobs to workspace state', error as Error);
     }
   }
 

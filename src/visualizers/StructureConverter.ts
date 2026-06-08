@@ -8,6 +8,7 @@
  */
 
 import { VASPParser, POSCARData } from '../parsers/VASPParser';
+import { QuantumChemistrySoftware } from '../managers/FileTypeDetector';
 import { Atom, MolecularStructure } from './types';
 import { Molecule3D } from './Molecule3D';
 
@@ -93,12 +94,7 @@ export class StructureConverter {
    * @returns MolecularStructure for rendering
    */
   public fromGaussian(content: string, filename?: string): MolecularStructure {
-    const atoms = this.molecule3D.parseAtoms(content, 'Gaussian');
-
-    return {
-      atoms,
-      name: filename || 'Gaussian Input',
-    };
+    return this.fromSoftware(content, 'Gaussian', filename || 'Gaussian Input');
   }
 
   /**
@@ -109,12 +105,7 @@ export class StructureConverter {
    * @returns MolecularStructure for rendering
    */
   public fromORCA(content: string, filename?: string): MolecularStructure {
-    const atoms = this.molecule3D.parseAtoms(content, 'ORCA');
-
-    return {
-      atoms,
-      name: filename || 'ORCA Input',
-    };
+    return this.fromSoftware(content, 'ORCA', filename || 'ORCA Input');
   }
 
   /**
@@ -125,12 +116,7 @@ export class StructureConverter {
    * @returns MolecularStructure for rendering
    */
   public fromCP2K(content: string, filename?: string): MolecularStructure {
-    const atoms = this.molecule3D.parseAtoms(content, 'CP2K');
-
-    return {
-      atoms,
-      name: filename || 'CP2K Input',
-    };
+    return this.fromSoftware(content, 'CP2K', filename || 'CP2K Input');
   }
 
   /**
@@ -141,12 +127,24 @@ export class StructureConverter {
    * @returns MolecularStructure for rendering
    */
   public fromQuantumEspresso(content: string, filename?: string): MolecularStructure {
-    const atoms = this.molecule3D.parseAtoms(content, 'Quantum ESPRESSO');
+    return this.fromSoftware(content, 'Quantum ESPRESSO', filename || 'QE Input');
+  }
 
-    return {
-      atoms,
-      name: filename || 'QE Input',
-    };
+  /**
+   * Shared conversion for Molecule3D-based software parsers
+   *
+   * @param content - File content
+   * @param software - Software name passed to Molecule3D.parseAtoms
+   * @param defaultName - Fallback structure name when no filename provided
+   * @returns MolecularStructure for rendering
+   */
+  private fromSoftware(
+    content: string,
+    software: QuantumChemistrySoftware,
+    defaultName: string
+  ): MolecularStructure {
+    const atoms = this.molecule3D.parseAtoms(content, software);
+    return { atoms, name: defaultName };
   }
 
   /**

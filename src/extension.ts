@@ -21,6 +21,7 @@ import { Molecule3D } from './visualizers/Molecule3D';
 import { createParser } from './parsers';
 import { registerFormatConversionCommands } from './commands/formatConversionCommands';
 import { renderResultsWebviewHtml } from './webviews/resultsWebview';
+import { Logger, LogLevel } from './utils/Logger';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -33,9 +34,17 @@ let fileTypeDetector: FileTypeDetector;
 let moleculeProvider: MoleculeTreeProvider;
 let jobProvider: JobTreeProvider;
 let converterProvider: OpenQCConverterProvider;
+const logger = Logger.getInstance();
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('OpenQC-VSCode extension is now active!');
+  // Configure logger from VS Code settings
+  const config = vscode.workspace.getConfiguration('openqc.logging');
+  logger.setConfig({
+    level: Logger.parseLogLevel(config.get<string>('level', 'info')),
+    showUserMessages: config.get<boolean>('showUserMessages', true),
+  });
+
+  logger.info('OpenQC-VSCode extension activated');
 
   // Set sidebar enabled context
   vscode.commands.executeCommand('setContext', 'openqc.sidebar.enabled', true);

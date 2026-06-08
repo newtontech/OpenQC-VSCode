@@ -612,6 +612,17 @@
           "enum": ["en", "zh-CN"],
           "default": "en",
           "description": "Display language for OpenQC extension"
+        },
+        "openqc.logging.level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"],
+          "default": "info",
+          "description": "Set the logging level for OpenQC extension"
+        },
+        "openqc.logging.showUserMessages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show error/warning messages to user via VS Code UI"
         }
       }
     },
