@@ -42,7 +42,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
@@ -83,24 +83,24 @@ jobs:
 
     steps:
       - name: Checkout OpenQC-VSCode
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: openqc-vscode
 
       - name: Checkout CP2K LSP
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: newtontech/cp2k-lsp-enhanced
           path: cp2k-lsp-enhanced
 
       - name: Checkout Gaussian LSP
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: newtontech/gaussian-lsp
           path: gaussian-lsp
 
       - name: Checkout VASP LSP
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: newtontech/vasp-lsp
           path: vasp-lsp
@@ -155,7 +155,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
