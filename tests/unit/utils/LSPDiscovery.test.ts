@@ -47,9 +47,9 @@ describe('LSPDiscovery', () => {
       const mockRepos = [
         {
           name: 'test-lsp',
-          full_name: 'OpenQuantumChemistry/test-lsp',
+          full_name: 'newtontech/test-lsp',
           description: 'Test LSP',
-          html_url: 'https://github.com/OpenQuantumChemistry/test-lsp',
+          html_url: 'https://github.com/newtontech/test-lsp',
           pushed_at: '2024-01-01T00:00:00Z',
         },
       ];

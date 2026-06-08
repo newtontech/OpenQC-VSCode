@@ -90,3 +90,4 @@ site/
 
 # Test fixtures (generated)
 tests/fixtures/generated/
+.claude/
