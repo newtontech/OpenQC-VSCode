@@ -5,6 +5,13 @@
  *
  * This module provides Three.js integration for rendering molecular structures
  * from quantum chemistry input files (VASP POSCAR, Gaussian, ORCA, etc.)
+ *
+ * Internal concerns are delegated to focused sub-modules:
+ * - AtomRenderer: atom mesh creation and lifecycle
+ * - BondRenderer: bond detection and mesh lifecycle
+ * - CameraController: camera positioning and movement
+ *
+ * @see https://github.com/newtontech/OpenQC-VSCode/issues/34
  */
 
 // DOM type declarations for Node.js environment
@@ -21,10 +28,10 @@ import {
   ExportOptions,
   VisualizationConfig,
   RendererState,
-  ELEMENT_COLORS,
-  COVALENT_RADII,
-  VDW_RADII,
 } from './types';
+import { AtomRenderer } from './AtomRenderer';
+import { BondRenderer } from './BondRenderer';
+import { CameraController } from './CameraController';
 
 /**
  * Three.js-based molecular structure renderer
@@ -36,9 +43,12 @@ export class ThreeJsRenderer {
   private container: HTMLElement | null = null;
   private animationId: number | null = null;
 
-  // 3D objects storage
-  private atomMeshes: Map<number, THREE.Mesh> = new Map();
-  private bondMeshes: Map<string, THREE.Mesh> = new Map();
+  // Sub-renderers
+  private atomRenderer: AtomRenderer | null = null;
+  private bondRenderer: BondRenderer | null = null;
+  private cameraController: CameraController | null = null;
+
+  // 3D objects
   private unitCellLines: THREE.LineSegments | null = null;
   private axesHelper: THREE.AxesHelper | null = null;
 
@@ -95,6 +105,11 @@ export class ThreeJsRenderer {
     // Add renderer to container
     this.container!.appendChild(this.renderer.domElement);
 
+    // Initialize sub-renderers
+    this.atomRenderer = new AtomRenderer(this.scene, this.config);
+    this.bondRenderer = new BondRenderer(this.scene, this.config.bondRadius);
+    this.cameraController = new CameraController(this.camera, this.cameraState);
+
     // Add lights
     this.setupLighting();
 
@@ -120,11 +135,9 @@ export class ThreeJsRenderer {
       return;
     }
 
-    // Ambient light for overall illumination
     this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(this.ambientLight);
 
-    // Directional light for shadows and depth
     this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     this.directionalLight.position.set(10, 10, 10);
     this.scene.add(this.directionalLight);
@@ -263,269 +276,69 @@ export class ThreeJsRenderer {
    * @returns Render result with success status and atom count
    */
   public renderAtoms(atoms: Atom[]): RenderResult {
-    if (!this.scene || !this.camera) {
+    if (!this.scene || !this.camera || !this.atomRenderer) {
       return { success: false, atomCount: 0 };
     }
-
-    const startTime = performance.now();
-
-    // Clear existing atoms
-    this.clearAtoms();
 
     // Store atoms
     this.atoms = atoms;
 
-    // Create geometry and material for each atom
-    atoms.forEach((atom, index) => {
-      const mesh = this.createAtomMesh(atom);
-      if (mesh) {
-        this.atomMeshes.set(index, mesh);
-        this.scene!.add(mesh);
-      }
-    });
-
-    const renderTime = performance.now() - startTime;
+    const { atomCount, renderTime } = this.atomRenderer.renderAtoms(atoms);
 
     // Auto-center camera on structure
-    this.centerCameraOnStructure();
+    this.cameraController?.centerOnAtoms(atoms);
 
     return {
       success: true,
-      atomCount: atoms.length,
+      atomCount,
       renderTime,
     };
-  }
-
-  /**
-   * Create a mesh for a single atom
-   */
-  private createAtomMesh(atom: Atom): THREE.Mesh | null {
-    const radius = this.getAtomRadius(atom.element);
-    const color = this.getAtomColor(atom.element);
-
-    const geometry = new THREE.SphereGeometry(radius, 32, 32);
-    const material = new THREE.MeshPhongMaterial({
-      color,
-      shininess: 100,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(atom.x, atom.y, atom.z);
-
-    return mesh;
-  }
-
-  /**
-   * Get radius for an atom based on representation mode
-   */
-  private getAtomRadius(element: string): number {
-    const baseRadius =
-      this.config.representationMode === 'space-filling'
-        ? VDW_RADII[element] || VDW_RADII.default
-        : COVALENT_RADII[element] || COVALENT_RADII.default;
-
-    return baseRadius * this.config.atomScale;
-  }
-
-  /**
-   * Get color for an element
-   */
-  private getAtomColor(element: string): string {
-    return ELEMENT_COLORS[element] || ELEMENT_COLORS.default;
   }
 
   /**
    * Get current atom colors map
    */
   public getAtomColors(): Array<{ element: string; color: string }> {
-    const uniqueElements = [...new Set(this.atoms.map(a => a.element))];
-    return uniqueElements.map(element => ({
-      element,
-      color: this.getAtomColor(element),
-    }));
+    return this.atomRenderer?.getAtomColors(this.atoms) || [];
   }
 
   /**
    * Get current atom radii map
    */
   public getAtomRadii(): Record<string, number> {
-    const uniqueElements = [...new Set(this.atoms.map(a => a.element))];
-    const radii: Record<string, number> = {};
-    uniqueElements.forEach(element => {
-      radii[element] = this.getAtomRadius(element);
-    });
-    return radii;
+    return this.atomRenderer?.getAtomRadii(this.atoms) || {};
   }
 
   /**
    * Get number of currently rendered atoms
    */
   public getAtomCount(): number {
-    return this.atomMeshes.size;
-  }
-
-  /**
-   * Clear all atom meshes from the scene
-   */
-  private clearAtoms(): void {
-    if (!this.scene) {
-      return;
-    }
-
-    this.atomMeshes.forEach(mesh => {
-      this.scene!.remove(mesh);
-      mesh.geometry.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach(m => m.dispose());
-      } else {
-        mesh.material.dispose();
-      }
-    });
-
-    this.atomMeshes.clear();
+    return this.atomRenderer?.getAtomCount() || 0;
   }
 
   /**
    * Detect and render bonds between atoms
    */
   public detectAndRenderBonds(): void {
-    if (!this.config.showBonds) {
+    if (!this.bondRenderer) {
       return;
     }
 
-    // Clear existing bonds
-    this.clearBonds();
-
-    // Detect bonds
-    this.bonds = this.detectBonds();
-
-    // Render bonds
-    this.bonds.forEach((bond, index) => {
-      const mesh = this.createBondMesh(bond);
-      if (mesh) {
-        this.bondMeshes.set(`${bond.atomIndex1}-${bond.atomIndex2}`, mesh);
-        this.scene!.add(mesh);
-      }
-    });
-  }
-
-  /**
-   * Detect bonds between atoms based on distance
-   */
-  private detectBonds(): Bond[] {
-    const bonds: Bond[] = [];
-    const tolerance = 1.2; // 20% tolerance for bond detection
-
-    for (let i = 0; i < this.atoms.length; i++) {
-      for (let j = i + 1; j < this.atoms.length; j++) {
-        const atom1 = this.atoms[i];
-        const atom2 = this.atoms[j];
-
-        const distance = this.calculateDistance(atom1, atom2);
-        const maxDistance =
-          (COVALENT_RADII[atom1.element] || COVALENT_RADII.default) +
-          (COVALENT_RADII[atom2.element] || COVALENT_RADII.default);
-
-        if (distance <= maxDistance * tolerance) {
-          bonds.push({
-            atomIndex1: i,
-            atomIndex2: j,
-            length: distance,
-          });
-        }
-      }
-    }
-
-    return bonds;
-  }
-
-  /**
-   * Calculate distance between two atoms
-   */
-  private calculateDistance(atom1: Atom, atom2: Atom): number {
-    const dx = atom2.x - atom1.x;
-    const dy = atom2.y - atom1.y;
-    const dz = atom2.z - atom1.z;
-
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  }
-
-  /**
-   * Create a mesh for a single bond
-   */
-  private createBondMesh(bond: Bond): THREE.Mesh | null {
-    const atom1 = this.atoms[bond.atomIndex1];
-    const atom2 = this.atoms[bond.atomIndex2];
-
-    if (!atom1 || !atom2) {
-      return null;
-    }
-
-    // Create cylinder for bond
-    const direction = new THREE.Vector3(atom2.x - atom1.x, atom2.y - atom1.y, atom2.z - atom1.z);
-    const length = direction.length();
-
-    const geometry = new THREE.CylinderGeometry(
-      this.config.bondRadius,
-      this.config.bondRadius,
-      length,
-      8
-    );
-
-    const material = new THREE.MeshPhongMaterial({
-      color: 0x888888,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-
-    // Position and orient the cylinder
-    const midpoint = new THREE.Vector3(
-      (atom1.x + atom2.x) / 2,
-      (atom1.y + atom2.y) / 2,
-      (atom1.z + atom2.z) / 2
-    );
-    mesh.position.copy(midpoint);
-    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-
-    return mesh;
+    this.bonds = this.bondRenderer.detectAndRenderBonds(this.atoms, this.config.showBonds);
   }
 
   /**
    * Get number of currently rendered bonds
    */
   public getBondCount(): number {
-    return this.bondMeshes.size;
-  }
-
-  /**
-   * Clear all bond meshes from the scene
-   */
-  private clearBonds(): void {
-    if (!this.scene) {
-      return;
-    }
-
-    this.bondMeshes.forEach(mesh => {
-      this.scene!.remove(mesh);
-      mesh.geometry.dispose();
-      if (Array.isArray(mesh.material)) {
-        mesh.material.forEach(m => m.dispose());
-      } else {
-        mesh.material.dispose();
-      }
-    });
-
-    this.bondMeshes.clear();
+    return this.bondRenderer?.getBondCount() || 0;
   }
 
   /**
    * Get bond threshold for two elements
    */
   public getBondThreshold(element1: string, element2: string): number {
-    return (
-      (COVALENT_RADII[element1] || COVALENT_RADII.default) +
-      (COVALENT_RADII[element2] || COVALENT_RADII.default)
-    );
+    return BondRenderer.getBondThreshold(element1, element2);
   }
 
   /**
@@ -545,13 +358,11 @@ export class ThreeJsRenderer {
     // Create unit cell geometry
     const points: THREE.Vector3[] = [];
 
-    // Origin and corners
     const origin = new THREE.Vector3(0, 0, 0);
     const a = new THREE.Vector3(lattice[0][0], lattice[0][1], lattice[0][2]);
     const b = new THREE.Vector3(lattice[1][0], lattice[1][1], lattice[1][2]);
     const c = new THREE.Vector3(lattice[2][0], lattice[2][1], lattice[2][2]);
 
-    // Edges
     const edges = [
       [origin, a],
       [origin, b],
@@ -595,143 +406,55 @@ export class ThreeJsRenderer {
   }
 
   /**
-   * Center camera on the molecular structure
-   */
-  private centerCameraOnStructure(): void {
-    if (!this.camera || this.atoms.length === 0) {
-      return;
-    }
-
-    // Calculate bounding box
-    const box = new THREE.Box3();
-    this.atoms.forEach(atom => {
-      box.expandByPoint(new THREE.Vector3(atom.x, atom.y, atom.z));
-    });
-
-    // Center the box
-    const center = box.getCenter(new THREE.Vector3());
-
-    // Update camera target
-    this.cameraState.target = { x: center.x, y: center.y, z: center.z };
-
-    // Position camera
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const distance = maxDim * 2;
-
-    this.camera.position.set(center.x + distance, center.y + distance, center.z + distance);
-    this.camera.lookAt(center);
-  }
-
-  /**
    * Rotate camera
    */
   public rotateCamera(deltaX: number, deltaY: number): void {
-    if (!this.camera) {
-      return;
-    }
-
-    // Simple orbital rotation around target
-    const theta = (deltaX * Math.PI) / 180;
-    const phi = (deltaY * Math.PI) / 180;
-
-    // Get current position relative to target
-    const offset = new THREE.Vector3(
-      this.camera.position.x - this.cameraState.target.x,
-      this.camera.position.y - this.cameraState.target.y,
-      this.camera.position.z - this.cameraState.target.z
-    );
-
-    // Rotate around Y axis
-    offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), theta);
-
-    // Rotate around X axis (limited)
-    const xAxis = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), theta);
-    offset.applyAxisAngle(xAxis, phi);
-
-    // Update camera position
-    this.camera.position.set(
-      this.cameraState.target.x + offset.x,
-      this.cameraState.target.y + offset.y,
-      this.cameraState.target.z + offset.z
-    );
-
-    this.camera.lookAt(
-      this.cameraState.target.x,
-      this.cameraState.target.y,
-      this.cameraState.target.z
-    );
+    this.cameraController?.rotate(deltaX, deltaY);
   }
 
   /**
    * Zoom camera
    */
   public zoomCamera(factor: number): void {
-    if (!this.camera) {
-      return;
-    }
-
-    this.cameraState.zoom *= factor;
-
-    const offset = new THREE.Vector3(
-      this.camera.position.x - this.cameraState.target.x,
-      this.camera.position.y - this.cameraState.target.y,
-      this.camera.position.z - this.cameraState.target.z
-    );
-
-    offset.multiplyScalar(factor);
-
-    this.camera.position.set(
-      this.cameraState.target.x + offset.x,
-      this.cameraState.target.y + offset.y,
-      this.cameraState.target.z + offset.z
-    );
+    this.cameraController?.zoom(factor);
   }
 
   /**
    * Pan camera
    */
   public panCamera(dx: number, dy: number, dz: number): void {
-    if (!this.camera) {
-      return;
-    }
-
-    this.camera.position.x += dx;
-    this.camera.position.y += dy;
-    this.camera.position.z += dz;
-
-    this.cameraState.target.x += dx;
-    this.cameraState.target.y += dy;
-    this.cameraState.target.z += dz;
+    this.cameraController?.pan(dx, dy, dz);
   }
 
   /**
    * Reset camera to default position
    */
   public resetCamera(): void {
-    if (!this.camera) {
-      return;
-    }
-
     this.cameraState = this.getDefaultCameraState();
 
-    this.camera.position.set(
-      this.cameraState.position.x,
-      this.cameraState.position.y,
-      this.cameraState.position.z
-    );
-    this.camera.lookAt(
-      this.cameraState.target.x,
-      this.cameraState.target.y,
-      this.cameraState.target.z
-    );
+    if (this.camera) {
+      this.camera.position.set(
+        this.cameraState.position.x,
+        this.cameraState.position.y,
+        this.cameraState.position.z
+      );
+      this.camera.lookAt(
+        this.cameraState.target.x,
+        this.cameraState.target.y,
+        this.cameraState.target.z
+      );
+    }
+
+    if (this.cameraController) {
+      this.cameraController.reset(this.cameraState);
+    }
   }
 
   /**
    * Get camera zoom level
    */
   public getCameraZoom(): number {
-    return this.cameraState.zoom;
+    return this.cameraController?.getZoom() || 1;
   }
 
   /**
@@ -752,6 +475,8 @@ export class ThreeJsRenderer {
    */
   public setRepresentationMode(mode: RepresentationMode): void {
     this.config.representationMode = mode;
+
+    this.atomRenderer?.updateConfig(this.config);
 
     // Re-render atoms with new mode
     if (this.atoms.length > 0) {
@@ -807,7 +532,6 @@ export class ThreeJsRenderer {
    * Take a snapshot of the current scene
    */
   public takeSnapshot(): void {
-    // Trigger render and notify callbacks
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
@@ -822,7 +546,7 @@ export class ThreeJsRenderer {
     return {
       atoms: this.atoms,
       bonds: this.bonds,
-      camera: this.cameraState,
+      camera: this.cameraController?.getState() || this.cameraState,
       config: this.config,
     };
   }
@@ -838,9 +562,9 @@ export class ThreeJsRenderer {
     // Stop animation
     this.stopAnimationLoop();
 
-    // Clear all objects
-    this.clearAtoms();
-    this.clearBonds();
+    // Clear sub-renderers
+    this.atomRenderer?.clearAtoms();
+    this.bondRenderer?.clearBonds();
     this.clearUnitCell();
 
     // Dispose lights
@@ -872,6 +596,9 @@ export class ThreeJsRenderer {
     this.scene = null;
     this.camera = null;
     this.container = null;
+    this.atomRenderer = null;
+    this.bondRenderer = null;
+    this.cameraController = null;
     this.isInitializedFlag = false;
 
     // Remove event listeners
