@@ -12,6 +12,7 @@ import { registerASECommands } from './ase/commands';
 import { registerMigrationCommands } from './commands/migrationCommands';
 import { registerPythonBackendCommands } from './commands/pythonBackendCommands';
 import { registerScientificBridgeCommands } from './commands/scientificBridgeCommands';
+import { registerAnalyzerCommands } from './commands/analyzerCommands';
 import { registerAICommands } from './ai/aiCommands';
 import { registerExportCommands } from './commands/exportCommands';
 import { FileTypeDetector } from './managers/FileTypeDetector';
@@ -437,6 +438,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register ASE commands
   registerPythonBackendCommands(context);
   registerScientificBridgeCommands(context);
+  registerAnalyzerCommands(context);
   registerMigrationCommands(context);
   registerAICommands(context);
   registerExportCommands(context);
