@@ -41,6 +41,8 @@ module.exports = {
     '!src/utils/migration/params.ts',
     '!src/utils/LSPDiscovery.ts',
     '!src/performance/**',
+    '!src/visualizers/OpenQCViewerPanel.ts',
+    '!src/python/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
