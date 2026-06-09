@@ -1,0 +1,10 @@
+Iron BCC with selective dynamics
+2.87
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+Fe
+2
+Selective dynamics
+0.00 0.00 0.00 T T T
+0.50 0.50 0.50 F F T

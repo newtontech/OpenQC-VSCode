@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "openqc.structure.v1",
+  "kind": "molecule",
+  "name": "Methane",
+  "atomCount": 5,
+  "elements": ["C", "H", "H", "H", "H"],
+  "atoms": [
+    {"element": "C", "x": 0.0, "y": 0.0, "z": 0.0},
+    {"element": "H", "x": 0.6276, "y": 0.6276, "z": 0.6276},
+    {"element": "H", "x": -0.6276, "y": -0.6276, "z": 0.6276},
+    {"element": "H", "x": -0.6276, "y": 0.6276, "z": -0.6276},
+    {"element": "H", "x": 0.6276, "y": -0.6276, "z": -0.6276}
+  ]
+}

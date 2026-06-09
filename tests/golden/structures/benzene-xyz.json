@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "openqc.structure.v1",
+  "kind": "molecule",
+  "name": "Benzene",
+  "atomCount": 12,
+  "elements": ["C", "C", "C", "C", "C", "C", "H", "H", "H", "H", "H", "H"]
+}
