@@ -16,8 +16,15 @@ import { FileTypeDetector } from './managers/FileTypeDetector';
 import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
 import { OpenQCConverterProvider } from './sidebar/OpenQCConverterProvider';
 import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
+import { OpenQCViewerPanel } from './visualizers/OpenQCViewerPanel';
 import { StructureConverter } from './visualizers/StructureConverter';
 import { Molecule3D } from './visualizers/Molecule3D';
+import {
+  createOpenQCStructure,
+  molecularStructureToOpenQCStructure,
+  poscarToOpenQCStructure,
+} from './structures/converters';
+import type { OpenQCStructure } from './structures/OpenQCStructure';
 import { createParser } from './parsers';
 import { registerFormatConversionCommands } from './commands/formatConversionCommands';
 import { renderResultsWebviewHtml } from './webviews/resultsWebview';
@@ -143,24 +150,57 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       try {
-        // Parse the file content
         const content = document.getText();
-        const parser = createParser(software, content, document.fileName);
+        const fileName = document.fileName;
+        let structure: OpenQCStructure | undefined;
 
-        // Extract atoms using Molecule3D
-        const molecule3D = new Molecule3D();
-        const atoms = molecule3D.parseAtoms(content, software);
+        // 1. Try format-specific DTO path for periodic formats
+        if (software === 'VASP') {
+          const basename = fileName.split(/[/\\]/).pop()?.toUpperCase() ?? '';
+          if (basename === 'POSCAR' || basename === 'CONTCAR') {
+            try {
+              structure = poscarToOpenQCStructure(content, fileName);
+            } catch {
+              logger.warn('POSCAR DTO parse failed, falling back to legacy path');
+            }
+          }
+        }
 
-        if (atoms.length === 0) {
+        // 2. Try StructureConverter DTO path for other formats
+        if (!structure) {
+          try {
+            const converter = new StructureConverter();
+            const molecular = converter.autoConvert(content, fileName);
+            if (molecular.atoms.length > 0) {
+              structure = molecularStructureToOpenQCStructure(molecular, {
+                sourceSoftware: software,
+                sourceParser: 'native',
+              });
+            }
+          } catch {
+            logger.warn('StructureConverter DTO parse failed, falling back to legacy path');
+          }
+        }
+
+        // 3. Final legacy fallback: Molecule3D → atoms → createOpenQCStructure
+        if (!structure) {
+          const molecule3D = new Molecule3D();
+          const atoms = molecule3D.parseAtoms(content, software);
+          if (atoms.length > 0) {
+            structure = createOpenQCStructure(atoms, {
+              name: fileName,
+              sourceSoftware: software,
+            });
+          }
+        }
+
+        if (!structure || structure.atoms.length === 0) {
           vscode.window.showErrorMessage('No molecular structure found in file');
           return;
         }
 
-        // Convert to XYZ format
-        const xyzContent = StructureConverter.atomsToXYZ(atoms, document.fileName);
-
-        // Show the 3D viewer
-        MoleculeViewerPanel.createOrShow(context.extensionUri, xyzContent, document.fileName);
+        // Show the DTO-driven viewer
+        OpenQCViewerPanel.createOrShow(context.extensionUri, structure, fileName);
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to visualize structure: ${error}`);
       }

@@ -382,6 +382,8 @@ export function createOpenQCStructure(
     cell?: OpenQCCell;
     charge?: number;
     multiplicity?: number;
+    sourceSoftware?: string;
+    sourceParser?: string;
   }
 ): OpenQCStructure {
   const kind = options?.kind ?? (options?.cell ? 'periodic' : 'molecule');
@@ -393,6 +395,10 @@ export function createOpenQCStructure(
     metadata: {
       charge: options?.charge,
       multiplicity: options?.multiplicity,
+      source: {
+        software: options?.sourceSoftware,
+        parser: options?.sourceParser,
+      },
       provenance: {
         createdAt: new Date().toISOString(),
         warnings: [],
