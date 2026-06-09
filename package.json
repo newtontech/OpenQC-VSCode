@@ -426,6 +426,21 @@
         "title": "OpenQC: Export Structure",
         "category": "OpenQC",
         "icon": "$(save)"
+      },
+      {
+        "command": "openqc.checkPythonBackend",
+        "title": "OpenQC: Check Scientific Python Backend",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.configurePythonPath",
+        "title": "OpenQC: Configure Python Path",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.showPythonDiagnostics",
+        "title": "OpenQC: Show Python Backend Diagnostics",
+        "category": "OpenQC"
       }
     ],
     "views": {
@@ -768,6 +783,27 @@
           "type": "string",
           "default": "python3",
           "description": "Path to Python executable for ASE backend"
+        },
+        "openqc.python.timeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "description": "Timeout in milliseconds for Python subprocess bridge commands"
+        },
+        "openqc.external.multiwfnPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Multiwfn executable (optional)"
+        },
+        "openqc.external.openBabelPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Open Babel (obabel) executable (optional)"
+        },
+        "openqc.external.c2xPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to c2x executable (optional)"
         },
         "openqc.ai.enabled": {
           "type": "boolean",
