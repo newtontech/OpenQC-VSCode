@@ -16,6 +16,7 @@ import type { OpenQCStructure } from '../structures/OpenQCStructure';
 import { validateOpenQCStructure, type ValidationResult } from '../structures/validation';
 import { openQCStructureToXYZ } from '../structures/converters';
 import { MoleculeViewerWebview } from './MoleculeViewerWebview';
+import { OpenQCViewerWebview } from '../webviews/openqcViewerWebview';
 import { Logger } from '../utils/Logger';
 
 const logger = Logger.getInstance();
@@ -84,7 +85,7 @@ export class OpenQCViewerPanel {
       OpenQCViewerPanel.viewType,
       `OpenQC: ${filename}`,
       column || vscode.ViewColumn.One,
-      MoleculeViewerWebview.getWebviewOptions(extensionUri)
+      OpenQCViewerWebview.getWebviewOptions(extensionUri)
     );
 
     OpenQCViewerPanel.currentPanel = new OpenQCViewerPanel(
@@ -115,8 +116,8 @@ export class OpenQCViewerPanel {
       getOutputChannel().appendLine(msg);
     }
 
-    // Render webview HTML
-    this._panel.webview.html = MoleculeViewerWebview.generateWebviewHTML(
+    // Render webview HTML using bundled assets (no CDN dependency)
+    this._panel.webview.html = OpenQCViewerWebview.generateHTML(
       this._panel.webview,
       this._extensionUri
     );
