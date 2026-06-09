@@ -441,6 +441,26 @@
         "command": "openqc.showPythonDiagnostics",
         "title": "OpenQC: Show Python Backend Diagnostics",
         "category": "OpenQC"
+      },
+      {
+        "command": "openqc.parseStructurePython",
+        "title": "OpenQC: Parse Structure with Python Backend",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.generateSupercell",
+        "title": "OpenQC: Generate Supercell Preview",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.parseCalculationOutput",
+        "title": "OpenQC: Parse Calculation Output",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.showSCFConvergence",
+        "title": "OpenQC: Show SCF Convergence",
+        "category": "OpenQC"
       }
     ],
     "views": {
