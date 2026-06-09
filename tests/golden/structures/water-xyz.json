@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "openqc.structure.v1",
+  "kind": "molecule",
+  "name": "Water molecule",
+  "atomCount": 3,
+  "elements": ["O", "H", "H"],
+  "atoms": [
+    {"element": "O", "x": 0.0, "y": 0.0, "z": 0.1173},
+    {"element": "H", "x": 0.0, "y": 0.7572, "z": -0.4692},
+    {"element": "H", "x": 0.0, "y": -0.7572, "z": -0.4692}
+  ]
+}
