@@ -461,6 +461,26 @@
         "command": "openqc.showSCFConvergence",
         "title": "OpenQC: Show SCF Convergence",
         "category": "OpenQC"
+      },
+      {
+        "command": "openqc.checkExternalAnalyzers",
+        "title": "OpenQC: Check External Analyzers",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.generateMultiwfnScript",
+        "title": "OpenQC: Generate Multiwfn Script",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.runMultiwfnAnalysis",
+        "title": "OpenQC: Run Multiwfn Analysis",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.convertDensityC2x",
+        "title": "OpenQC: Convert Density with c2x",
+        "category": "OpenQC"
       }
     ],
     "views": {

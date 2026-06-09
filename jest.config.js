@@ -44,6 +44,8 @@ module.exports = {
     '!src/visualizers/OpenQCViewerPanel.ts',
     '!src/python/**',
     '!src/results/**',
+    '!src/analyzers/**',
+    '!src/commands/analyzerCommands.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
