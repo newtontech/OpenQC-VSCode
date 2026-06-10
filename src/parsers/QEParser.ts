@@ -122,7 +122,15 @@ export class QEParser extends BaseParser {
         continue;
       }
 
-      if (trimmed.startsWith('&')) {
+      if (trimmed === '/' || trimmed === '&END') {
+        // QE namelists terminate with '/' (standard) or '&END' (alternative)
+        if (currentSection) {
+          currentSection.endLine = i;
+          this.finalizeSection(sections, currentSection);
+          currentSection = null;
+        }
+        inNamelist = false;
+      } else if (trimmed.startsWith('&')) {
         namelistName = trimmed.substring(1).toUpperCase();
 
         if (namelistName.startsWith('END')) {

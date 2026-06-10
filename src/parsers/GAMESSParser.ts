@@ -33,7 +33,10 @@ export class GAMESSParser extends BaseParser {
       }
 
       if (trimmed.startsWith('$')) {
-        const groupName = trimmed.substring(1).toUpperCase();
+        // Extract group name: the first word after $ (up to first whitespace or $END)
+        const afterDollar = trimmed.substring(1).trim();
+        const firstWord = afterDollar.split(/\s+/)[0].toUpperCase();
+        const groupName = firstWord;
 
         if (groupName === 'END') {
           if (currentSection) {
@@ -57,6 +60,15 @@ export class GAMESSParser extends BaseParser {
           };
           parameters.push(...groupParams);
           inDataGroup = true;
+
+          // Check if $END appears on the same line after the group params
+          if (trimmed.toUpperCase().includes('$END') && trimmed.toUpperCase().indexOf('$END') > 0) {
+            // Strip $END and everything after it from the line content
+            currentSection.endLine = i;
+            sections.push(currentSection);
+            currentSection = null;
+            inDataGroup = false;
+          }
         }
       } else if (inDataGroup && currentSection) {
         const groupParams = this.parseDataGroupLine(trimmed, i);
@@ -90,6 +102,12 @@ export class GAMESSParser extends BaseParser {
       }
 
       line = content.substring(groupNameEnd).trim();
+    }
+
+    // Strip inline $END and everything after it
+    const endIdx = line.toUpperCase().indexOf('$END');
+    if (endIdx >= 0) {
+      line = line.substring(0, endIdx).trim();
     }
 
     const assignments = line.split(/\s+/).filter(s => s.includes('='));
