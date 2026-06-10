@@ -1,0 +1,30 @@
+{
+  "scopeName": "source.abinit",
+  "name": "ABINIT",
+  "patterns": [
+    {
+      "match": "^\\s*(#|!).*",
+      "name": "comment.line.number-sign.abinit"
+    },
+    {
+      "match": "\\b(acell|angdeg|ecut|ecutsm|ecut_eff|fftgw|iboxstep|intxc|istwfk|kpt|kptbounds|kptnrm|kptopt|ngkpt|nshiftk|shiftk|nband|nbdbuf|iscf|nstep|toldfe|tolwfr|toldff|tolmxf|diemac|diemix|iprcel|nkpt|nsppol|nspinor|nspden|nsym|natom|ntypat|typat|znucl|xred|xcart|rprim|gprim|gmet|rmet|brvltt|chkprim|chksymbreak|iscf|ixc|nline|nnsclo|nscf|occopt|prtvol|prtdos|prtwf|prtgeo|prtstm|prteig|enunit|fband|natrd|objaat|objarf|objbax|objber|optdriver|iscfe|dtset|udtset|jdtset|ndtset|nqpt|qpt|qptnrm|rfphon|rfdir|rfelfd|rfstrs|rfmeth|rfuser|prtvkb|prt1dm|tfwtfunc|tolwfr_diis)\\b",
+      "name": "variable.parameter.abinit"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.abinit"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.abinit"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.abinit"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
+      "name": "identifier.abinit"
+    }
+  ]
+}

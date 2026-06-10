@@ -51,12 +51,14 @@ export class LSPManager {
   private serverDefinitions: LSPServerDefinition[] = LSPManager.bundledDefinitions();
   private logger = createComponentLogger('LSPManager');
   private statusService: LspStatusService;
+  private context: vscode.ExtensionContext | undefined;
 
   constructor(
     context?: vscode.ExtensionContext,
     discovery?: LSPDiscovery,
     statusService?: LspStatusService
   ) {
+    this.context = context;
     this.fileTypeDetector = new FileTypeDetector();
     this.config = vscode.workspace.getConfiguration('openqc.lsp');
     this.discovery = discovery || new LSPDiscovery(context);
@@ -264,6 +266,7 @@ export class LSPManager {
       let serverCommand: string;
       let serverArgs: string[];
       const serverEnv: Record<string, string> | undefined = resolved.env;
+      const serverCwd: string | undefined = resolved.cwd;
 
       if (resolved.kind === 'pythonModule') {
         serverCommand = resolved.python;
@@ -277,7 +280,9 @@ export class LSPManager {
         command: serverCommand,
         args: serverArgs,
         transport: TransportKind.stdio,
-        ...(serverEnv ? { options: { env: { ...process.env, ...serverEnv } } } : {}),
+        ...(serverEnv || serverCwd
+          ? { options: { env: { ...process.env, ...serverEnv }, cwd: serverCwd } }
+          : {}),
       };
 
       const watcherPattern = this.createWatcherPattern(config.definition);
@@ -336,7 +341,7 @@ export class LSPManager {
     // Find the matching registry entry for command resolution
     const registryEntry = this.findRegistryEntry(languageId);
     const resolvedCommand = registryEntry
-      ? resolveLspCommand(registryEntry, overrides)
+      ? resolveLspCommand(registryEntry, overrides, { extensionPath: this.context?.extensionPath })
       : {
           kind: 'pathOrCommand' as const,
           command: overrides.command || overrides.path || definition.executable,

@@ -1,0 +1,34 @@
+{
+  "scopeName": "source.gromacs",
+  "name": "GROMACS",
+  "patterns": [
+    {
+      "match": "^\\s*;.*",
+      "name": "comment.line.semicolon.gromacs"
+    },
+    {
+      "match": "(?i)\\[\\s*(defaults|moleculetype|atoms|bonds|angles|dihedrals|impropers|pairs|exclusions|constraints|settles|virtual_sites|system|molecules|position_restraints|angle_restraints|dihedral_restraints|distance_restraints|orientation_restraints|implicit_genborn|polarization|water_molecules|nonbond_params|cmap|intermolecular_interactions|intermolecular_exclusions)\\s*\\]",
+      "name": "keyword.control.section.gromacs"
+    },
+    {
+      "match": "^\\s*(#include|#define|#ifdef|#ifndef|#endif|#if|#else)\\b",
+      "name": "keyword.control.preprocessor.gromacs"
+    },
+    {
+      "match": "(?i)\\b(integrator|nsteps|dt|comm_mode|comm_grps|bd_fric|ld_seed|em_stepsize|em_tol|nstxout|nstvout|nstfout|nstenergy|nstlog|nstxout_compressed|compressed_x_precision|cutoff_scheme|ns_type|nstlist|rlist|pbc|coulombtype|rcoulomb|rcoulomb_switch|epsilon_r|vdwtype|rvdw|rvdw_switch|tcoupl|tc_grps|tau_t|ref_t|pcoupl|pcoupltype|tau_p|ref_p|compressibility|refcoord_scaling|constraints|constraint_algorithm|continuation|shake_tol|lincs_iter|lincs_order|lincs_warnangle|morse)\\b",
+      "name": "variable.parameter.gromacs"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.gromacs"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.gromacs"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.gromacs"
+    }
+  ]
+}

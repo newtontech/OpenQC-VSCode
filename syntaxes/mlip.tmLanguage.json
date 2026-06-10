@@ -1,0 +1,25 @@
+{
+  "scopeName": "source.mlip",
+  "patterns": [
+    {
+      "match": "^\\s*(#|;|!).*",
+      "name": "comment.line.mlip"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_./-]*\\b",
+      "name": "identifier.mlip"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.mlip"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.mlip"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.mlip"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "scopeName": "source.pyscf",
+  "patterns": [
+    {
+      "match": "^\\s*(#|;|!).*",
+      "name": "comment.line.pyscf"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_./-]*\\b",
+      "name": "identifier.pyscf"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.pyscf"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.pyscf"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.pyscf"
+    }
+  ]
+}

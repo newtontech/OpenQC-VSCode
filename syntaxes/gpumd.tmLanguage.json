@@ -1,0 +1,30 @@
+{
+  "scopeName": "source.gpumd",
+  "name": "GPUMD",
+  "patterns": [
+    {
+      "match": "^\\s*#.*",
+      "name": "comment.line.number-sign.gpumd"
+    },
+    {
+      "match": "^\\s*(potential|velocity|ensemble|dump_thermo|dump_restart|dump_position|dump_velocity|dump_force|dump_netcdf|run|compute|fix|neighbor|change_box|convert|minimize|deform|group|time|option|nep)\\b",
+      "name": "keyword.control.command.gpumd"
+    },
+    {
+      "match": "\\b(nve|nvt_berendsen|nvt_nhc|npt_berendsen|npt_mtk|npt_scr|heat_langevin|heat_nhc|langevin|lj|tersoff|eam|sw|rebo|nep|gauss|cust)\\b",
+      "name": "constant.language.gpumd"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.gpumd"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.gpumd"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.gpumd"
+    }
+  ]
+}

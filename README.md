@@ -235,7 +235,7 @@ OpenQC works out of the box, but you can customize it:
 - [ ] AI-powered parameter optimization
 - [ ] Natural language input generation
 - [ ] Workflow automation
-- [ ] Demand-proven ecosystem integrations from the [roadmap](PLAN.md)
+- [ ] Demand-proven ecosystem integrations from the [roadmap](docs/project/PLAN.md)
 
 ## Marketplace Release Checklist
 

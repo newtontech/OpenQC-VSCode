@@ -33,6 +33,7 @@ import { registerFormatConversionCommands } from './commands/formatConversionCom
 import { renderResultsWebviewHtml } from './webviews/resultsWebview';
 import { Logger, LogLevel } from './utils/Logger';
 import { getLanguageFeaturePolicy, readLanguageFeatureMode } from './languageFeatures';
+import { listBundledLspServers } from './lsp/registry';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -88,8 +89,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   registerFormatConversionCommands(context);
 
-  // Language IDs for quantum chemistry software
-  const languageIds = ['cp2k', 'vasp', 'gaussian', 'orca', 'qe', 'gamess', 'nwchem'];
+  // Language IDs for bundled OpenQC-managed LSP servers.
+  const languageIds = listBundledLspServers().map(server => server.languageId);
 
   // Register language providers
   const disposables: vscode.Disposable[] = [];

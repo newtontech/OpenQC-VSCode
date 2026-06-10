@@ -10,6 +10,27 @@
 /** Stability classification for an LSP server entry. */
 export type LSPStability = 'stable' | 'experimental';
 
+/** Local sibling-repository launch strategy for a bundled LSP server. */
+export type LocalLspLaunch =
+  | {
+      readonly kind: 'pythonFunction';
+      readonly repoName: string;
+      readonly importPath: string;
+      readonly functionName: string;
+      readonly sourcePath?: string;
+    }
+  | {
+      readonly kind: 'nodeScript';
+      readonly repoName: string;
+      readonly scriptPath: string;
+    }
+  | {
+      readonly kind: 'cargoBinary';
+      readonly repoName: string;
+      readonly binaryName: string;
+      readonly cargoBin?: string;
+    };
+
 /**
  * A single entry in the bundled LSP server registry.
  *
@@ -51,6 +72,9 @@ export interface LSPServerRegistryEntry {
 
   /** Stability classification. */
   readonly stability: LSPStability;
+
+  /** How to launch this server directly from a sibling local repository. */
+  readonly localLaunch?: LocalLspLaunch;
 
   /**
    * Default branch to clone or reference, when it differs from "main".

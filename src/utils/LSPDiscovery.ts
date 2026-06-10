@@ -10,6 +10,7 @@
  */
 
 import * as vscode from 'vscode';
+import { listBundledLspServers } from '../lsp/registry';
 import { createComponentLogger } from './Logger';
 
 export interface LSPServerDefinition {
@@ -61,104 +62,18 @@ interface CacheEntry {
   timestamp: number;
 }
 
-export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] = [
-  {
-    id: 'vasp-lsp',
-    name: 'VASP',
-    repository: 'newtontech/VASP-LSP',
-    executable: 'vasp-lsp',
-    languageId: 'vasp',
-    fileExtensions: [],
-    fileNames: [
-      'INCAR',
-      'POSCAR',
-      'KPOINTS',
-      'POTCAR',
-      'CONTCAR',
-      'OSZICAR',
-      'OUTCAR',
-      'vasprun.xml',
-    ],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/VASP-LSP',
-  },
-  {
-    id: 'gaussian-lsp',
-    name: 'Gaussian',
-    repository: 'newtontech/gaussian-lsp',
-    executable: 'gaussian-lsp',
-    languageId: 'gaussian',
-    fileExtensions: ['gjf', 'com'],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/gaussian-lsp',
-  },
-  {
-    id: 'orca-lsp',
-    name: 'ORCA',
-    repository: 'newtontech/orca-lsp',
-    executable: 'orca-lsp',
-    languageId: 'orca',
-    fileExtensions: ['inp'],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/orca-lsp',
-  },
-  {
-    id: 'cp2k-lsp-enhanced',
-    name: 'CP2K',
-    repository: 'newtontech/cp2k-lsp-enhanced',
-    executable: 'cp2k-language-server',
-    languageId: 'cp2k',
-    fileExtensions: ['inp'],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/cp2k-lsp-enhanced',
-  },
-  {
-    id: 'qe-lsp',
-    name: 'Quantum ESPRESSO',
-    repository: 'newtontech/qe-lsp',
-    executable: 'qe-lsp',
-    languageId: 'qe',
-    fileExtensions: [
-      'in',
-      'pw.in',
-      'relax.in',
-      'vc-relax.in',
-      'scf.in',
-      'nscf.in',
-      'bands.in',
-      'ph.in',
-      'dos.in',
-    ],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/qe-lsp',
-  },
-  {
-    id: 'gamess-lsp',
-    name: 'GAMESS',
-    repository: 'newtontech/gamess-lsp',
-    executable: 'gamess-lsp',
-    languageId: 'gamess',
-    fileExtensions: ['inp'],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/gamess-lsp',
-  },
-  {
-    id: 'nwchem-lsp',
-    name: 'NWChem',
-    repository: 'newtontech/nwchem-lsp',
-    executable: 'nwchem-lsp',
-    languageId: 'nwchem',
-    fileExtensions: ['nw', 'nwinp'],
-    fileNames: [],
-    enabled: true,
-    repositoryUrl: 'https://github.com/newtontech/nwchem-lsp',
-  },
-];
+export const DEFAULT_LSP_SERVER_DEFINITIONS: readonly LSPServerDefinition[] =
+  listBundledLspServers().map(entry => ({
+    id: entry.id,
+    name: entry.name,
+    repository: entry.repository,
+    executable: entry.executable,
+    languageId: entry.languageId,
+    fileExtensions: [...entry.fileExtensions],
+    fileNames: [...entry.fileNames],
+    enabled: entry.enabled,
+    repositoryUrl: entry.repositoryUrl,
+  }));
 
 export class LSPDiscovery {
   private static readonly CACHE_KEY = 'openqc.lsp.discovery.cache';

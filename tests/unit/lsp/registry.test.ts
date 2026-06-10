@@ -14,8 +14,44 @@ import { LSPServerRegistryEntry } from '../../../src/lsp/types';
 describe('LSP Registry', () => {
   const allServers = listBundledLspServers();
 
-  it('contains exactly seven entries matching the issue spec', () => {
-    expect(getBundledLspServerCount()).toBe(7);
+  it('contains all local LSP repositories from the OpenQC workspace', () => {
+    expect(getBundledLspServerCount()).toBe(16);
+    expect(allServers.map(server => server.languageId)).toEqual([
+      'abacus',
+      'abinit',
+      'cif',
+      'cp2k',
+      'vasp',
+      'gaussian',
+      'orca',
+      'qe',
+      'gamess',
+      'nwchem',
+      'gpumd',
+      'gromacs',
+      'lammps',
+      'mlip',
+      'pyatb',
+      'pyscf',
+    ]);
+    expect(allServers.map(server => server.id).sort()).toEqual([
+      'abacus-lsp',
+      'abinit-lsp',
+      'cif-lsp',
+      'cp2k-lsp-enhanced',
+      'gamess-lsp',
+      'gaussian-lsp',
+      'gpumd-lsp',
+      'gromacs-lsp',
+      'lammps-lsp',
+      'mlip-lsp',
+      'nwchem-lsp',
+      'orca-lsp',
+      'pyatb-lsp',
+      'pyscf-lsp',
+      'qe-lsp',
+      'vasp-lsp',
+    ]);
   });
 
   it('covers every language ID contributed in package.json', () => {
@@ -37,15 +73,26 @@ describe('LSP Registry', () => {
   // Stability flags
   // ---------------------------------------------------------------------------
 
-  it('marks nwchem-lsp and cp2k-lsp-enhanced as experimental', () => {
-    const nwchem = getLspServerByLanguageId('nwchem');
-    const cp2k = getLspServerByLanguageId('cp2k');
+  it('marks the broader local workspace LSPs as experimental', () => {
+    const experimentalIds = [
+      'abacus',
+      'abinit',
+      'cif',
+      'cp2k',
+      'gpumd',
+      'gromacs',
+      'lammps',
+      'mlip',
+      'nwchem',
+      'pyatb',
+      'pyscf',
+    ];
 
-    expect(nwchem?.stability).toBe('experimental');
-    expect(nwchem?.defaultBranch).toBe('feature/nwchem-parser');
-
-    expect(cp2k?.stability).toBe('experimental');
-    expect(cp2k?.defaultBranch).toBe('develop');
+    for (const languageId of experimentalIds) {
+      const entry = getLspServerByLanguageId(languageId);
+      expect(entry?.stability).toBe('experimental');
+      expect(entry?.defaultBranch).toBeUndefined();
+    }
   });
 
   it('marks the remaining servers as stable', () => {
@@ -106,6 +153,10 @@ describe('LSP Registry', () => {
     for (const entry of allServers) {
       expect(properties[`openqc.lsp.${entry.languageId}.enabled`]?.default).toBe(entry.enabled);
       expect(properties[`openqc.lsp.${entry.languageId}.path`]?.default).toBe(entry.executable);
+      expect(properties[`openqc.lsp.${entry.languageId}.command`]?.default).toBe(entry.executable);
+      expect(properties[`openqc.lsp.${entry.languageId}.args`]?.default).toEqual(
+        entry.args ?? ['--stdio']
+      );
     }
   });
 
@@ -136,7 +187,56 @@ describe('LSP Registry', () => {
     expect(first).toEqual(second);
 
     first.push({} as LSPServerRegistryEntry);
-    expect(listBundledLspServers()).toHaveLength(7);
+    expect(listBundledLspServers()).toHaveLength(16);
+  });
+
+  it('defines a local launch strategy for every bundled local LSP', () => {
+    for (const entry of allServers) {
+      expect(entry.localLaunch).toBeDefined();
+      expect(entry.localLaunch?.repoName).toBeTruthy();
+    }
+  });
+
+  it('defines required registry metadata for every bundled local LSP', () => {
+    for (const entry of allServers) {
+      expect(entry.executable).toBeTruthy();
+      expect(entry.languageId).toBeTruthy();
+      expect(Array.isArray(entry.fileExtensions)).toBe(true);
+      expect(Array.isArray(entry.fileNames)).toBe(true);
+      expect(entry.stability).toMatch(/^(stable|experimental)$/);
+      expect(entry.repository).toBeTruthy();
+      expect(entry.repositoryUrl).toBeTruthy();
+      expect(entry.localLaunch).toBeDefined();
+    }
+  });
+
+  it('keeps special local launch defaults aligned with sibling repos', () => {
+    expect(getLspServerByLanguageId('cp2k')).toMatchObject({
+      args: [],
+      localLaunch: {
+        kind: 'pythonFunction',
+        repoName: 'cp2k-lsp-enhanced',
+        sourcePath: '.',
+      },
+    });
+
+    expect(getLspServerByLanguageId('cif')).toMatchObject({
+      localLaunch: {
+        kind: 'nodeScript',
+        repoName: 'cif-lsp',
+        scriptPath: 'server/out/server.js',
+      },
+    });
+
+    expect(getLspServerByLanguageId('lammps')).toMatchObject({
+      executable: 'lmp-lsp',
+      args: [],
+      localLaunch: {
+        kind: 'cargoBinary',
+        repoName: 'lammps-lsp',
+        binaryName: 'lmp-lsp',
+      },
+    });
   });
 
   // ---------------------------------------------------------------------------
