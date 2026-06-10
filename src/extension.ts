@@ -34,6 +34,7 @@ import { renderResultsWebviewHtml } from './webviews/resultsWebview';
 import { Logger, LogLevel } from './utils/Logger';
 import { getLanguageFeaturePolicy, readLanguageFeatureMode } from './languageFeatures';
 import { listBundledLspServers } from './lsp/registry';
+import { registerDslAuthoringContextCommand } from './lsp/dslAuthoringContext';
 
 let lspManager: LSPManager;
 let structureViewer: StructureViewer;
@@ -443,6 +444,9 @@ export function activate(context: vscode.ExtensionContext) {
   registerMigrationCommands(context);
   registerAICommands(context);
   registerExportCommands(context);
+
+  // Register DSL authoring context command for agent workflows
+  registerDslAuthoringContextCommand(context, () => lspManager);
 
   // Show Converter Panel command
   context.subscriptions.push(
