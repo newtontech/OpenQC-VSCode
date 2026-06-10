@@ -111,28 +111,51 @@ export class ORCAParser extends BaseParser {
     const params: ParsedParameter[] = [];
     const words = line.split(/\s+/).filter(w => w);
 
-    const methodKeywords = ['HF', 'DFT', 'MP2', 'CCSD', 'CCSD(T)', 'CASSCF', 'RHF', 'UHF', 'ROHF'];
+    const methodKeywords = [
+      'HF',
+      'DFT',
+      'MP2',
+      'CCSD',
+      'CCSD(T)',
+      'CASSCF',
+      'RHF',
+      'UHF',
+      'ROHF',
+      'B3LYP',
+      'PBE',
+      'BLYP',
+      'BP86',
+      'M06',
+      'WB97X',
+      'WB97X-D3',
+      'TPSS',
+    ];
     const basisKeywords = [
       'def2-SVP',
       'def2-TZVP',
       'def2-TZVPP',
+      'def2-QZVP',
       '6-31G',
       '6-311G',
       'cc-pVDZ',
       'cc-pVTZ',
+      'cc-pVQZ',
+      'STO-3G',
     ];
-    const calcTypeKeywords = ['OPT', 'FREQ', 'SP', 'TDDFT', 'COPT', 'NUMFREQ'];
+    const calcTypeKeywords = ['OPT', 'FREQ', 'SP', 'TDDFT', 'COPT', 'NUMFREQ', 'GRAD', 'ENERGY'];
 
     for (const word of words) {
       const upper = word.toUpperCase();
 
-      if (methodKeywords.some(m => upper.includes(m))) {
+      if (methodKeywords.some(m => upper === m || upper.includes(m))) {
         params.push({ name: 'Method', value: word, line: lineNum });
       } else if (
-        basisKeywords.some(b => upper.includes(b.replace(/-/g, '')) || upper.includes(b))
+        basisKeywords.some(
+          b => upper === b.toUpperCase() || upper.includes(b.toUpperCase().replace(/-/g, ''))
+        )
       ) {
         params.push({ name: 'Basis', value: word, line: lineNum });
-      } else if (calcTypeKeywords.some(c => upper.includes(c))) {
+      } else if (calcTypeKeywords.some(c => upper === c || upper.includes(c))) {
         params.push({ name: 'CalculationType', value: word, line: lineNum });
       } else {
         params.push({ name: 'Option', value: word, line: lineNum });
