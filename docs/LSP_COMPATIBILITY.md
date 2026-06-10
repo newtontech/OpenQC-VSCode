@@ -2,7 +2,7 @@
 
 This document provides a detailed feature-by-feature status for each standalone language server in the newtontech computational chemistry LSP family, plus its integration status in OpenQC.
 
-Last updated: 2026-06-08 (verified against upstream READMEs and `pyproject.toml` versions)
+Last updated: 2026-06-10 (verified against upstream READMEs, `pyproject.toml` versions, and bundled registry)
 
 ## Quick Reference
 
@@ -15,6 +15,15 @@ Last updated: 2026-06-08 (verified against upstream READMEs and `pyproject.toml`
 | [qe-lsp](https://github.com/newtontech/qe-lsp) | 0.1.0 | Quantum ESPRESSO | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | Syntax + Visualization |
 | [VASP-LSP](https://github.com/newtontech/VASP-LSP) | 0.4.4 | VASP | `INCAR`, `POSCAR`, `KPOINTS` | Syntax + Visualization |
 | [cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | 0.9.1 | CP2K | `.inp` | Syntax + Visualization |
+| [abacus-lsp](https://github.com/newtontech/abacus-lsp) | — | ABACUS | `INPUT`, `STRU`, `KPT` | Registered (experimental) |
+| [abinit-lsp](https://github.com/newtontech/abinit-lsp) | — | ABINIT | `.abi`, `.abinit` | Registered (experimental) |
+| [gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | — | GPUMD | `run.in`, `nep.in` | Registered (experimental) |
+| [gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | — | GROMACS | `.top`, `.itp`, `.mdp`, `.gro` | Registered (experimental) |
+| [lammps-lsp](https://github.com/newtontech/lammps-lsp) | — | LAMMPS | `.lmp`, `.lammps`, `.lmps`, `in.lammps` | Registered (experimental) |
+| [pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | — | PySCF | `.pyscf.py`, `run_pyscf.py` | Registered (experimental) |
+| [pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | — | PyATB | `.pyatb.py`, `run_pyatb.py` | Registered (experimental) |
+| [mlip-lsp](https://github.com/newtontech/mlip-lsp) | — | MLIP | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | Registered (experimental) |
+| [cif-lsp](https://github.com/newtontech/cif-lsp) | — | CIF | `.cif` | Registered (experimental) |
 
 ## Feature Matrix
 
@@ -37,6 +46,19 @@ Last updated: 2026-06-08 (verified against upstream READMEs and `pyproject.toml`
 | Semantic Highlighting | No | No | No | Yes | No | No | No |
 | Inlay Hints | No | No | No | Yes | No | No | No |
 | Snippet Completions | No | Yes | No | No | No | No | No |
+
+### Gap Server Capabilities (Experimental)
+
+All 9 gap servers are in early development. Capabilities will be filled in as each server matures.
+
+| Feature | abacus-lsp | abinit-lsp | gpumd-lsp | gromacs-lsp | lammps-lsp | pyscf-lsp | pyatb-lsp | mlip-lsp | cif-lsp |
+|---------|-----------|-----------|-----------|------------|-----------|-----------|-----------|---------|--------|
+| Parser | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| Diagnostics | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| Completion | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| Hover Docs | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
+| Formatting | — | — | — | — | — | — | — | — | — |
+| Code Actions | — | — | — | — | — | — | — | — | — |
 
 ### Status Key
 
@@ -174,6 +196,118 @@ Last updated: 2026-06-08 (verified against upstream READMEs and `pyproject.toml`
 - **Default branch**: `develop`
 - **OpenQC integration**: Syntax highlighting, visualization entry points, CP2K parser/linter tooling alignment
 
+### Gap Servers (Experimental)
+
+The following 9 servers extend OpenQC coverage into materials science, molecular dynamics, and machine-learning potentials. They are registered in the bundled LSP registry but are in early development.
+
+#### abacus-lsp
+
+- **Repository**: [newtontech/abacus-lsp](https://github.com/newtontech/abacus-lsp)
+- **Description**: LSP implementation for ABACUS (Atomic-orbital Based Ab-initio Computation at UStC) density functional theory code
+- **Supported file types**: `INPUT`, `STRU`, `KPT` (ABACUS input files)
+- **Language ID**: `abacus`
+- **Executable**: `abacus-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`abacus_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/abacus-lsp#1](https://github.com/newtontech/abacus-lsp/issues/1)
+
+#### abinit-lsp
+
+- **Repository**: [newtontech/abinit-lsp](https://github.com/newtontech/abinit-lsp)
+- **Description**: LSP implementation for ABINIT ab-initio simulation package
+- **Supported file types**: `.abi`, `.abinit` (ABINIT input)
+- **Language ID**: `abinit`
+- **Executable**: `abinit-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`abinit_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/abinit-lsp#1](https://github.com/newtontech/abinit-lsp/issues/1)
+
+#### gpumd-lsp
+
+- **Repository**: [newtontech/gpumd-lsp](https://github.com/newtontech/gpumd-lsp)
+- **Description**: LSP implementation for GPUMD (Graphics Processing Units Molecular Dynamics) and NEP (Neuroevolution Potential)
+- **Supported file types**: `run.in`, `nep.in` (GPUMD input files)
+- **Language ID**: `gpumd`
+- **Executable**: `gpumd-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`gpumd_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/gpumd-lsp#1](https://github.com/newtontech/gpumd-lsp/issues/1)
+
+#### gromacs-lsp
+
+- **Repository**: [newtontech/gromacs-lsp](https://github.com/newtontech/gromacs-lsp)
+- **Description**: LSP implementation for GROMACS molecular dynamics suite
+- **Supported file types**: `.top`, `.itp`, `.mdp`, `.gro` (GROMACS topology, parameters, coordinates)
+- **Language ID**: `gromacs`
+- **Executable**: `gromacs-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`gromacs_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/gromacs-lsp#1](https://github.com/newtontech/gromacs-lsp/issues/1)
+
+#### lammps-lsp
+
+- **Repository**: [newtontech/lammps-lsp](https://github.com/newtontech/lammps-lsp)
+- **Description**: LSP implementation for LAMMPS (Large-scale Atomic/Molecular Massively Parallel Simulator)
+- **Supported file types**: `.lmp`, `.lammps`, `.lmps`, `in.lammps` (LAMMPS input)
+- **Language ID**: `lammps`
+- **Executable**: `lmp-lsp`
+- **Install source**: `cargo build --release`
+- **Local launch**: `cargoBinary` (`lmp-lsp`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/lammps-lsp#1](https://github.com/newtontech/lammps-lsp/issues/1)
+
+#### pyscf-lsp
+
+- **Repository**: [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp)
+- **Description**: LSP implementation for PySCF (Python Simulations of Chemistry Framework)
+- **Supported file types**: `.pyscf.py`, `run_pyscf.py` (PySCF scripts)
+- **Language ID**: `pyscf`
+- **Executable**: `pyscf-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`pyscf_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/pyscf-lsp#1](https://github.com/newtontech/pyscf-lsp/issues/1)
+
+#### pyatb-lsp
+
+- **Repository**: [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp)
+- **Description**: LSP implementation for PyATB (Python Automatized Transport Boundary)
+- **Supported file types**: `.pyatb.py`, `run_pyatb.py` (PyATB scripts)
+- **Language ID**: `pyatb`
+- **Executable**: `pyatb-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`pyatb_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/pyatb-lsp#1](https://github.com/newtontech/pyatb-lsp/issues/1)
+
+#### mlip-lsp
+
+- **Repository**: [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp)
+- **Description**: LSP implementation for MLIP (Machine Learning Interatomic Potential) configuration files
+- **Supported file types**: `.mlip.json`, `.mlip.yaml`, `.mlip.yml` (MLIP configuration)
+- **Language ID**: `mlip`
+- **Executable**: `mlip-lsp`
+- **Install source**: `pip install -e .`
+- **Local launch**: `pythonFunction` (`mlip_lsp.cli:lsp_main`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/mlip-lsp#1](https://github.com/newtontech/mlip-lsp/issues/1)
+
+#### cif-lsp
+
+- **Repository**: [newtontech/cif-lsp](https://github.com/newtontech/cif-lsp)
+- **Description**: LSP implementation for CIF (Crystallographic Information File) format
+- **Supported file types**: `.cif` (crystallographic data)
+- **Language ID**: `cif`
+- **Executable**: `cif-lsp`
+- **Install source**: `npm install && npm run compile`
+- **Local launch**: `nodeScript` (`server/out/server.js`)
+- **Stability**: Experimental
+- **OpenQC integration issue**: [newtontech/cif-lsp#1](https://github.com/newtontech/cif-lsp/issues/1)
+
 ## Build and Test Commands
 
 ### Standalone LSP Servers
@@ -202,6 +336,15 @@ All servers use the pygls framework and share a common build/test pattern:
 | qe-lsp | `qe-lsp` | `qe-lsp` |
 | VASP-LSP | `vasp-lsp` | `vasp-lsp --stdio` (also `--tcp` for debugging) |
 | cp2k-lsp-enhanced | `cp2k-input-tools[lsp]` | `cp2k-language-server` |
+| abacus-lsp | `abacus-lsp` | `abacus-lsp` |
+| abinit-lsp | `abinit-lsp` | `abinit-lsp` |
+| gpumd-lsp | `gpumd-lsp` | `gpumd-lsp` |
+| gromacs-lsp | `gromacs-lsp` | `gromacs-lsp` |
+| lammps-lsp | `lammps-lsp` | `lmp-lsp` (cargo binary) |
+| pyscf-lsp | `pyscf-lsp` | `pyscf-lsp` |
+| pyatb-lsp | `pyatb-lsp` | `pyatb-lsp` |
+| mlip-lsp | `mlip-lsp` | `mlip-lsp` |
+| cif-lsp | `cif-lsp` | `cif-lsp` (Node.js) |
 
 ### OpenQC-VSCode
 
@@ -228,6 +371,15 @@ All servers use the pygls framework and share a common build/test pattern:
 | qe-lsp | `quantum-espresso` | Yes | No | Yes (3D structure) | Yes (Molecules) | OpenQC modules |
 | VASP-LSP | `vasp` (INCAR/POSCAR/KPOINTS) | Yes | No | Yes (3D structure) | Yes (Molecules) | OpenQC modules |
 | cp2k-lsp-enhanced | `cp2k` | Yes | No | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
+| abacus-lsp | `abacus` | Planned | No | Planned | Planned | Registered |
+| abinit-lsp | `abinit` | Planned | No | Planned | Planned | Registered |
+| gpumd-lsp | `gpumd` | Planned | No | Planned | Planned | Registered |
+| gromacs-lsp | `gromacs` | Planned | No | Planned | Planned | Registered |
+| lammps-lsp | `lammps` | Planned | No | Planned | Planned | Registered |
+| pyscf-lsp | `pyscf` | Planned | No | Planned | Planned | Registered |
+| pyatb-lsp | `pyatb` | Planned | No | Planned | Planned | Registered |
+| mlip-lsp | `mlip` | Planned | No | Planned | Planned | Registered |
+| cif-lsp | `cif` | Planned | No | Planned | Planned | Registered |
 
 ### Integration Notes
 

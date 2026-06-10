@@ -6,13 +6,22 @@ This document describes the code-sharing architecture across the newtontech quan
 
 | Repository | Language ID | Executable | File Patterns |
 |-----------|-------------|-----------|---------------|
-| [vasp-lsp](https://github.com/OpenQuantumChemistry/vasp-lsp) | `vasp` | `vasp-lsp` | INCAR, POSCAR, KPOINTS, POTCAR, CONTCAR |
-| [gaussian-lsp](https://github.com/OpenQuantumChemistry/gaussian-lsp) | `gaussian` | `gaussian-lsp` | *.gjf, *.com |
-| [orca-lsp](https://github.com/OpenQuantumChemistry/orca-lsp) | `orca` | `orca-lsp` | *.inp |
-| [cp2k-lsp-enhanced](https://github.com/OpenQuantumChemistry/cp2k-lsp-enhanced) | `cp2k` | `cp2k-language-server` | *.inp |
-| [qe-lsp](https://github.com/OpenQuantumChemistry/qe-lsp) | `qe` | `qe-lsp` | *.in, *.pw.in, *.scf.in, etc. |
-| [gamess-lsp](https://github.com/OpenQuantumChemistry/gamess-lsp) | `gamess` | `gamess-lsp` | *.inp |
-| [nwchem-lsp](https://github.com/OpenQuantumChemistry/nwchem-lsp) | `nwchem` | `nwchem-lsp` | *.nw, *.nwinp |
+| [vasp-lsp](https://github.com/newtontech/VASP-LSP) | `vasp` | `vasp-lsp` | INCAR, POSCAR, KPOINTS, POTCAR, CONTCAR |
+| [gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | `gaussian` | `gaussian-lsp` | *.gjf, *.com |
+| [orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `orca-lsp` | *.inp |
+| [cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | `cp2k` | `cp2k-language-server` | *.inp |
+| [qe-lsp](https://github.com/newtontech/qe-lsp) | `qe` | `qe-lsp` | *.in, *.pw.in, *.scf.in, etc. |
+| [gamess-lsp](https://github.com/newtontech/gamess-lsp) | `gamess` | `gamess-lsp` | *.inp |
+| [nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | `nwchem` | `nwchem-lsp` | *.nw, *.nwinp |
+| [abacus-lsp](https://github.com/newtontech/abacus-lsp) | `abacus` | `abacus-lsp` | INPUT, STRU, KPT |
+| [abinit-lsp](https://github.com/newtontech/abinit-lsp) | `abinit` | `abinit-lsp` | *.abi, *.abinit |
+| [gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | `gpumd` | `gpumd-lsp` | run.in, nep.in |
+| [gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | `gromacs` | `gromacs-lsp` | *.top, *.itp, *.mdp, *.gro |
+| [lammps-lsp](https://github.com/newtontech/lammps-lsp) | `lammps` | `lmp-lsp` | *.lmp, *.lammps, *.lmps, in.lammps |
+| [pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `pyscf-lsp` | *.pyscf.py, run_pyscf.py |
+| [pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `pyatb-lsp` | *.pyatb.py, run_pyatb.py |
+| [mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `mlip-lsp` | *.mlip.json, *.mlip.yaml, *.mlip.yml |
+| [cif-lsp](https://github.com/newtontech/cif-lsp) | `cif` | `cif-lsp` | *.cif |
 
 ## Discovery and Configuration
 
