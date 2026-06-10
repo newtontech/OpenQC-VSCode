@@ -1555,7 +1555,7 @@
     "3dmol": "^2.5.5",
     "ngl": "^2.4.0",
     "plotly.js-dist-min": "^3.6.0",
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^10.0.0"
   },
   "overrides": {
     "three": "^0.183.2",
