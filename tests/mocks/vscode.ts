@@ -5,7 +5,12 @@ export const window = {
   showInformationMessage: jest.fn(() => Promise.resolve(undefined)),
   showWarningMessage: jest.fn(() => Promise.resolve(undefined)),
   showErrorMessage: jest.fn(() => Promise.resolve(undefined)),
+  showTextDocument: jest.fn(() => Promise.resolve(undefined)),
   activeTextEditor: undefined,
+  visibleTextEditors: [],
+  tabGroups: {
+    onDidChangeTabs: jest.fn(() => ({ dispose: jest.fn() })),
+  },
   onDidChangeActiveTextEditor: jest.fn(() => ({ dispose: jest.fn() })),
   onDidChangeVisibleTextEditors: jest.fn(() => ({ dispose: jest.fn() })),
   onDidChangeTextEditorSelection: jest.fn(() => ({ dispose: jest.fn() })),
@@ -30,6 +35,15 @@ export const window = {
     show: jest.fn(),
     hide: jest.fn(),
     dispose: jest.fn(),
+    replace: jest.fn(),
+    name: 'mock',
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    log: jest.fn(),
+    trace: jest.fn(),
+    logLevel: 3, // LogLevel.Info
+    onDidChangeLogLevel: jest.fn(() => ({ dispose: jest.fn() })),
   })),
 };
 
@@ -259,6 +273,52 @@ export const DiagnosticSeverity = {
   Hint: 3,
 };
 
+export const LogLevel = {
+  Off: 0,
+  Trace: 1,
+  Debug: 2,
+  Info: 3,
+  Warning: 4,
+  Error: 5,
+};
+
+export class Disposable {
+  static from(...disposables: { dispose: () => unknown }[]): Disposable {
+    return new Disposable(() => disposables.forEach(d => d.dispose()));
+  }
+  constructor(private callOnDispose: () => unknown) {}
+  dispose(): any {
+    this.callOnDispose();
+  }
+}
+
+export class CancellationTokenSource {
+  token = {
+    isCancellationRequested: false,
+    onCancellationRequested: jest.fn(() => ({ dispose: jest.fn() })),
+  };
+  cancel(): void {
+    this.token.isCancellationRequested = true;
+  }
+  dispose(): void {}
+}
+
+export class TabInputText {
+  constructor(public uri: unknown) {}
+}
+export class TabInputTextDiff {
+  constructor(
+    public original: unknown,
+    public modified: unknown
+  ) {}
+}
+export class TabInputNotebook {
+  constructor(public uri: unknown) {}
+}
+export class TabInputCustom {
+  constructor(public uri: unknown) {} // eslint-disable-line @typescript-eslint/no-useless-constructor
+}
+
 export const CodeActionKind = {
   Empty: { value: '' },
   QuickFix: { value: 'quickfix' },
@@ -402,7 +462,10 @@ export default {
   SnippetString,
   TextEdit,
   CancellationError,
+  CancellationTokenSource,
   DiagnosticSeverity,
+  LogLevel,
+  Disposable,
   CodeActionKind,
   CompletionItemKind,
   CompletionItemTag,
@@ -417,4 +480,8 @@ export default {
   ExtensionContext,
   TextDocument,
   TextEditor,
+  TabInputText,
+  TabInputTextDiff,
+  TabInputNotebook,
+  TabInputCustom,
 };
