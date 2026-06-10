@@ -17,5 +17,11 @@
     ["(", ")"],
     ["\"", "\""],
     ["'", "'"]
-  ]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*ATOMIC_POSITIONS|^\\s*INPUT_PARAMETERS|^\\s*K_POINTS",
+      "end": "^\\s*$"
+    }
+  }
 }

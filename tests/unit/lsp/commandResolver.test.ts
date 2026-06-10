@@ -4,6 +4,9 @@ import {
   isExecutableAvailable,
 } from '../../../src/lsp/commandResolver';
 import { LSPServerRegistryEntry } from '../../../src/lsp/types';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 // ---------------------------------------------------------------------------
 // Mock vscode for readCommandOverrides
@@ -45,6 +48,14 @@ function makeEntry(overrides: Partial<LSPServerRegistryEntry> = {}): LSPServerRe
 
 describe('resolveLspCommand', () => {
   const entry = makeEntry();
+  let tempRoot: string | undefined;
+
+  afterEach(() => {
+    if (tempRoot) {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+      tempRoot = undefined;
+    }
+  });
 
   it('uses registry executable when no overrides are provided', () => {
     const result = resolveLspCommand(entry, {});
@@ -113,6 +124,199 @@ describe('resolveLspCommand', () => {
   it('defaults to --stdio args when no overrides are given', () => {
     const result = resolveLspCommand(entry, {});
     expect(result.args).toEqual(['--stdio']);
+  });
+
+  it('uses a sibling Python source checkout when localLaunch metadata is available', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    const repoRoot = path.join(tempRoot, 'gaussian-lsp');
+    fs.mkdirSync(path.join(repoRoot, 'src', 'gaussian_lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      {},
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        kind: 'pathOrCommand',
+        command: expect.stringMatching(/python/),
+        cwd: repoRoot,
+      })
+    );
+    expect(result.args).toEqual([
+      '-c',
+      'from gaussian_lsp.server import main as _main; raise SystemExit(_main())',
+      '--stdio',
+    ]);
+    expect(result.env?.PYTHONPATH).toContain(path.join(repoRoot, 'src'));
+  });
+
+  it('uses a sibling Node server script when present', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    const repoRoot = path.join(tempRoot, 'cif-lsp');
+    fs.mkdirSync(path.join(repoRoot, 'server', 'out'), { recursive: true });
+    fs.writeFileSync(path.join(repoRoot, 'server', 'out', 'server.js'), '');
+
+    const result = resolveLspCommand(
+      makeEntry({
+        id: 'cif-lsp',
+        executable: 'cif-lsp',
+        localLaunch: {
+          kind: 'nodeScript',
+          repoName: 'cif-lsp',
+          scriptPath: 'server/out/server.js',
+        },
+      }),
+      {},
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        kind: 'pathOrCommand',
+        command: expect.stringMatching(/node/),
+        args: [path.join(repoRoot, 'server', 'out', 'server.js'), '--stdio'],
+        cwd: repoRoot,
+      })
+    );
+  });
+
+  it('falls back to cargo run for sibling Rust servers without a built binary', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    const repoRoot = path.join(tempRoot, 'lammps-lsp');
+    fs.mkdirSync(repoRoot, { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        id: 'lammps-lsp',
+        executable: 'lmp-lsp',
+        args: [],
+        localLaunch: {
+          kind: 'cargoBinary',
+          repoName: 'lammps-lsp',
+          binaryName: 'lmp-lsp',
+        },
+      }),
+      {},
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        kind: 'pathOrCommand',
+        command: expect.stringMatching(/cargo/),
+        args: ['run', '--quiet', '--bin', 'lmp-lsp', '--'],
+        cwd: repoRoot,
+      })
+    );
+  });
+
+  it('keeps user command overrides ahead of localLaunch metadata', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    fs.mkdirSync(path.join(tempRoot, 'gaussian-lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      { command: '/custom/gaussian-lsp' },
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(expect.objectContaining({ command: '/custom/gaussian-lsp' }));
+    expect(result.cwd).toBeUndefined();
+  });
+
+  it('keeps deprecated path overrides ahead of localLaunch metadata', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    fs.mkdirSync(path.join(tempRoot, 'gaussian-lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      { path: '/custom/path/gaussian-lsp' },
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        command: '/custom/path/gaussian-lsp',
+        args: ['--stdio'],
+      })
+    );
+    expect(result.cwd).toBeUndefined();
+  });
+
+  it('keeps user args overrides ahead of localLaunch metadata', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    fs.mkdirSync(path.join(tempRoot, 'gaussian-lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      { args: ['--tcp', '127.0.0.1:2087'] },
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        command: 'gaussian-lsp',
+        args: ['--tcp', '127.0.0.1:2087'],
+      })
+    );
+    expect(result.cwd).toBeUndefined();
+  });
+
+  it('keeps user env overrides ahead of localLaunch metadata', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    fs.mkdirSync(path.join(tempRoot, 'gaussian-lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      { env: { OPENQC_TEST: '1' } },
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        command: 'gaussian-lsp',
+        args: ['--stdio'],
+        env: { OPENQC_TEST: '1' },
+      })
+    );
+    expect(result.cwd).toBeUndefined();
   });
 });
 

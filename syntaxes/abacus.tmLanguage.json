@@ -1,0 +1,38 @@
+{
+  "scopeName": "source.abacus",
+  "name": "ABACUS",
+  "patterns": [
+    {
+      "match": "^\\s*(#|!).*",
+      "name": "comment.line.number-sign.abacus"
+    },
+    {
+      "match": "^\\s*(INPUT_PARAMETERS|ATOMIC_POSITIONS|K_POINTS|LATTICE_CONSTANT|LATTICE_VECTORS|ATOMIC_SPECIES|NUMERICAL_ORBITAL|NUMERICAL_DESCRIPTOR)\\b",
+      "name": "keyword.control.block.abacus"
+    },
+    {
+      "match": "\\b(basis_type|calculation|ecutwfc|ecutrho|scf_nmax|scf_thr|edir|diago_proc|diago_cg_maxiter|diago_david_ndim|smearing_method|smearing_sigma|mixing_type|mixing_beta|charge_extrap|out_stru|out_chg|out_wfc|out_pot|out_dm|out_lowf|out_r_matrix|out_mat_hs|out_mat_hs2|out_mat_dh|out_app_flag|restart_save|restart_load|symmetry|nspin|noncolin|lspinorb|force_thr|force_thr_ev|force_thr_lin|bfgs_w1|bfgs_w2|bfgs_numd|trust_radius_max|trust_radius_min|trust_radius_ini|out_level|out_alllog|ks_solver|search_radius|search_pbc|symmetry_prec|symmetry_autoclose|cal_force|relax_method|out_cg|relax_cg_thr|relax_bfgs_w1|relax_bfgs_w2|relax_bfgs_rmax|relax_bfgs_rmin|relax_bfgs_init|fixed_axes|relax_new|bfgs_w1|bfgs_w2|cal_stress|stress_thr|press1|press2|press3|out_mul|gamma_only|kspacing|min_dist_coeff|nelec|nupdown|kpar|kspacing|nbands|nbnd|nupdown|ntype|tot_magnetization)\\b",
+      "name": "variable.parameter.abacus"
+    },
+    {
+      "match": "\\b(pw|lcao|lcao_in_pw|sd|cg|bfgs|cg_bfgs|scf|relax|cell_relax|nscf|md|epsilon|sto-scf|sto-md|sto-dftu)\\b",
+      "name": "constant.language.abacus"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.abacus"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.abacus"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.abacus"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
+      "name": "identifier.abacus"
+    }
+  ]
+}

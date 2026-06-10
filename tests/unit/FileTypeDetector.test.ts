@@ -37,6 +37,12 @@ describe('FileTypeDetector', () => {
 
       const kpoints = createMockDocument('/test/KPOINTS', 'K-Points\n0\nGamma\n4 4 4');
       expect(detector.detectSoftware(kpoints)).toBe('VASP');
+
+      const contributedFilenames = ['POTCAR', 'CONTCAR', 'OSZICAR', 'OUTCAR', 'vasprun.xml'];
+      for (const filename of contributedFilenames) {
+        const doc = createMockDocument(`/test/${filename}`, '');
+        expect(detector.detectSoftware(doc)).toBe('VASP');
+      }
     });
 
     it('should detect Gaussian files by extension and content', () => {
@@ -133,6 +139,42 @@ end
       expect(detector.detectSoftware(doc)).toBe('NWChem');
     });
 
+    it('should detect all local sibling LSP formats added to OpenQC', () => {
+      const cases: Array<[string, string, QuantumChemistrySoftware]> = [
+        ['/test/INPUT', 'INPUT_PARAMETERS\nbasis_type lcao\npseudo_dir ./\n', 'ABACUS'],
+        ['/test/run.abi', 'ecut 20\nngkpt 2 2 2\nacell 3*10\n', 'ABINIT'],
+        ['/test/Si.cif', 'data_si\n_cell_length_a 5.43\n_atom_site_label Si\n', 'CIF'],
+        ['/test/run.in', 'potential nep.txt\nvelocity 300\nrun 1000\n', 'GPUMD'],
+        ['/test/topol.top', '[ moleculetype ]\n; name nrexcl\nSOL 3\n', 'GROMACS'],
+        ['/test/in.lammps', 'units metal\natom_style atomic\npair_style eam\nrun 0\n', 'LAMMPS'],
+        [
+          '/test/workflow.mlip.json',
+          '{"model":"DPA3.1-3M","structure":"input.cif","task":"optimize"}\n',
+          'MLIP',
+        ],
+        ['/test/run_pyatb.py', 'import pyatb\nhr_file = "HR.dat"\nsr_file = "SR.dat"\n', 'PyATB'],
+        ['/test/run_pyscf.py', 'from pyscf import gto, dft\nmol = gto.M()\n', 'PySCF'],
+      ];
+
+      for (const [fileName, content, expected] of cases) {
+        expect(detector.detectSoftware(createMockDocument(fileName, content))).toBe(expected);
+      }
+    });
+
+    it('should detect composite suffixes for MLIP, PyATB, and PySCF', () => {
+      const cases: Array<[string, string, QuantumChemistrySoftware]> = [
+        ['/test/workflow.mlip.json', '{"model":"DPA3.1-3M","structure":"input.cif"}\n', 'MLIP'],
+        ['/test/workflow.mlip.yaml', 'model: DPA3.1-3M\nstructure: input.cif\n', 'MLIP'],
+        ['/test/workflow.mlip.yml', 'model: DPA3.1-3M\ntask: optimize\n', 'MLIP'],
+        ['/test/example.pyatb.py', 'from pyatb import api\nhr_file = "HR.dat"\n', 'PyATB'],
+        ['/test/example.pyscf.py', 'import pyscf\nfrom pyscf import gto, scf\n', 'PySCF'],
+      ];
+
+      for (const [fileName, content, expected] of cases) {
+        expect(detector.detectSoftware(createMockDocument(fileName, content))).toBe(expected);
+      }
+    });
+
     it('should return null for unsupported files', () => {
       const doc = createMockDocument('/test/random.txt', 'This is not a chemistry file');
       expect(detector.detectSoftware(doc)).toBeNull();
@@ -181,6 +223,15 @@ PROJECT_NAME test
         'Quantum ESPRESSO',
         'GAMESS',
         'NWChem',
+        'ABACUS',
+        'ABINIT',
+        'CIF',
+        'GPUMD',
+        'GROMACS',
+        'LAMMPS',
+        'MLIP',
+        'PyATB',
+        'PySCF',
       ];
 
       for (const software of softwares) {

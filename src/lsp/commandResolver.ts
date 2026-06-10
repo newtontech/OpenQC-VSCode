@@ -10,6 +10,8 @@
  */
 
 import { execFile } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LSPServerRegistryEntry } from './types';
@@ -22,13 +24,20 @@ import { LSPServerRegistryEntry } from './types';
  * A fully resolved command that can be passed directly to `LanguageClient`.
  */
 export type ResolvedLspCommand =
-  | { kind: 'pathOrCommand'; command: string; args: string[]; env?: Record<string, string> }
+  | {
+      kind: 'pathOrCommand';
+      command: string;
+      args: string[];
+      env?: Record<string, string>;
+      cwd?: string;
+    }
   | {
       kind: 'pythonModule';
       python: string;
       module: string;
       args: string[];
       env?: Record<string, string>;
+      cwd?: string;
     };
 
 /**
@@ -43,6 +52,11 @@ export interface LspCommandOverrides {
   args?: string[];
   /** Extra environment variables for the server process. */
   env?: Record<string, string>;
+}
+
+export interface LspCommandResolutionOptions {
+  /** Extension install/source path used to locate sibling LSP repositories. */
+  extensionPath?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -67,8 +81,16 @@ export interface LspCommandOverrides {
  */
 export function resolveLspCommand(
   entry: LSPServerRegistryEntry,
-  overrides: LspCommandOverrides
+  overrides: LspCommandOverrides,
+  options: LspCommandResolutionOptions = {}
 ): ResolvedLspCommand {
+  if (!hasUserOverride(overrides)) {
+    const localCommand = resolveLocalRepositoryCommand(entry, overrides, options);
+    if (localCommand) {
+      return localCommand;
+    }
+  }
+
   const command = overrides.command || overrides.path || entry.executable;
   const args = overrides.args ?? [...(entry.args ?? ['--stdio'])];
   const env = overrides.env;
@@ -158,4 +180,126 @@ function isFilePathLike(commandOrPath: string): boolean {
     commandOrPath.includes('\\') ||
     commandOrPath.startsWith('.')
   );
+}
+
+function hasUserOverride(overrides: LspCommandOverrides): boolean {
+  return (
+    overrides.command !== undefined ||
+    overrides.path !== undefined ||
+    overrides.args !== undefined ||
+    overrides.env !== undefined
+  );
+}
+
+function resolveLocalRepositoryCommand(
+  entry: LSPServerRegistryEntry,
+  overrides: LspCommandOverrides,
+  options: LspCommandResolutionOptions
+): ResolvedLspCommand | undefined {
+  if (!entry.localLaunch) {
+    return undefined;
+  }
+
+  const repoRoot = findSiblingRepository(entry.localLaunch.repoName, options.extensionPath);
+  if (!repoRoot) {
+    return undefined;
+  }
+
+  const args = overrides.args ?? [...(entry.args ?? ['--stdio'])];
+  const env = overrides.env || {};
+
+  if (entry.localLaunch.kind === 'pythonFunction') {
+    const sourcePath = path.join(repoRoot, entry.localLaunch.sourcePath || 'src');
+    const pythonPath = mergePathList(sourcePath, process.env.PYTHONPATH);
+    const code = [
+      `from ${entry.localLaunch.importPath} import ${entry.localLaunch.functionName} as _main`,
+      'raise SystemExit(_main())',
+    ].join('; ');
+
+    return {
+      kind: 'pathOrCommand',
+      command: process.env.OPENQC_LSP_PYTHON || 'python3',
+      args: ['-c', code, ...args],
+      cwd: repoRoot,
+      env: { ...env, PYTHONPATH: pythonPath },
+    };
+  }
+
+  if (entry.localLaunch.kind === 'nodeScript') {
+    const script = path.join(repoRoot, entry.localLaunch.scriptPath);
+    if (!fs.existsSync(script)) {
+      return undefined;
+    }
+    return {
+      kind: 'pathOrCommand',
+      command: process.env.OPENQC_LSP_NODE || 'node',
+      args: [script, ...args],
+      cwd: repoRoot,
+      env: Object.keys(env).length > 0 ? env : undefined,
+    };
+  }
+
+  const binary = path.join(repoRoot, 'target', 'debug', entry.localLaunch.binaryName);
+  if (fs.existsSync(binary)) {
+    return {
+      kind: 'pathOrCommand',
+      command: binary,
+      args,
+      cwd: repoRoot,
+      env: Object.keys(env).length > 0 ? env : undefined,
+    };
+  }
+
+  return {
+    kind: 'pathOrCommand',
+    command: process.env.OPENQC_LSP_CARGO || 'cargo',
+    args: [
+      'run',
+      '--quiet',
+      '--bin',
+      entry.localLaunch.cargoBin || entry.localLaunch.binaryName,
+      '--',
+    ],
+    cwd: repoRoot,
+    env: Object.keys(env).length > 0 ? env : undefined,
+  };
+}
+
+function findSiblingRepository(repoName: string, extensionPath?: string): string | undefined {
+  const roots = candidateSearchRoots(extensionPath);
+  for (const root of roots) {
+    const candidate = path.join(root, repoName);
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+      return candidate;
+    }
+  }
+  return undefined;
+}
+
+function candidateSearchRoots(extensionPath?: string): string[] {
+  const roots: string[] = [];
+  const add = (candidate?: string) => {
+    if (!candidate) {
+      return;
+    }
+    const normalized = path.resolve(candidate);
+    if (!roots.includes(normalized)) {
+      roots.push(normalized);
+    }
+  };
+
+  let current = path.resolve(extensionPath || process.cwd());
+  for (let depth = 0; depth < 5; depth += 1) {
+    add(current);
+    add(path.dirname(current));
+    current = path.dirname(current);
+  }
+
+  add(process.env.OPENQC_LSP_REPOSITORY_ROOT);
+  add(path.join(os.homedir(), 'Desktop', 'code'));
+  return roots;
+}
+
+function mergePathList(first: string, existing?: string): string {
+  return existing && existing.length > 0 ? `${first}${path.delimiter}${existing}` : first;
 }

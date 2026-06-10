@@ -80,7 +80,7 @@ pytest tests/unit/test_parser.py
 
 ## Writing Tests
 
-Follow the [TDD Guidelines](../TDD-GUIDELINES.md) for best practices.
+Follow the [TDD Guidelines](../docs/project/TDD-GUIDELINES.md) for best practices.
 
 ### Example Unit Test
 

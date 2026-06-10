@@ -38,6 +38,9 @@
     "geometry optimization"
   ],
   "activationEvents": [
+    "onLanguage:abacus",
+    "onLanguage:abinit",
+    "onLanguage:cif",
     "onLanguage:cp2k",
     "onLanguage:vasp",
     "onLanguage:gaussian",
@@ -45,6 +48,12 @@
     "onLanguage:qe",
     "onLanguage:gamess",
     "onLanguage:nwchem",
+    "onLanguage:gpumd",
+    "onLanguage:gromacs",
+    "onLanguage:lammps",
+    "onLanguage:mlip",
+    "onLanguage:pyatb",
+    "onLanguage:pyscf",
     "onCommand:openqc.startLSP",
     "onCommand:openqc.stopLSP",
     "onCommand:openqc.restartLSP",
@@ -67,6 +76,42 @@
   ],
   "contributes": {
     "languages": [
+      {
+        "id": "abacus",
+        "aliases": [
+          "ABACUS",
+          "abacus"
+        ],
+        "filenames": [
+          "INPUT",
+          "STRU",
+          "KPT"
+        ],
+        "configuration": "./language-configurations/abacus.json"
+      },
+      {
+        "id": "abinit",
+        "aliases": [
+          "ABINIT",
+          "abinit"
+        ],
+        "extensions": [
+          ".abi",
+          ".abinit"
+        ],
+        "configuration": "./language-configurations/abinit.json"
+      },
+      {
+        "id": "cif",
+        "aliases": [
+          "CIF",
+          "cif"
+        ],
+        "extensions": [
+          ".cif"
+        ],
+        "configuration": "./language-configurations/cif.json"
+      },
       {
         "id": "cp2k",
         "aliases": [
@@ -161,9 +206,112 @@
           ".nwinp"
         ],
         "configuration": "./language-configurations/nwchem.json"
+      },
+      {
+        "id": "gpumd",
+        "aliases": [
+          "GPUMD",
+          "gpumd"
+        ],
+        "filenames": [
+          "run.in",
+          "nep.in"
+        ],
+        "configuration": "./language-configurations/gpumd.json"
+      },
+      {
+        "id": "gromacs",
+        "aliases": [
+          "GROMACS",
+          "gromacs"
+        ],
+        "extensions": [
+          ".top",
+          ".itp",
+          ".mdp",
+          ".gro"
+        ],
+        "configuration": "./language-configurations/gromacs.json"
+      },
+      {
+        "id": "lammps",
+        "aliases": [
+          "LAMMPS",
+          "lammps"
+        ],
+        "extensions": [
+          ".lmp",
+          ".lammps",
+          ".lmps"
+        ],
+        "filenames": [
+          "in.lammps"
+        ],
+        "configuration": "./language-configurations/lammps.json"
+      },
+      {
+        "id": "mlip",
+        "aliases": [
+          "MLIP",
+          "mlip"
+        ],
+        "extensions": [
+          ".mlip.json",
+          ".mlip.yaml",
+          ".mlip.yml"
+        ],
+        "filenames": [
+          "mlip.json",
+          "mlip.yaml",
+          "mlip.yml"
+        ],
+        "configuration": "./language-configurations/mlip.json"
+      },
+      {
+        "id": "pyatb",
+        "aliases": [
+          "PyATB",
+          "pyatb"
+        ],
+        "extensions": [
+          ".pyatb.py"
+        ],
+        "filenames": [
+          "run_pyatb.py"
+        ],
+        "configuration": "./language-configurations/pyatb.json"
+      },
+      {
+        "id": "pyscf",
+        "aliases": [
+          "PySCF",
+          "pyscf"
+        ],
+        "extensions": [
+          ".pyscf.py"
+        ],
+        "filenames": [
+          "run_pyscf.py"
+        ],
+        "configuration": "./language-configurations/pyscf.json"
       }
     ],
     "grammars": [
+      {
+        "language": "abacus",
+        "scopeName": "source.abacus",
+        "path": "./syntaxes/abacus.tmLanguage.json"
+      },
+      {
+        "language": "abinit",
+        "scopeName": "source.abinit",
+        "path": "./syntaxes/abinit.tmLanguage.json"
+      },
+      {
+        "language": "cif",
+        "scopeName": "source.cif",
+        "path": "./syntaxes/cif.tmLanguage.json"
+      },
       {
         "language": "cp2k",
         "scopeName": "source.cp2k",
@@ -198,6 +346,36 @@
         "language": "nwchem",
         "scopeName": "source.nwchem",
         "path": "./syntaxes/nwchem.tmLanguage.json"
+      },
+      {
+        "language": "gpumd",
+        "scopeName": "source.gpumd",
+        "path": "./syntaxes/gpumd.tmLanguage.json"
+      },
+      {
+        "language": "gromacs",
+        "scopeName": "source.gromacs",
+        "path": "./syntaxes/gromacs.tmLanguage.json"
+      },
+      {
+        "language": "lammps",
+        "scopeName": "source.lammps",
+        "path": "./syntaxes/lammps.tmLanguage.json"
+      },
+      {
+        "language": "mlip",
+        "scopeName": "source.mlip",
+        "path": "./syntaxes/mlip.tmLanguage.json"
+      },
+      {
+        "language": "pyatb",
+        "scopeName": "source.pyatb",
+        "path": "./syntaxes/pyatb.tmLanguage.json"
+      },
+      {
+        "language": "pyscf",
+        "scopeName": "source.pyscf",
+        "path": "./syntaxes/pyscf.tmLanguage.json"
       }
     ],
     "commands": [
@@ -526,15 +704,104 @@
     "configuration": {
       "title": "OpenQC",
       "properties": {
-        "openqc.languageFeatures.mode": {
+        "openqc.lsp.abacus.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ABACUS Language Server"
+        },
+        "openqc.lsp.abacus.path": {
           "type": "string",
-          "enum": [
-            "lsp",
-            "local",
-            "hybrid"
+          "default": "abacus-lsp",
+          "description": "Path to ABACUS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.abacus.command": {
+          "type": "string",
+          "default": "abacus-lsp",
+          "description": "Command to start the ABACUS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.abacus.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
           ],
-          "default": "lsp",
-          "description": "Controls ownership of OpenQC language features. 'lsp' uses external language servers only, 'local' uses built-in parser providers without auto-starting LSP, and 'hybrid' keeps LSP ownership while avoiding duplicate local diagnostics."
+          "description": "Arguments passed to the ABACUS Language Server"
+        },
+        "openqc.lsp.abacus.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the ABACUS Language Server process"
+        },
+        "openqc.lsp.abinit.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ABINIT Language Server"
+        },
+        "openqc.lsp.abinit.path": {
+          "type": "string",
+          "default": "abinit-lsp",
+          "description": "Path to ABINIT Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.abinit.command": {
+          "type": "string",
+          "default": "abinit-lsp",
+          "description": "Command to start the ABINIT Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.abinit.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the ABINIT Language Server"
+        },
+        "openqc.lsp.abinit.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the ABINIT Language Server process"
+        },
+        "openqc.lsp.cif.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable CIF Language Server"
+        },
+        "openqc.lsp.cif.path": {
+          "type": "string",
+          "default": "cif-lsp",
+          "description": "Path to CIF Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.cif.command": {
+          "type": "string",
+          "default": "cif-lsp",
+          "description": "Command to start the CIF Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.cif.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the CIF Language Server"
+        },
+        "openqc.lsp.cif.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the CIF Language Server process"
         },
         "openqc.lsp.cp2k.enabled": {
           "type": "boolean",
@@ -544,22 +811,19 @@
         "openqc.lsp.cp2k.path": {
           "type": "string",
           "default": "cp2k-language-server",
-          "description": "Path to CP2K Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.cp2k.command instead."
+          "description": "Path to CP2K Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.cp2k.command": {
           "type": "string",
           "default": "cp2k-language-server",
-          "description": "Command to start the CP2K Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the CP2K Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.cp2k.args": {
           "type": "array",
           "items": {
             "type": "string"
           },
-          "default": [
-            "--stdio"
-          ],
+          "default": [],
           "description": "Arguments passed to the CP2K Language Server"
         },
         "openqc.lsp.cp2k.env": {
@@ -578,13 +842,12 @@
         "openqc.lsp.vasp.path": {
           "type": "string",
           "default": "vasp-lsp",
-          "description": "Path to VASP Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.vasp.command instead."
+          "description": "Path to VASP Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.vasp.command": {
           "type": "string",
           "default": "vasp-lsp",
-          "description": "Command to start the VASP Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the VASP Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.vasp.args": {
           "type": "array",
@@ -612,13 +875,12 @@
         "openqc.lsp.gaussian.path": {
           "type": "string",
           "default": "gaussian-lsp",
-          "description": "Path to Gaussian Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.gaussian.command instead."
+          "description": "Path to Gaussian Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.gaussian.command": {
           "type": "string",
           "default": "gaussian-lsp",
-          "description": "Command to start the Gaussian Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the Gaussian Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.gaussian.args": {
           "type": "array",
@@ -646,13 +908,12 @@
         "openqc.lsp.orca.path": {
           "type": "string",
           "default": "orca-lsp",
-          "description": "Path to ORCA Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.orca.command instead."
+          "description": "Path to ORCA Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.orca.command": {
           "type": "string",
           "default": "orca-lsp",
-          "description": "Command to start the ORCA Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the ORCA Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.orca.args": {
           "type": "array",
@@ -680,13 +941,12 @@
         "openqc.lsp.qe.path": {
           "type": "string",
           "default": "qe-lsp",
-          "description": "Path to Quantum ESPRESSO Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.qe.command instead."
+          "description": "Path to Quantum ESPRESSO Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.qe.command": {
           "type": "string",
           "default": "qe-lsp",
-          "description": "Command to start the Quantum ESPRESSO Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the Quantum ESPRESSO Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.qe.args": {
           "type": "array",
@@ -714,13 +974,12 @@
         "openqc.lsp.gamess.path": {
           "type": "string",
           "default": "gamess-lsp",
-          "description": "Path to GAMESS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.gamess.command instead."
+          "description": "Path to GAMESS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.gamess.command": {
           "type": "string",
           "default": "gamess-lsp",
-          "description": "Command to start the GAMESS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the GAMESS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.gamess.args": {
           "type": "array",
@@ -748,13 +1007,12 @@
         "openqc.lsp.nwchem.path": {
           "type": "string",
           "default": "nwchem-lsp",
-          "description": "Path to NWChem Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side.",
-          "deprecationMessage": "Use openqc.lsp.nwchem.command instead."
+          "description": "Path to NWChem Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
         },
         "openqc.lsp.nwchem.command": {
           "type": "string",
           "default": "nwchem-lsp",
-          "description": "Command to start the NWChem Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, and Codespaces, this resolves on the workspace side."
+          "description": "Command to start the NWChem Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
         },
         "openqc.lsp.nwchem.args": {
           "type": "array",
@@ -773,6 +1031,212 @@
           },
           "default": {},
           "description": "Extra environment variables for the NWChem Language Server process"
+        },
+        "openqc.lsp.gpumd.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GPUMD Language Server"
+        },
+        "openqc.lsp.gpumd.path": {
+          "type": "string",
+          "default": "gpumd-lsp",
+          "description": "Path to GPUMD Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.gpumd.command": {
+          "type": "string",
+          "default": "gpumd-lsp",
+          "description": "Command to start the GPUMD Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.gpumd.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the GPUMD Language Server"
+        },
+        "openqc.lsp.gpumd.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the GPUMD Language Server process"
+        },
+        "openqc.lsp.gromacs.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GROMACS Language Server"
+        },
+        "openqc.lsp.gromacs.path": {
+          "type": "string",
+          "default": "gromacs-lsp",
+          "description": "Path to GROMACS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.gromacs.command": {
+          "type": "string",
+          "default": "gromacs-lsp",
+          "description": "Command to start the GROMACS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.gromacs.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the GROMACS Language Server"
+        },
+        "openqc.lsp.gromacs.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the GROMACS Language Server process"
+        },
+        "openqc.lsp.lammps.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable LAMMPS Language Server"
+        },
+        "openqc.lsp.lammps.path": {
+          "type": "string",
+          "default": "lmp-lsp",
+          "description": "Path to LAMMPS Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.lammps.command": {
+          "type": "string",
+          "default": "lmp-lsp",
+          "description": "Command to start the LAMMPS Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.lammps.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Arguments passed to the LAMMPS Language Server"
+        },
+        "openqc.lsp.lammps.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the LAMMPS Language Server process"
+        },
+        "openqc.lsp.mlip.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MLIP Language Server"
+        },
+        "openqc.lsp.mlip.path": {
+          "type": "string",
+          "default": "mlip-lsp",
+          "description": "Path to MLIP Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.mlip.command": {
+          "type": "string",
+          "default": "mlip-lsp",
+          "description": "Command to start the MLIP Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.mlip.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the MLIP Language Server"
+        },
+        "openqc.lsp.mlip.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the MLIP Language Server process"
+        },
+        "openqc.lsp.pyatb.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable PyATB Language Server"
+        },
+        "openqc.lsp.pyatb.path": {
+          "type": "string",
+          "default": "pyatb-lsp",
+          "description": "Path to PyATB Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.pyatb.command": {
+          "type": "string",
+          "default": "pyatb-lsp",
+          "description": "Command to start the PyATB Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.pyatb.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the PyATB Language Server"
+        },
+        "openqc.lsp.pyatb.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the PyATB Language Server process"
+        },
+        "openqc.lsp.pyscf.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable PySCF Language Server"
+        },
+        "openqc.lsp.pyscf.path": {
+          "type": "string",
+          "default": "pyscf-lsp",
+          "description": "Path to PySCF Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.pyscf.command": {
+          "type": "string",
+          "default": "pyscf-lsp",
+          "description": "Command to start the PySCF Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.pyscf.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the PySCF Language Server"
+        },
+        "openqc.lsp.pyscf.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the PySCF Language Server process"
+        },
+        "openqc.languageFeatures.mode": {
+          "type": "string",
+          "enum": [
+            "lsp",
+            "local",
+            "hybrid"
+          ],
+          "default": "lsp",
+          "description": "Controls ownership of OpenQC language features. 'lsp' uses external language servers only, 'local' uses built-in parser providers without auto-starting LSP, and 'hybrid' keeps LSP ownership while avoiding duplicate local diagnostics."
         },
         "openqc.sidebar.autoRefresh": {
           "type": "boolean",

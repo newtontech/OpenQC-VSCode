@@ -1,6 +1,6 @@
 {
   "comments": {
-    "lineComment": "#"
+    "lineComment": ";"
   },
   "brackets": [
     ["[", "]"],
@@ -17,5 +17,11 @@
     ["(", ")"],
     ["\"", "\""],
     ["'", "'"]
-  ]
+  ],
+  "folding": {
+    "markers": {
+      "start": "\\[",
+      "end": "\\["
+    }
+  }
 }

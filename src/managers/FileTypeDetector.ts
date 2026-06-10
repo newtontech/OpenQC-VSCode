@@ -2,13 +2,22 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 export type QuantumChemistrySoftware =
+  | 'ABACUS'
+  | 'ABINIT'
+  | 'CIF'
   | 'CP2K'
   | 'VASP'
   | 'Gaussian'
   | 'ORCA'
   | 'Quantum ESPRESSO'
   | 'GAMESS'
-  | 'NWChem';
+  | 'NWChem'
+  | 'GPUMD'
+  | 'GROMACS'
+  | 'LAMMPS'
+  | 'MLIP'
+  | 'PyATB'
+  | 'PySCF';
 
 interface FilePattern {
   software: QuantumChemistrySoftware;
@@ -20,13 +29,37 @@ interface FilePattern {
 export class FileTypeDetector {
   private readonly patterns: FilePattern[] = [
     {
+      software: 'ABACUS',
+      filenames: ['INPUT', 'STRU', 'KPT'],
+      contentPatterns: [/INPUT_PARAMETERS|ATOMIC_POSITIONS|K_POINTS/i, /basis_type|pseudo_dir/i],
+    },
+    {
+      software: 'ABINIT',
+      extensions: ['.abi', '.abinit'],
+      contentPatterns: [/^\s*(ecut|ngkpt|nstep|toldfe|ixc)\b/im, /\bacell\b|\brprim\b|\bxred\b/i],
+    },
+    {
+      software: 'CIF',
+      extensions: ['.cif'],
+      contentPatterns: [/^data_/im, /_cell_length_[abc]/i, /_atom_site_/i],
+    },
+    {
       software: 'CP2K',
       extensions: ['.inp'],
       contentPatterns: [/&GLOBAL/i, /&FORCE_EVAL/i, /PROJECT_NAME/i],
     },
     {
       software: 'VASP',
-      filenames: ['INCAR', 'POSCAR', 'KPOINTS', 'POTCAR'],
+      filenames: [
+        'INCAR',
+        'POSCAR',
+        'KPOINTS',
+        'POTCAR',
+        'CONTCAR',
+        'OSZICAR',
+        'OUTCAR',
+        'vasprun.xml',
+      ],
       contentPatterns: [
         /ISTART|ICHARG|ENCUT|PREC/i,
         /^\s*\d+\.\d+/m, // POSCAR coordinate pattern
@@ -60,6 +93,50 @@ export class FileTypeDetector {
         /(?:geometry|basis|scf|dft)\s+\w+/i,
       ],
     },
+    {
+      software: 'GPUMD',
+      filenames: ['run.in', 'nep.in'],
+      contentPatterns: [
+        /^\s*(potential|velocity|ensemble|dump_thermo|run)\b/im,
+        /\b(nep|gpumd)\b/i,
+      ],
+    },
+    {
+      software: 'GROMACS',
+      extensions: ['.top', '.itp', '.mdp', '.gro'],
+      contentPatterns: [
+        /\[\s*(moleculetype|atoms|system|molecules|defaults)\s*\]/i,
+        /^\s*(integrator|nsteps|dt)\s*=/im,
+      ],
+    },
+    {
+      software: 'LAMMPS',
+      extensions: ['.lmp', '.lammps', '.lmps'],
+      filenames: ['in.lammps'],
+      contentPatterns: [/^\s*(units|atom_style|pair_style|read_data|run)\b/im, /\bLAMMPS\b/i],
+    },
+    {
+      software: 'MLIP',
+      extensions: ['.mlip.json', '.mlip.yaml', '.mlip.yml'],
+      filenames: ['mlip.json', 'mlip.yaml', 'mlip.yml'],
+      contentPatterns: [
+        /"model"\s*:|model\s*:/i,
+        /"structure"\s*:|structure\s*:/i,
+        /"task"\s*:|task\s*:/i,
+      ],
+    },
+    {
+      software: 'PyATB',
+      extensions: ['.pyatb.py'],
+      filenames: ['run_pyatb.py'],
+      contentPatterns: [/import\s+pyatb|from\s+pyatb\s+import/i, /\b(hr_file|sr_file|HR\.dat)\b/i],
+    },
+    {
+      software: 'PySCF',
+      extensions: ['.pyscf.py'],
+      filenames: ['run_pyscf.py'],
+      contentPatterns: [/from\s+pyscf\s+import|import\s+pyscf/i, /\b(gto|scf|dft|cc|mp)\b/i],
+    },
   ];
 
   /**
@@ -73,6 +150,7 @@ export class FileTypeDetector {
    */
   detectSoftware(document: vscode.TextDocument): QuantumChemistrySoftware | null {
     const basename = path.basename(document.fileName);
+    const lowerBasename = basename.toLowerCase();
     const extension = path.extname(basename);
     const content = document.getText();
 
@@ -85,7 +163,10 @@ export class FileTypeDetector {
 
     // Check extension matches
     for (const pattern of this.patterns) {
-      if (pattern.extensions?.includes(extension) && pattern.contentPatterns) {
+      if (
+        this.matchesExtension(lowerBasename, extension, pattern.extensions) &&
+        pattern.contentPatterns
+      ) {
         // For ambiguous extensions, check content
         const confidence = this.calculateConfidence(content, pattern.contentPatterns);
         if (confidence > 0.5) {
@@ -119,6 +200,19 @@ export class FileTypeDetector {
       }
     }
     return matches / patterns.length;
+  }
+
+  private matchesExtension(
+    lowerBasename: string,
+    extension: string,
+    extensions?: string[]
+  ): boolean {
+    return Boolean(
+      extensions?.some(candidate => {
+        const lowered = candidate.toLowerCase();
+        return extension.toLowerCase() === lowered || lowerBasename.endsWith(lowered);
+      })
+    );
   }
 
   /**
@@ -170,6 +264,51 @@ export class FileTypeDetector {
         name: 'NWChem',
         description: 'Open Source High-Performance Computational Chemistry',
         website: 'https://nwchemgit.github.io',
+      },
+      ABACUS: {
+        name: 'ABACUS',
+        description: 'Atomic-orbital based ab initio computation at USTC',
+        website: 'https://abacus.ustc.edu.cn',
+      },
+      ABINIT: {
+        name: 'ABINIT',
+        description: 'First-principles materials and nanostructure simulation suite',
+        website: 'https://www.abinit.org',
+      },
+      CIF: {
+        name: 'CIF',
+        description: 'Crystallographic Information File format',
+        website: 'https://www.iucr.org/resources/cif',
+      },
+      GPUMD: {
+        name: 'GPUMD',
+        description: 'Graphics Processing Units Molecular Dynamics',
+        website: 'https://gpumd.org',
+      },
+      GROMACS: {
+        name: 'GROMACS',
+        description: 'Molecular dynamics package for biomolecular simulation',
+        website: 'https://www.gromacs.org',
+      },
+      LAMMPS: {
+        name: 'LAMMPS',
+        description: 'Large-scale Atomic/Molecular Massively Parallel Simulator',
+        website: 'https://www.lammps.org',
+      },
+      MLIP: {
+        name: 'MLIP',
+        description: 'Machine-learning interatomic potential workflow files',
+        website: 'https://github.com/newtontech/mlip-lsp',
+      },
+      PyATB: {
+        name: 'PyATB',
+        description: 'Python workflows for Atomic Tight-Binding analysis',
+        website: 'https://github.com/newtontech/pyatb-lsp',
+      },
+      PySCF: {
+        name: 'PySCF',
+        description: 'Python-based Simulations of Chemistry Framework',
+        website: 'https://pyscf.org',
       },
     };
     return info[software];

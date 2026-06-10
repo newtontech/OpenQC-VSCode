@@ -123,7 +123,7 @@ pytest --cov=src
 
 2. Comment on the issue to indicate you're working on it
 
-3. Follow the [TDD Guidelines](TDD-GUIDELINES.md) for development
+3. Follow the [TDD Guidelines](docs/project/TDD-GUIDELINES.md) for development
 
 ## Pull Request Process
 
@@ -298,7 +298,7 @@ def parse_incar(content: str) -> Dict[str, any]:
 
 ## Testing Guidelines
 
-We follow Test-Driven Development (TDD). See [TDD-GUIDELINES.md](TDD-GUIDELINES.md) for details.
+We follow Test-Driven Development (TDD). See [TDD-GUIDELINES.md](docs/project/TDD-GUIDELINES.md) for details.
 
 ### Test Structure
 
@@ -395,9 +395,9 @@ OpenQC-VSCode/
 │   ├── integration/
 │   ├── e2e/
 │   └── fixtures/
-├── PLAN.md               # Project roadmap
-├── TDD-GUIDELINES.md     # Testing guide
-├── TASK-MANAGEMENT.md    # Task management
+├── docs/project/PLAN.md          # Project roadmap
+├── docs/project/TDD-GUIDELINES.md # Testing guide
+├── docs/project/TASK-MANAGEMENT.md # Task management
 └── README.md             # This file
 ```
 

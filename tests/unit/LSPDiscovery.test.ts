@@ -225,8 +225,10 @@ describe('LSPDiscovery', () => {
     (global as any).fetch.mockResolvedValue(mockGitHubResponse([], 403, 'Forbidden'));
 
     const definitions = await new LSPDiscovery(createContext() as any).fetchLSPRepositories();
+    const defaultDefinitions = LSPDiscovery.getDefaultDefinitions();
 
-    expect(definitions).toHaveLength(7);
+    expect(definitions).toHaveLength(defaultDefinitions.length);
+    expect(definitions.map(lsp => lsp.id)).toEqual(defaultDefinitions.map(lsp => lsp.id));
     expect(definitions.find(lsp => lsp.id === 'cp2k-lsp-enhanced')).toMatchObject({
       executable: 'cp2k-language-server',
       languageId: 'cp2k',

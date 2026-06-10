@@ -1,0 +1,34 @@
+{
+  "scopeName": "source.lammps",
+  "name": "LAMMPS",
+  "patterns": [
+    {
+      "match": "^\\s*#.*",
+      "name": "comment.line.number-sign.lammps"
+    },
+    {
+      "match": "(?i)^\\s*(units|dimension|boundary|atom_style|atom_modify|newton|comm_style|comm_modify|lattice|region|create_box|create_atoms|read_data|read_restart|mass|pair_style|pair_coeff|pair_modify|bond_style|bond_coeff|angle_style|angle_coeff|dihedral_style|dihedral_coeff|improper_style|improper_coeff|kspace_style|kspace_modify|min_style|min_modify|minimize|min/spin|run|run_style|timestep|reset_timestep|neighbor|neigh_modify|fix|unfix|compute|uncompute|variable|group|delete_atoms|displace_atoms|displace_box|change_box|velocity|set|dump|undump|restart|thermo|thermo_style|thermo_modify|thermo|print|if|then|else|label|jump|next|loop|clear|shell|print|include|variable|equal|atom|python|plugin|angle_coeff|angle_style|bond_coeff|bond_style|dielectric|dipole|dihedral_coeff|dihedral_style|improper_coeff|improper_style|pair_coeff|pair_style)\\b",
+      "name": "keyword.control.command.lammps"
+    },
+    {
+      "match": "(?i)\\b(lj|lj96|lj_cutcoul|coul/cut|coul/debye|coul/dsf|coul/long|coul/msm|coul/wolf|buck|buck_coul_cut|buck_long|mie/lj|morse|soft|class2|hybrid|hybrid_overlay|hybrid_scaled|tersoff|tersoff_table|tersoff_zbl|sw|sw_mod|adp|eam|eam_alloy|eam_fs|eam_he|meam|meam_spline|meam_sw_spline|snap|quip|reaxff|rebo|airebo|airebo_m|aip_water_2dm|edip|edip_multi|extep|nb3b_harmonic|vashishta|bop|pace|pod|rann|uf3)\\b",
+      "name": "constant.language.potential.lammps"
+    },
+    {
+      "match": "(?i)\\b(nve|nvt|npt|nph|langevin|brownian|temp/csvr|temp/csld|temp/berendsen|temp/rescale|press/berendsen|press/csvr|temp/rescale/limit|viscous|spring|spring/self|spring/rg|addforce|setforce|aveforce|ave/time|ave/atom|ave/chunk|ave/histo|ave/correlate|ave/neigh|deposit|evaporate|wall|wall/reflect|wall/lj93|wall/lj126|wall/colloid|wall/gran|wall/harmonic|wall/region|wall/table|indent|move|planeforce|addheat|qeq|qeq/point|qeq/shielded|qeq/slater|qeq/dynamic|qeq/fire|charge/regulation|gcmc|widom|tfmc|pafi|smd|smd/hooke|smd/tether|rigid|rigid/small|shake|rattle|dt/reset|nve/limit|numdiff)\\b",
+      "name": "constant.language.fix.lammps"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.lammps"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.lammps"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.lammps"
+    }
+  ]
+}

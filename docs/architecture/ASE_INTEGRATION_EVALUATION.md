@@ -4,7 +4,7 @@ Status: proposed simplification for issue #17
 
 ## Context
 
-`PLAN.md` currently describes ASE as a universal intermediate layer for Phase 3
+`docs/project/PLAN.md` currently describes ASE as a universal intermediate layer for Phase 3
 cross-code migration. The implemented code path is narrower:
 
 - `src/converters/FormatConverter.ts` shells out to `python/format_converter.py`.

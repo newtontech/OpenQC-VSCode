@@ -1,0 +1,50 @@
+{
+  "scopeName": "source.cif",
+  "name": "CIF",
+  "patterns": [
+    {
+      "match": "^\\s*#.*",
+      "name": "comment.line.number-sign.cif"
+    },
+    {
+      "match": "^\\s*;.*",
+      "name": "string.unquoted.multiline.cif"
+    },
+    {
+      "match": "\\b(data_\\S+)",
+      "name": "keyword.control.data.cif"
+    },
+    {
+      "match": "\\b(loop_)",
+      "name": "keyword.control.loop.cif"
+    },
+    {
+      "match": "\\b(save_\\S+)",
+      "name": "keyword.control.save.cif"
+    },
+    {
+      "match": "\\b(global_)",
+      "name": "keyword.control.global.cif"
+    },
+    {
+      "match": "(_[a-zA-Z0-9_]+)",
+      "name": "variable.parameter.tag.cif"
+    },
+    {
+      "match": "\\b(question)",
+      "name": "constant.language.missing.cif"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.cif"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.cif"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.cif"
+    }
+  ]
+}

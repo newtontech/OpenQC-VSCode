@@ -1,0 +1,25 @@
+{
+  "scopeName": "source.pyatb",
+  "patterns": [
+    {
+      "match": "^\\s*(#|;|!).*",
+      "name": "comment.line.pyatb"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_./-]*\\b",
+      "name": "identifier.pyatb"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.pyatb"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.pyatb"
+    },
+    {
+      "match": "'([^'\\\\]|\\\\.)*'",
+      "name": "string.quoted.single.pyatb"
+    }
+  ]
+}
