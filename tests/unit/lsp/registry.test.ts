@@ -119,9 +119,7 @@ describe('LSP Registry', () => {
     for (const entry of allServers) {
       const language = languages.find(l => l.id === entry.languageId);
       expect(language).toBeDefined();
-      expect(language?.extensions || []).toEqual(
-        entry.fileExtensions.map(ext => `.${ext}`)
-      );
+      expect(language?.extensions || []).toEqual(entry.fileExtensions.map(ext => `.${ext}`));
       expect(language?.filenames || []).toEqual([...entry.fileNames]);
     }
   });

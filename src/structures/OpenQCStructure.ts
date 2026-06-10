@@ -18,12 +18,7 @@ export type OpenQCStructureSchemaVersion = typeof OPENQC_STRUCTURE_SCHEMA_VERSIO
 // Structure kind
 // ---------------------------------------------------------------------------
 
-export type OpenQCStructureKind =
-  | 'molecule'
-  | 'periodic'
-  | 'surface'
-  | 'trajectory'
-  | 'volumetric';
+export type OpenQCStructureKind = 'molecule' | 'periodic' | 'surface' | 'trajectory' | 'volumetric';
 
 // ---------------------------------------------------------------------------
 // Atom

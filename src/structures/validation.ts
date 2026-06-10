@@ -177,9 +177,7 @@ export function validateOpenQCStructure(
   if (typeof s.kind !== 'string') {
     errors.push('kind is required and must be a string');
   } else if (!VALID_KINDS.has(s.kind)) {
-    errors.push(
-      `Invalid kind "${s.kind}". Must be one of: ${[...VALID_KINDS].join(', ')}`
-    );
+    errors.push(`Invalid kind "${s.kind}". Must be one of: ${[...VALID_KINDS].join(', ')}`);
   }
 
   // atoms
