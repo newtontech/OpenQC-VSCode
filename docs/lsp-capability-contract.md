@@ -12,6 +12,15 @@ This document defines the capability contract and compatibility matrix for all O
 | orca-lsp | ORCA | `orca-lsp` | latest |
 | gamess-lsp | GAMESS | `gamess-lsp` | latest |
 | cp2k-lsp-enhanced | CP2K | `cp2k-lsp-enhanced` | latest |
+| abacus-lsp | ABACUS | `abacus-lsp` | experimental |
+| abinit-lsp | ABINIT | `abinit-lsp` | experimental |
+| gpumd-lsp | GPUMD | `gpumd-lsp` | experimental |
+| gromacs-lsp | GROMACS | `gromacs-lsp` | experimental |
+| lammps-lsp | LAMMPS | `lammps-lsp` (cargo) | experimental |
+| pyscf-lsp | PySCF | `pyscf-lsp` | experimental |
+| pyatb-lsp | PyATB | `pyatb-lsp` | experimental |
+| mlip-lsp | MLIP | `mlip-lsp` | experimental |
+| cif-lsp | CIF | `cif-lsp` (npm) | experimental |
 
 ## LSP Feature Matrix
 
@@ -49,3 +58,12 @@ All LSP servers activate on file extensions:
 - `.in`, `.qe` → qe-lsp
 - `.gjf`, `.com` → gaussian-lsp
 - `.inp` → orca-lsp, gamess-lsp
+- `INPUT`, `STRU`, `KPT` → abacus-lsp
+- `.abi`, `.abinit` → abinit-lsp
+- `run.in`, `nep.in` → gpumd-lsp
+- `.top`, `.itp`, `.mdp`, `.gro` → gromacs-lsp
+- `.lmp`, `.lammps`, `.lmps`, `in.lammps` → lammps-lsp
+- `.pyscf.py`, `run_pyscf.py` → pyscf-lsp
+- `.pyatb.py`, `run_pyatb.py` → pyatb-lsp
+- `.mlip.json`, `.mlip.yaml`, `.mlip.yml` → mlip-lsp
+- `.cif` → cif-lsp
