@@ -46,6 +46,7 @@ module.exports = {
     '!src/results/**',
     '!src/analyzers/**',
     '!src/commands/analyzerCommands.ts',
+    '!src/lsp/dslAuthoringContext.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'text-summary', 'lcov', 'html'],
