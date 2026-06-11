@@ -546,6 +546,9 @@ export class LSPManager {
 
       lines.push(
         `- ${definition.name} (${definition.languageId})`,
+        `  - Repository: ${definition.repositoryUrl}`,
+        `  - Default branch: ${this.findRegistryEntry(definition.languageId)?.defaultBranch || 'unknown'}`,
+        `  - Stability: ${this.findRegistryEntry(definition.languageId)?.stability || 'unknown'}`,
         `  - Enabled: ${serverConfig.enabled}`,
         `  - Command: ${this.summarizeResolvedCommand(serverConfig.resolvedCommand)}`,
         `  - Extensions: ${definition.fileExtensions.join(', ') || 'none'}`,

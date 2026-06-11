@@ -1,69 +1,50 @@
 # LSP Capability Contract
 
-This document defines the capability contract and compatibility matrix for all OpenQC language servers.
+This document defines the client-side compatibility contract that OpenQC applies to every bundled language server. Per-server capability details belong in each standalone LSP repository; OpenQC only promises consistent discovery, configuration, startup, and editor integration.
 
 ## Supported Language Servers
 
-| Server | Language | Package | Version |
-|--------|----------|---------|---------|
-| nwchem-lsp | NWChem | `nwchem-lsp` | latest |
-| qe-lsp | Quantum ESPRESSO | `qe-lsp` | latest |
-| gaussian-lsp | Gaussian | `gaussian-lsp` | latest |
-| orca-lsp | ORCA | `orca-lsp` | latest |
-| gamess-lsp | GAMESS | `gamess-lsp` | latest |
-| cp2k-lsp-enhanced | CP2K | `cp2k-lsp-enhanced` | latest |
-| abacus-lsp | ABACUS | `abacus-lsp` | experimental |
-| abinit-lsp | ABINIT | `abinit-lsp` | experimental |
-| gpumd-lsp | GPUMD | `gpumd-lsp` | experimental |
-| gromacs-lsp | GROMACS | `gromacs-lsp` | experimental |
-| lammps-lsp | LAMMPS | `lammps-lsp` (cargo) | experimental |
-| pyscf-lsp | PySCF | `pyscf-lsp` | experimental |
-| pyatb-lsp | PyATB | `pyatb-lsp` | experimental |
-| mlip-lsp | MLIP | `mlip-lsp` | experimental |
-| cif-lsp | CIF | `cif-lsp` (npm) | experimental |
+| Server | Language ID | Package/Command | Default Branch |
+|--------|-------------|-----------------|----------------|
+| abacus-lsp | `abacus` | `abacus-lsp` | `main` |
+| abinit-lsp | `abinit` | `abinit-lsp` | `main` |
+| cif-lsp | `cif` | `cif-lsp` | `master` |
+| cp2k-lsp-enhanced | `cp2k` | `cp2k-language-server` | `develop` |
+| VASP-LSP | `vasp` | `vasp-lsp` | `main` |
+| gaussian-lsp | `gaussian` | `gaussian-lsp` | `main` |
+| orca-lsp | `orca` | `orca-lsp` | `main` |
+| qe-lsp | `qe` | `qe-lsp` | `main` |
+| gamess-lsp | `gamess` | `gamess-lsp` | `main` |
+| nwchem-lsp | `nwchem` | `nwchem-lsp` | `main` |
+| gpumd-lsp | `gpumd` | `gpumd-lsp` | `main` |
+| gromacs-lsp | `gromacs` | `gromacs-lsp` | `main` |
+| lammps-lsp | `lammps` | `lmp-lsp` | `master` |
+| mlip-lsp | `mlip` | `mlip-lsp` | `main` |
+| pyatb-lsp | `pyatb` | `pyatb-lsp` | `main` |
+| pyscf-lsp | `pyscf` | `pyscf-lsp` | `main` |
 
-## LSP Feature Matrix
+## Client-Side Guarantees
 
-| Feature | LSP Method | nwchem | qe | gaussian | orca | gamess |
-|---------|-----------|--------|----|----------|------|--------|
-| Diagnostics | textDocument/diagnostic | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Completion | textDocument/completion | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Hover | textDocument/hover | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Definition | textDocument/definition | ✅ | ✅ | ✅ | ✅ | ✅ |
-| References | textDocument/references | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Formatting | textDocument/formatting | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Range Formatting | textDocument/rangeFormatting | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Code Actions | textDocument/codeAction | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Rename | textDocument/rename | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Document Symbols | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Lint Checks | Custom diagnostics | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Type Checking | Custom diagnostics | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Area | Contract |
+|------|----------|
+| Activation | OpenQC activates for every language ID listed in `src/lsp/registry.ts`. |
+| Startup | OpenQC starts each server over stdio using the configured command and args. |
+| Configuration | Every server exposes `enabled`, `path`, `command`, `args`, and `env` settings. |
+| Workspace lifecycle | OpenQC keeps one client per language per workspace folder and stops it when no matching documents remain. |
+| Latest tracking | Every registry entry records the upstream default branch used for latest-version checks and release smoke tests. |
+| Compatibility report | `OpenQC LSP: Generate Compatibility Report` reports the configured command, repository, default branch, stability, and current session status. |
 
-## Custom Commands
+## Optional Server Capabilities
 
-| Command | Description |
-|---------|-------------|
-| `{lang}.diagnosticsSnapshot` | Returns JSON snapshot of current diagnostics |
+OpenQC does not assume that all servers implement the same optional LSP methods. The extension should tolerate missing support for:
 
-## Client Requirements
+- `textDocument/formatting`
+- `textDocument/codeAction`
+- `textDocument/definition`
+- `textDocument/references`
+- `textDocument/rename`
+- `textDocument/documentSymbol`
+- semantic tokens
+- inlay hints
 
-- VS Code >= 1.85
-- Python >= 3.10
-- pygls >= 2.0
-
-## Activation Events
-
-All LSP servers activate on file extensions:
-- `.nw`, `.nwi` → nwchem-lsp
-- `.in`, `.qe` → qe-lsp
-- `.gjf`, `.com` → gaussian-lsp
-- `.inp` → orca-lsp, gamess-lsp
-- `INPUT`, `STRU`, `KPT` → abacus-lsp
-- `.abi`, `.abinit` → abinit-lsp
-- `run.in`, `nep.in` → gpumd-lsp
-- `.top`, `.itp`, `.mdp`, `.gro` → gromacs-lsp
-- `.lmp`, `.lammps`, `.lmps`, `in.lammps` → lammps-lsp
-- `.pyscf.py`, `run_pyscf.py` → pyscf-lsp
-- `.pyatb.py`, `run_pyatb.py` → pyatb-lsp
-- `.mlip.json`, `.mlip.yaml`, `.mlip.yml` → mlip-lsp
-- `.cif` → cif-lsp
+When a server adds or removes one of these methods, update `docs/LSP_COMPATIBILITY.md` and release notes after smoke testing the latest server revision.

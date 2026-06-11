@@ -38,6 +38,7 @@ function makeEntry(overrides: Partial<LSPServerRegistryEntry> = {}): LSPServerRe
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/gaussian-lsp',
     stability: 'stable',
+    defaultBranch: 'main',
     ...overrides,
   };
 }
@@ -157,6 +158,33 @@ describe('resolveLspCommand', () => {
       '--stdio',
     ]);
     expect(result.env?.PYTHONPATH).toContain(path.join(repoRoot, 'src'));
+  });
+
+  it('prefers an isolated latest worktree over the default sibling repository', () => {
+    tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openqc-lsp-root-'));
+    const latestRepoRoot = path.join(tempRoot, '.worktrees-lsp-latest', 'gaussian-lsp');
+    fs.mkdirSync(path.join(tempRoot, 'gaussian-lsp'), { recursive: true });
+    fs.mkdirSync(path.join(latestRepoRoot, 'src', 'gaussian_lsp'), { recursive: true });
+
+    const result = resolveLspCommand(
+      makeEntry({
+        localLaunch: {
+          kind: 'pythonFunction',
+          repoName: 'gaussian-lsp',
+          importPath: 'gaussian_lsp.server',
+          functionName: 'main',
+        },
+      }),
+      {},
+      { extensionPath: path.join(tempRoot, 'OpenQC-VSCode') }
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        cwd: latestRepoRoot,
+      })
+    );
+    expect(result.env?.PYTHONPATH).toContain(path.join(latestRepoRoot, 'src'));
   });
 
   it('uses a sibling Node server script when present', () => {
