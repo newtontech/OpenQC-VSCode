@@ -348,22 +348,102 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
 ] as const;
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
-  'abacus-lsp': { diagnosticEngine: 'v1', agentCli: 'abacus-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'abinit-lsp': { diagnosticEngine: 'v1', agentCli: 'abinit-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'cif-lsp': { diagnosticEngine: 'v1', agentCli: 'cif-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'cp2k-lsp-enhanced': { diagnosticEngine: 'v1', agentCli: 'cp2k-lsp-tool', richDiagnostics: true, closedLoop: 'partial' },
-  'gamess-lsp': { diagnosticEngine: 'v1', agentCli: 'gamess-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'gaussian-lsp': { diagnosticEngine: 'v1', agentCli: 'gaussian-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'gpumd-lsp': { diagnosticEngine: 'v1', agentCli: 'gpumd-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'gromacs-lsp': { diagnosticEngine: 'v1', agentCli: 'gromacs-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'lammps-lsp': { diagnosticEngine: 'v1', agentCli: 'lammps-lsp-tool', richDiagnostics: true, closedLoop: 'partial' },
-  'mlip-lsp': { diagnosticEngine: 'v1', agentCli: 'mlip-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'nwchem-lsp': { diagnosticEngine: 'v1', agentCli: 'nwchem-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'orca-lsp': { diagnosticEngine: 'v1', agentCli: 'orca-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'pyatb-lsp': { diagnosticEngine: 'v1', agentCli: 'pyatb-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'pyscf-lsp': { diagnosticEngine: 'v1', agentCli: 'pyscf-lsp-tool', richDiagnostics: true, closedLoop: 'planned' },
-  'qe-lsp': { diagnosticEngine: 'v1', agentCli: 'qe-lsp-tool', richDiagnostics: true, closedLoop: 'partial' },
-  'vasp-lsp': { diagnosticEngine: 'v1', agentCli: 'vasp-lsp-tool', richDiagnostics: true, closedLoop: 'partial' },
+  'abacus-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'abacus-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'abinit-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'abinit-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'cif-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'cif-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'cp2k-lsp-enhanced': {
+    diagnosticEngine: 'v1',
+    agentCli: 'cp2k-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'partial',
+  },
+  'gamess-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'gamess-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'gaussian-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'gaussian-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'gpumd-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'gpumd-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'gromacs-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'gromacs-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'lammps-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'lammps-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'partial',
+  },
+  'mlip-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'mlip-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'nwchem-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'nwchem-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'orca-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'orca-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'pyatb-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'pyatb-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'pyscf-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'pyscf-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
+  },
+  'qe-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'qe-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'partial',
+  },
+  'vasp-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'vasp-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'partial',
+  },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -406,7 +486,6 @@ export function listBundledLspServers(): LSPServerRegistryEntry[] {
 export function getBundledLspServerCount(): number {
   return BUNDLED_LSP_SERVERS.length;
 }
-
 
 /** Return Diagnostic Engine v1 readiness metadata for a bundled LSP server. */
 export function getLspDiagnosticReadiness(id: string): DiagnosticReadiness | undefined {
