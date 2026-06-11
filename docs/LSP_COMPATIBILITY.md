@@ -25,6 +25,27 @@ Last updated: 2026-06-11. Latest support is tracked against each repository defa
 | [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | 0.1.0 | PyATB | `.pyatb.py`, `run_pyatb.py` | Experimental | Syntax, file detection, direct LSP startup |
 | [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | 0.1.0 | PySCF | `.pyscf.py`, `run_pyscf.py` | Experimental | Syntax, file detection, direct LSP startup |
 
+## Diagnostic Engine v1 Readiness
+
+| LSP Server | Diagnostic Engine | Agent CLI | Rich Diagnostics | Closed Loop |
+|------------|-------------------|-----------|------------------|-------------|
+| `abacus-lsp` | v1 | `abacus-lsp-tool` | Rich JSON check payload | Planned |
+| `abinit-lsp` | v1 | `abinit-lsp-tool` | Rich JSON check payload | Planned |
+| `cif-lsp` | v1 | `cif-lsp-tool` | Rich JSON check payload | Planned |
+| `cp2k-lsp-enhanced` | v1 | `cp2k-lsp-tool` | Rich JSON check payload | Partial |
+| `gamess-lsp` | v1 | `gamess-lsp-tool` | Rich JSON check payload | Planned |
+| `gaussian-lsp` | v1 | `gaussian-lsp-tool` | Rich JSON check payload | Planned |
+| `gpumd-lsp` | v1 | `gpumd-lsp-tool` | Rich JSON check payload | Planned |
+| `gromacs-lsp` | v1 | `gromacs-lsp-tool` | Rich JSON check payload | Planned |
+| `lammps-lsp` | v1 | `lammps-lsp-tool` | Rich JSON check payload | Partial |
+| `mlip-lsp` | v1 | `mlip-lsp-tool` | Rich JSON check payload | Planned |
+| `nwchem-lsp` | v1 | `nwchem-lsp-tool` | Rich JSON check payload | Planned |
+| `orca-lsp` | v1 | `orca-lsp-tool` | Rich JSON check payload | Planned |
+| `pyatb-lsp` | v1 | `pyatb-lsp-tool` | Rich JSON check payload | Planned |
+| `pyscf-lsp` | v1 | `pyscf-lsp-tool` | Rich JSON check payload | Planned |
+| `qe-lsp` | v1 | `qe-lsp-tool` | Rich JSON check payload | Partial |
+| `vasp-lsp` | v1 | `vasp-lsp-tool` | Rich JSON check payload | Partial |
+
 ## OpenQC Integration Guarantees
 
 | Capability | OpenQC guarantee |
