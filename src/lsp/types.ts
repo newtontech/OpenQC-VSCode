@@ -174,6 +174,17 @@ export interface DSLAuthoringContext {
  */
 export type DSLContextOutputFormat = 'json' | 'markdown';
 
+export interface DiagnosticReadiness {
+  /** Shared rich-diagnostic contract implemented by the standalone repository. */
+  readonly diagnosticEngine: 'v1';
+  /** Agent-facing CLI command for non-editor check/context loops. */
+  readonly agentCli?: string;
+  /** Whether diagnostics are serialized with category, confidence, and blocking metadata. */
+  readonly richDiagnostics: boolean;
+  /** Closed-loop fixture and repair-harness readiness. */
+  readonly closedLoop: 'planned' | 'partial' | 'available';
+}
+
 /** Local sibling-repository launch strategy for a bundled LSP server. */
 export type LocalLspLaunch =
   | {
