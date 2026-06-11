@@ -12,6 +12,20 @@ To maintain a clean and efficient development environment, we will adopt a `git 
 - **`fix/<bug-name>`:** For fixing bugs.
 - **`docs/<doc-name>`:** For updating documentation.
 
+### PR Documentation Requirements
+
+When implementing a PR, keep user-facing claims synchronized with the actual
+implementation:
+
+- If the PR adds, removes, or materially changes supported software, commands,
+  LSP behavior, workflows, screenshots, setup steps, or user-visible features,
+  update `README.md` in the same PR.
+- If `README.md` already accurately describes the changed behavior, state that
+  explicitly in the PR summary instead of leaving the documentation check
+  implicit.
+- Avoid README-only claims about broad support unless the code, tests, or
+  compatibility matrix in the same PR proves the claim.
+
 ### `git worktree` Usage
 
 When starting a new task (feature, fix, or docs), create a new worktree. The worktree will be located in the parent directory of the main project clone to keep it isolated and clearly named.

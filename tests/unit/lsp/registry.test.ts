@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import packageJson from '../../../package.json';
 import {
   getBundledLspServerCount,
@@ -91,7 +93,7 @@ describe('LSP Registry', () => {
     for (const languageId of experimentalIds) {
       const entry = getLspServerByLanguageId(languageId);
       expect(entry?.stability).toBe('experimental');
-      expect(entry?.defaultBranch).toBeUndefined();
+      expect(entry?.defaultBranch).toBeTruthy();
     }
   });
 
@@ -100,7 +102,23 @@ describe('LSP Registry', () => {
     for (const languageId of stableIds) {
       const entry = getLspServerByLanguageId(languageId);
       expect(entry?.stability).toBe('stable');
-      expect(entry?.defaultBranch).toBeUndefined();
+      expect(entry?.defaultBranch).toBe('main');
+    }
+  });
+
+  it('tracks the upstream default branch used for latest-version checks', () => {
+    const branches = Object.fromEntries(
+      allServers.map(server => [server.id, server.defaultBranch])
+    );
+
+    expect(branches).toMatchObject({
+      'cif-lsp': 'master',
+      'cp2k-lsp-enhanced': 'develop',
+      'lammps-lsp': 'master',
+    });
+
+    for (const entry of allServers) {
+      expect(entry.defaultBranch).toMatch(/^(main|master|develop)$/);
     }
   });
 
@@ -206,8 +224,21 @@ describe('LSP Registry', () => {
       expect(entry.stability).toMatch(/^(stable|experimental)$/);
       expect(entry.repository).toBeTruthy();
       expect(entry.repositoryUrl).toBeTruthy();
+      expect(entry.defaultBranch).toBeTruthy();
       expect(entry.localLaunch).toBeDefined();
     }
+  });
+
+  it('keeps docs/LSP_COMPATIBILITY.md aligned with every bundled registry entry', () => {
+    const doc = fs.readFileSync(path.join(__dirname, '../../../docs/LSP_COMPATIBILITY.md'), 'utf8');
+
+    for (const entry of allServers) {
+      expect(doc).toContain(entry.repository);
+      expect(doc).toContain(`\`${entry.languageId}\``);
+      expect(doc).toContain(`\`${entry.defaultBranch}\``);
+    }
+
+    expect(doc).not.toContain('OpenQuantumChemistry/');
   });
 
   it('keeps special local launch defaults aligned with sibling repos', () => {

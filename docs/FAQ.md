@@ -4,7 +4,10 @@
 
 ### Q: What quantum chemistry packages are supported?
 
-A: OpenQC-VSCode supports 7 major packages:
+A: OpenQC-VSCode supports 16 LSP-backed packages:
+- ABACUS
+- ABINIT
+- CIF
 - CP2K
 - VASP
 - Gaussian
@@ -12,6 +15,12 @@ A: OpenQC-VSCode supports 7 major packages:
 - Quantum ESPRESSO
 - GAMESS
 - NWChem
+- GPUMD
+- GROMACS
+- LAMMPS
+- MLIP
+- PyATB
+- PySCF
 
 ### Q: Is this extension free?
 
@@ -67,6 +76,9 @@ A: Language servers provide intelligent features like auto-completion, hover inf
 ### Q: How do I install language servers?
 
 A: Each quantum chemistry package has its own LSP:
+- ABACUS: `abacus-lsp`
+- ABINIT: `abinit-lsp`
+- CIF: `cif-lsp`
 - CP2K: `cp2k-language-server`
 - VASP: `vasp-lsp`
 - Gaussian: `gaussian-lsp`
@@ -74,16 +86,22 @@ A: Each quantum chemistry package has its own LSP:
 - QE: `qe-lsp`
 - GAMESS: `gamess-lsp`
 - NWChem: `nwchem-lsp`
+- GPUMD: `gpumd-lsp`
+- GROMACS: `gromacs-lsp`
+- LAMMPS: `lmp-lsp`
+- MLIP: `mlip-lsp`
+- PyATB: `pyatb-lsp`
+- PySCF: `pyscf-lsp`
 
-### Q: How do I configure LSP paths?
+### Q: How do I configure LSP commands?
 
-A: Open VSCode settings (File > Preferences > Settings) and search for "openqc.lsp". Set the paths for each package.
+A: Open VSCode settings (File > Preferences > Settings) and search for "openqc.lsp". Prefer `openqc.lsp.<languageId>.command` for each package; `openqc.lsp.<languageId>.path` remains a deprecated compatibility alias.
 
 ### Q: The language server isn't starting. What should I do?
 
 A: Check:
 1. The LSP executable is installed and in your PATH
-2. The path in settings is correct
+2. The command in settings is correct
 3. The LSP is enabled in settings
 4. Check the Output panel (View > Output) for error messages
 

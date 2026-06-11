@@ -8,22 +8,22 @@ OpenQC is the VS Code product surface for the newtontech computational chemistry
 
 | Repository | Domain | OpenQC expectation |
 |------------|--------|--------------------|
+| `newtontech/abacus-lsp` | ABACUS `INPUT`, `STRU`, `KPT` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/abinit-lsp` | ABINIT `.abi`, `.abinit` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/cif-lsp` | CIF `.cif` | Match file detection, validation, and launch defaults |
+| `newtontech/cp2k-lsp-enhanced` | CP2K `.inp` | Reuse or align with CP2K parser/linter behavior |
+| `newtontech/VASP-LSP` | VASP `INCAR`, `POSCAR`, `KPOINTS` | Match parameter validation, quick fixes, and formatting |
 | `newtontech/gaussian-lsp` | Gaussian `.gjf`, `.com` | Match diagnostics, completion vocabulary, and sample fixtures |
 | `newtontech/orca-lsp` | ORCA `.inp` | Match diagnostics, completion vocabulary, and sample fixtures |
 | `newtontech/gamess-lsp` | GAMESS `.inp` | Match group/keyword diagnostics, snippets, and fixtures |
 | `newtontech/qe-lsp` | Quantum ESPRESSO `.in` variants | Match diagnostics, completion vocabulary, and file detection |
 | `newtontech/nwchem-lsp` | NWChem `.nw`, `.nwinp` | Match section parsing, diagnostics, and inlay hints |
-| `newtontech/VASP-LSP` | VASP `INCAR`, `POSCAR`, `KPOINTS` | Match parameter validation, quick fixes, and formatting |
-| `newtontech/cp2k-lsp-enhanced` | CP2K `.inp` | Reuse or align with CP2K parser/linter behavior |
-| `newtontech/abacus-lsp` | ABACUS `INPUT`, `STRU`, `KPT` | Match input structure parsing and diagnostics |
-| `newtontech/abinit-lsp` | ABINIT `.abi`, `.abinit` | Match input variable validation and completion |
-| `newtontech/gpumd-lsp` | GPUMD `run.in`, `nep.in` | Match keyword parsing and NEP parameter validation |
-| `newtontech/gromacs-lsp` | GROMACS `.top`, `.itp`, `.mdp`, `.gro` | Match topology and MD parameter parsing |
-| `newtontech/lammps-lsp` | LAMMPS `.lmp`, `.lammps`, `in.lammps` | Match command parsing and unit/style validation |
-| `newtontech/pyscf-lsp` | PySCF `.pyscf.py` | Match Python-based input validation and diagnostics |
-| `newtontech/pyatb-lsp` | PyATB `.pyatb.py` | Match Python-based input validation and diagnostics |
-| `newtontech/mlip-lsp` | MLIP `.mlip.json`, `.mlip.yaml` | Match config file parsing and schema validation |
-| `newtontech/cif-lsp` | CIF `.cif` | Match crystallographic format parsing and validation |
+| `newtontech/gpumd-lsp` | GPUMD `run.in`, `nep.in` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/gromacs-lsp` | GROMACS `.top`, `.itp`, `.mdp`, `.gro` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/lammps-lsp` | LAMMPS `.lmp`, `.lammps`, `.lmps` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/mlip-lsp` | MLIP `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/pyatb-lsp` | PyATB `.pyatb.py`, `run_pyatb.py` | Match file detection, diagnostics, and launch defaults |
+| `newtontech/pyscf-lsp` | PySCF `.pyscf.py`, `run_pyscf.py` | Match file detection, diagnostics, and launch defaults |
 
 ## Alignment rules
 

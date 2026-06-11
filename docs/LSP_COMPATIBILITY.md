@@ -1,471 +1,54 @@
 # LSP Compatibility Matrix
 
-This document provides a detailed feature-by-feature status for each standalone language server in the newtontech computational chemistry LSP family, plus its integration status in OpenQC.
+This matrix is the OpenQC-facing contract for the newtontech LSP family. The source of truth is `src/lsp/registry.ts`; `package.json`, language configurations, TextMate grammars, and this document must stay aligned with that registry.
 
-Last updated: 2026-06-10 (verified against upstream READMEs, `pyproject.toml` versions, and bundled registry)
+Last updated: 2026-06-11. Latest support is tracked against each repository default branch unless a release tag is listed below. OpenQC does not pin old server binaries; it launches the configured executable or sibling local repository, so users can run the newest server available in their environment.
 
 ## Quick Reference
 
-| LSP Server | Version | Domain | File Types | OpenQC Integration |
-|------------|---------|--------|------------|--------------------|
-| [orca-lsp](https://github.com/newtontech/orca-lsp) | 0.5.4 | ORCA | `.inp` | Syntax + Visualization |
-| [gamess-lsp](https://github.com/newtontech/gamess-lsp) | 0.1.0 | GAMESS (US) | `.inp` | Syntax + Visualization |
-| [gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | 0.2.11 | Gaussian | `.gjf`, `.com` | Syntax + Visualization |
-| [nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | 0.5.0 | NWChem | `.nw`, `.nwinp` | Syntax + Visualization |
-| [qe-lsp](https://github.com/newtontech/qe-lsp) | 0.1.0 | Quantum ESPRESSO | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | Syntax + Visualization |
-| [VASP-LSP](https://github.com/newtontech/VASP-LSP) | 0.4.4 | VASP | `INCAR`, `POSCAR`, `KPOINTS` | Syntax + Visualization |
-| [cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | 0.9.1 | CP2K | `.inp` | Syntax + Visualization |
-| [abacus-lsp](https://github.com/newtontech/abacus-lsp) | — | ABACUS | `INPUT`, `STRU`, `KPT` | Registered (experimental) |
-| [abinit-lsp](https://github.com/newtontech/abinit-lsp) | — | ABINIT | `.abi`, `.abinit` | Registered (experimental) |
-| [gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | — | GPUMD | `run.in`, `nep.in` | Registered (experimental) |
-| [gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | — | GROMACS | `.top`, `.itp`, `.mdp`, `.gro` | Registered (experimental) |
-| [lammps-lsp](https://github.com/newtontech/lammps-lsp) | — | LAMMPS | `.lmp`, `.lammps`, `.lmps`, `in.lammps` | Registered (experimental) |
-| [pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | — | PySCF | `.pyscf.py`, `run_pyscf.py` | Registered (experimental) |
-| [pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | — | PyATB | `.pyatb.py`, `run_pyatb.py` | Registered (experimental) |
-| [mlip-lsp](https://github.com/newtontech/mlip-lsp) | — | MLIP | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | Registered (experimental) |
-| [cif-lsp](https://github.com/newtontech/cif-lsp) | — | CIF | `.cif` | Registered (experimental) |
-
-## Feature Matrix
-
-### Core LSP Capabilities
-
-| Feature | orca-lsp | gamess-lsp | gaussian-lsp | nwchem-lsp | qe-lsp | VASP-LSP | cp2k-lsp-enhanced |
-|---------|----------|------------|--------------|------------|--------|----------|--------------------|
-| Parser | Full | Full | Full | Full | Full | Full | Full |
-| Diagnostics | Yes | Yes | Yes | Yes | Yes | Yes | Yes (cp2klint) |
-| Completion | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Hover Docs | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| Formatting | No | Yes | Yes | Yes | No | Yes | No |
-| Code Actions | Yes (quick fixes) | Yes (quick fixes) | No | Yes (quick fixes) | No | Yes (quick fixes) | No |
-| Document Symbols | No | Yes | No | Yes | No | No | No |
-| Folding Ranges | No | No | No | Yes | No | No | No |
-| Go to Definition | No | Yes | No | Yes | No | No | No |
-| Find References | No | Yes | No | Yes | No | No | No |
-| Rename | No | Yes | No | Yes | No | No | No |
-| Workspace Symbols | No | Yes | No | Yes | No | No | No |
-| Semantic Highlighting | No | No | No | Yes | No | No | No |
-| Inlay Hints | No | No | No | Yes | No | No | No |
-| Snippet Completions | No | Yes | No | No | No | No | No |
-
-### Gap Server Capabilities (Experimental)
-
-All 9 gap servers are in early development. Capabilities will be filled in as each server matures.
-
-| Feature | abacus-lsp | abinit-lsp | gpumd-lsp | gromacs-lsp | lammps-lsp | pyscf-lsp | pyatb-lsp | mlip-lsp | cif-lsp |
-|---------|-----------|-----------|-----------|------------|-----------|-----------|-----------|---------|--------|
-| Parser | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
-| Diagnostics | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
-| Completion | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
-| Hover Docs | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned | Planned |
-| Formatting | — | — | — | — | — | — | — | — | — |
-| Code Actions | — | — | — | — | — | — | — | — | — |
-
-### Status Key
-
-- **Full**: Complete, tested parser for the target format.
-- **Yes**: Feature is implemented and active.
-- **No**: Feature is not yet implemented.
-
-## Per-Server Details
-
-### orca-lsp (v0.5.4)
-
-- **Repository**: [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp)
-- **Description**: LSP implementation for ORCA quantum chemistry software
-- **Supported file types**: `.inp` (ORCA input)
-- **Parser status**: Full ORCA input file parsing with method/basis/job-type recognition
-- **Diagnostics**: Invalid keyword detection, parameter validation, missing required sections, memory and parallelization warnings
-- **Completion**: Methods (DFT functionals, wavefunction methods), basis sets (Pople, Karlsruhe, Dunning), job types (SP, OPT, FREQ, etc.), %blocks (%maxcore, %pal, %method, etc.)
-- **Hover**: Context-aware documentation for keywords
-- **Formatting**: Not implemented
-- **Code actions**: Quick fixes for common errors
-- **Test command**: `pytest`
-- **Build/install**: `pip install orca-lsp` / `pip install -e ".[dev]"`
-- **Coverage**: 100% (320 tests)
-- **OpenQC integration**: Syntax highlighting, visualization entry points, molecule preview
-
-### gamess-lsp (v0.1.0)
-
-- **Repository**: [newtontech/gamess-lsp](https://github.com/newtontech/gamess-lsp)
-- **Description**: LSP implementation for GAMESS (US) input files
-- **Supported file types**: `.inp` (GAMESS input)
-- **Parser status**: Full parser for GAMESS $group/$END blocks
-- **Diagnostics**: Unknown group detection, unclosed section warnings, syntax issues
-- **Completion**: $ groups, keywords, value suggestions after `=`
-- **Hover**: Inline documentation for GAMESS keywords and groups
-- **Formatting**: Automatic formatting with consistent indentation
-- **Code actions**: Add missing $END, suggest corrections for unknown groups, add required keywords (e.g., RUNTYP for $CONTRL)
-- **Document symbols**: Navigation for $ groups and keywords
-- **Go to definition**: Navigate to group or keyword definitions
-- **Find references**: Find all occurrences of groups and keywords
-- **Rename**: Rename groups and keywords across the document
-- **Workspace symbols**: Search for symbols across all open GAMESS files
-- **Snippets**: Templates for common GAMESS calculations (water molecule, DFT optimization, MP2, frequency, TD-DFT, etc.)
-- **Test command**: `pytest`
-- **Build/install**: `pip install gamess-lsp` / `pip install -e ".[dev]"`
-- **OpenQC integration**: Syntax highlighting, snippet support, visualization entry points
-
-### gaussian-lsp (v0.2.11)
-
-- **Repository**: [newtontech/gaussian-lsp](https://github.com/newtontech/gaussian-lsp)
-- **Description**: LSP implementation for Gaussian quantum chemistry software
-- **Supported file types**: `.gjf`, `.com` (Gaussian input)
-- **Parser status**: Full parser with route line parsing, periodic table support (118 elements), ModRedundant and ONIOM layer support
-- **Diagnostics**: Error and warning detection for Gaussian keywords
-- **Completion**: Methods (HF, DFT, post-HF, semi-empirical), basis sets (Pople, Dunning), job types
-- **Hover**: Documentation for Gaussian keywords
-- **Formatting**: Consistent file structure formatting
-- **Code actions**: Not implemented
-- **Test command**: `python -m pytest` (Python) / `npm run test:ts` (TypeScript parser)
-- **Build/install**: `pip install gaussian-lsp` / `pip install -e ".[dev]"`
-- **Additional**: Includes a TypeScript parser under `src/parsers` covered by `npm run typecheck` and `npm run test:ts:coverage`
-- **OpenQC integration**: Syntax highlighting, visualization entry points, molecule preview
-
-### nwchem-lsp (v0.5.0)
-
-- **Repository**: [newtontech/nwchem-lsp](https://github.com/newtontech/nwchem-lsp)
-- **Description**: LSP implementation for NWChem quantum chemistry software
-- **Supported file types**: `.nw`, `.nwinp` (NWChem input)
-- **Parser status**: Full parser with section-block recognition
-- **Diagnostics**: Unclosed section blocks, unknown basis sets and functionals, invalid task operations, missing required blocks
-- **Completion**: Top-level keywords (geometry, basis, scf, dft, etc.), section-specific keywords, basis sets and DFT functionals, task operations and theories
-- **Hover**: Inline help for all keywords
-- **Formatting**: Automatic code formatting
-- **Code actions**: Add missing `end` keywords, remove unexpected `end` keywords, correct common typos (gemoetry -> geometry), add missing `start` directive
-- **Document symbols**: Outline view and navigation
-- **Folding ranges**: Code folding for sections (v0.5.0)
-- **Go to definition**: Navigate from `end` to section start
-- **Find references**: Navigate to section occurrences (v0.5.0)
-- **Rename**: Rename sections safely (v0.5.0)
-- **Workspace symbols**: Global symbol search across all open documents (v0.4.0)
-- **Semantic highlighting**: Token-based syntax coloring (v0.4.0)
-- **Inlay hints**: Inline information display for units, charge states (v0.4.0)
-- **Test command**: `pytest`
-- **Build/install**: `pip install nwchem-lsp` / `pip install -e ".[dev]"`
-- **Default branch**: `feature/nwchem-parser`
-- **Latest release**: v0.2.0 (2026-03-03) — note: pyproject.toml reports 0.5.0 on the default branch
-- **OpenQC integration**: Syntax highlighting, visualization entry points, molecule preview
-
-### qe-lsp (v0.1.0)
-
-- **Repository**: [newtontech/qe-lsp](https://github.com/newtontech/qe-lsp)
-- **Description**: LSP implementation for Quantum ESPRESSO
-- **Supported file types**: `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in`
-- **Parser status**: Full namelist parsing and validation, card validation (ATOMIC_SPECIES, ATOMIC_POSITIONS, K_POINTS, CELL_PARAMETERS), pseudopotential and element validation, lattice parameter checking
-- **Diagnostics**: Error and warning detection for QE namelists and cards
-- **Completion**: QE namelists, keywords, and cards
-- **Hover**: Documentation for QE keywords and namelists
-- **Formatting**: Not implemented
-- **Code actions**: Not implemented
-- **Test command**: `python -m pytest`
-- **Build/install**: `pip install qe-lsp` / `pip install -e ".[dev]"`
-- **OpenQC integration**: Syntax highlighting, visualization entry points
-
-### VASP-LSP (v0.4.4)
-
-- **Repository**: [newtontech/VASP-LSP](https://github.com/newtontech/VASP-LSP)
-- **Description**: LSP implementation for VASP input/output files
-- **Supported file types**: `INCAR`, `POSCAR`, `KPOINTS`
-- **Parser status**: Full parser for all three primary VASP input files
-- **Diagnostics**: Unknown parameter detection, value type checking, range validation, parameter dependency checks, common configuration warnings
-- **Completion**: INCAR parameter names, parameter values (enums, booleans), context-aware suggestions
-- **Hover**: Parameter description, valid values/range, default value, related parameters
-- **Formatting**: INCAR (parameters grouped by category, aligned values), POSCAR (consistent coordinate precision), KPOINTS (normalized grid types)
-- **Code actions**: Add missing SIGMA when ISMEAR >= 0, add missing MAGMOM when ISPIN = 2, add missing LDAU parameters, remove conflicting NPAR/NCORE, fix common tag typos
-- **Test command**: `pytest --cov=src/vasp_lsp --cov-report=term-missing`
-- **Coverage**: 100%
-- **Build/install**: `pip install vasp-lsp` / `pip install -e ".[dev]"`
-- **Additional**: Includes VSCode extension in `editors/vscode/`; supports TCP mode for debugging (`vasp-lsp --tcp`); full type annotations
-- **OpenQC integration**: Syntax highlighting, visualization entry points, structure preview (POSCAR)
-
-### cp2k-lsp-enhanced (v0.9.1)
-
-- **Repository**: [newtontech/cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced)
-- **Description**: Fully validating pure-python CP2K input file tools including preprocessing capabilities
-- **Supported file types**: `.inp` (CP2K input)
-- **Parser status**: Full parser with preprocessing, variable interpolation, @include support, XML-based format specification validation
-- **Diagnostics**: Full validation via `cp2klint` and `cp2k-datafile-lint`; XML-backed syntax checking
-- **Completion**: Keyword and section completion driven by XML specification
-- **Hover**: Contextual help derived from XML specification
-- **Formatting**: Not implemented (conversion to/from JSON/YAML preserves structure)
-- **Code actions**: Not implemented
-- **Additional tools**: `cp2klint` (linter), `fromcp2k` (to JSON/YAML/AiiDA), `tocp2k` (from JSON/YAML), `cp2kgen` (generate variants), `cp2kget` (extract values from restart files)
-- **Test command**: `pytest`
-- **Server command**: `cp2k-language-server` (via stdio)
-- **Build/install**: `pip install cp2k-input-tools` (core) / `pip install cp2k-input-tools[lsp]` (with LSP) / `pip install cp2k-input-tools[yaml]` (with YAML)
-- **Default branch**: `develop`
-- **OpenQC integration**: Syntax highlighting, visualization entry points, CP2K parser/linter tooling alignment
-
-### Gap Servers (Experimental)
-
-The following 9 servers extend OpenQC coverage into materials science, molecular dynamics, and machine-learning potentials. They are registered in the bundled LSP registry but are in early development.
-
-#### abacus-lsp
-
-- **Repository**: [newtontech/abacus-lsp](https://github.com/newtontech/abacus-lsp)
-- **Description**: LSP implementation for ABACUS (Atomic-orbital Based Ab-initio Computation at UStC) density functional theory code
-- **Supported file types**: `INPUT`, `STRU`, `KPT` (ABACUS input files)
-- **Language ID**: `abacus`
-- **Executable**: `abacus-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`abacus_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/abacus-lsp#1](https://github.com/newtontech/abacus-lsp/issues/1)
-
-#### abinit-lsp
-
-- **Repository**: [newtontech/abinit-lsp](https://github.com/newtontech/abinit-lsp)
-- **Description**: LSP implementation for ABINIT ab-initio simulation package
-- **Supported file types**: `.abi`, `.abinit` (ABINIT input)
-- **Language ID**: `abinit`
-- **Executable**: `abinit-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`abinit_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/abinit-lsp#1](https://github.com/newtontech/abinit-lsp/issues/1)
-
-#### gpumd-lsp
-
-- **Repository**: [newtontech/gpumd-lsp](https://github.com/newtontech/gpumd-lsp)
-- **Description**: LSP implementation for GPUMD (Graphics Processing Units Molecular Dynamics) and NEP (Neuroevolution Potential)
-- **Supported file types**: `run.in`, `nep.in` (GPUMD input files)
-- **Language ID**: `gpumd`
-- **Executable**: `gpumd-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`gpumd_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/gpumd-lsp#1](https://github.com/newtontech/gpumd-lsp/issues/1)
-
-#### gromacs-lsp
-
-- **Repository**: [newtontech/gromacs-lsp](https://github.com/newtontech/gromacs-lsp)
-- **Description**: LSP implementation for GROMACS molecular dynamics suite
-- **Supported file types**: `.top`, `.itp`, `.mdp`, `.gro` (GROMACS topology, parameters, coordinates)
-- **Language ID**: `gromacs`
-- **Executable**: `gromacs-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`gromacs_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/gromacs-lsp#1](https://github.com/newtontech/gromacs-lsp/issues/1)
-
-#### lammps-lsp
-
-- **Repository**: [newtontech/lammps-lsp](https://github.com/newtontech/lammps-lsp)
-- **Description**: LSP implementation for LAMMPS (Large-scale Atomic/Molecular Massively Parallel Simulator)
-- **Supported file types**: `.lmp`, `.lammps`, `.lmps`, `in.lammps` (LAMMPS input)
-- **Language ID**: `lammps`
-- **Executable**: `lmp-lsp`
-- **Install source**: `cargo build --release`
-- **Local launch**: `cargoBinary` (`lmp-lsp`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/lammps-lsp#1](https://github.com/newtontech/lammps-lsp/issues/1)
-
-#### pyscf-lsp
-
-- **Repository**: [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp)
-- **Description**: LSP implementation for PySCF (Python Simulations of Chemistry Framework)
-- **Supported file types**: `.pyscf.py`, `run_pyscf.py` (PySCF scripts)
-- **Language ID**: `pyscf`
-- **Executable**: `pyscf-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`pyscf_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/pyscf-lsp#1](https://github.com/newtontech/pyscf-lsp/issues/1)
-
-#### pyatb-lsp
-
-- **Repository**: [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp)
-- **Description**: LSP implementation for PyATB (Python Automatized Transport Boundary)
-- **Supported file types**: `.pyatb.py`, `run_pyatb.py` (PyATB scripts)
-- **Language ID**: `pyatb`
-- **Executable**: `pyatb-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`pyatb_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/pyatb-lsp#1](https://github.com/newtontech/pyatb-lsp/issues/1)
-
-#### mlip-lsp
-
-- **Repository**: [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp)
-- **Description**: LSP implementation for MLIP (Machine Learning Interatomic Potential) configuration files
-- **Supported file types**: `.mlip.json`, `.mlip.yaml`, `.mlip.yml` (MLIP configuration)
-- **Language ID**: `mlip`
-- **Executable**: `mlip-lsp`
-- **Install source**: `pip install -e .`
-- **Local launch**: `pythonFunction` (`mlip_lsp.cli:lsp_main`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/mlip-lsp#1](https://github.com/newtontech/mlip-lsp/issues/1)
-
-#### cif-lsp
-
-- **Repository**: [newtontech/cif-lsp](https://github.com/newtontech/cif-lsp)
-- **Description**: LSP implementation for CIF (Crystallographic Information File) format
-- **Supported file types**: `.cif` (crystallographic data)
-- **Language ID**: `cif`
-- **Executable**: `cif-lsp`
-- **Install source**: `npm install && npm run compile`
-- **Local launch**: `nodeScript` (`server/out/server.js`)
-- **Stability**: Experimental
-- **OpenQC integration issue**: [newtontech/cif-lsp#1](https://github.com/newtontech/cif-lsp/issues/1)
-
-## Build and Test Commands
-
-### Standalone LSP Servers
-
-All servers use the pygls framework and share a common build/test pattern:
-
-| Step | Command |
-|------|---------|
-| Install (user) | `pip install <package-name>` |
-| Install (dev) | `pip install -e ".[dev]"` |
-| Run server | `<server-name>` (stdio) |
-| Run tests | `pytest` |
-| Run with coverage | `pytest --cov --cov-report=term-missing` |
-| Format check | `black --check src/ tests/` |
-| Lint | `ruff check src/ tests/` or `flake8 src/ tests/` |
-| Type check | `mypy src/` |
-
-#### Server commands
-
-| Server | `pip install` name | Server command |
-|--------|-------------------|----------------|
-| orca-lsp | `orca-lsp` | `orca-lsp` |
-| gamess-lsp | `gamess-lsp` | `gamess-lsp` |
-| gaussian-lsp | `gaussian-lsp` | `gaussian-lsp` |
-| nwchem-lsp | `nwchem-lsp` | `nwchem-lsp` |
-| qe-lsp | `qe-lsp` | `qe-lsp` |
-| VASP-LSP | `vasp-lsp` | `vasp-lsp --stdio` (also `--tcp` for debugging) |
-| cp2k-lsp-enhanced | `cp2k-input-tools[lsp]` | `cp2k-language-server` |
-| abacus-lsp | `abacus-lsp` | `abacus-lsp` |
-| abinit-lsp | `abinit-lsp` | `abinit-lsp` |
-| gpumd-lsp | `gpumd-lsp` | `gpumd-lsp` |
-| gromacs-lsp | `gromacs-lsp` | `gromacs-lsp` |
-| lammps-lsp | `lammps-lsp` | `lmp-lsp` (cargo binary) |
-| pyscf-lsp | `pyscf-lsp` | `pyscf-lsp` |
-| pyatb-lsp | `pyatb-lsp` | `pyatb-lsp` |
-| mlip-lsp | `mlip-lsp` | `mlip-lsp` |
-| cif-lsp | `cif-lsp` | `cif-lsp` (Node.js) |
-
-### OpenQC-VSCode
-
-| Step | Command |
-|------|---------|
-| Install | `npm install` |
-| Compile | `npm run compile` |
-| Lint | `npm run lint` |
-| Type check | `npm run typecheck` |
-| Format check | `npm run format:check` |
-| Unit tests | `npm run test:unit` |
-| Integration tests | `npm run test:integration` |
-| Full CI (PR gate) | `npm run ci:pr` |
-| Package VSIX | `npm run package:vsix` |
-
-## VSCode / OpenQC Integration Status
-
-| LSP Server | Language ID | Syntax Grammar | Snippets | Visualization | Sidebar Integration | Direct LSP Wiring |
-|------------|-------------|----------------|----------|---------------|---------------------|-------------------|
-| orca-lsp | `orca` | Yes | No | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
-| gamess-lsp | `gamess` | Yes | Yes | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
-| gaussian-lsp | `gaussian` | Yes | No | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
-| nwchem-lsp | `nwchem` | Yes | No | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
-| qe-lsp | `quantum-espresso` | Yes | No | Yes (3D structure) | Yes (Molecules) | OpenQC modules |
-| VASP-LSP | `vasp` (INCAR/POSCAR/KPOINTS) | Yes | No | Yes (3D structure) | Yes (Molecules) | OpenQC modules |
-| cp2k-lsp-enhanced | `cp2k` | Yes | No | Yes (3D molecule) | Yes (Molecules) | OpenQC modules |
-| abacus-lsp | `abacus` | Planned | No | Planned | Planned | Registered |
-| abinit-lsp | `abinit` | Planned | No | Planned | Planned | Registered |
-| gpumd-lsp | `gpumd` | Planned | No | Planned | Planned | Registered |
-| gromacs-lsp | `gromacs` | Planned | No | Planned | Planned | Registered |
-| lammps-lsp | `lammps` | Planned | No | Planned | Planned | Registered |
-| pyscf-lsp | `pyscf` | Planned | No | Planned | Planned | Registered |
-| pyatb-lsp | `pyatb` | Planned | No | Planned | Planned | Registered |
-| mlip-lsp | `mlip` | Planned | No | Planned | Planned | Registered |
-| cif-lsp | `cif` | Planned | No | Planned | Planned | Registered |
-
-### Integration Notes
-
-- **Direct LSP Wiring**: All servers currently integrate through OpenQC's internal modules rather than spawning standalone LSP processes. The long-term goal is to support direct `stdio` connections to each standalone server.
-- **Syntax Grammar**: All formats have TextMate grammars in OpenQC's `syntaxes/` directory.
-- **Visualization**: Formats that carry molecular or crystal structure information (coordinates) support the 3D viewer via the editor toolbar icon.
-- **Sidebar**: The Molecules sidebar tracks parsed structures from supported file types.
-
-## Editor Integration (Standalone)
-
-All standalone servers communicate via stdio and can be used with any LSP-capable editor. Below are tested configurations:
-
-### Neovim (nvim-lspconfig)
-
-```lua
--- Example for gamess-lsp
-local lspconfig = require('lspconfig')
-lspconfig.gamess.setup {
-  cmd = {"gamess-lsp"},
-  filetypes = {"gamess"},
-  root_dir = lspconfig.util.root_pattern("*.inp"),
-}
-
--- Example for nwchem-lsp
-lspconfig.nwchem.setup {
-  cmd = {"nwchem-lsp"},
-  filetypes = {"nw", "nwinp"},
-}
-
--- Example for VASP-LSP
-require'lspconfig'.vasp_lsp.setup{}
-```
-
-### Emacs (lsp-mode)
-
-```elisp
-;; Example for gamess-lsp
-(lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection "gamess-lsp")
-                  :major-modes '(gamess-mode)
-                  :server-id 'gamess-lsp))
-
-;; Example for nwchem-lsp
-(lsp-register-client
- (make-lsp-client :new-connection (lsp-stdio-connection "nwchem-lsp")
-                  :major-modes '(nwchem-mode)
-                  :server-id 'nwchem-lsp))
-```
-
-### VS Code (without OpenQC)
-
-Add to `settings.json`:
-
-```json
-{
-  "languageserver": {
-    "gamess": {
-      "command": "gamess-lsp",
-      "filetypes": ["gamess"],
-      "rootPatterns": ["*.inp"]
-    },
-    "nwchem": {
-      "command": "nwchem-lsp",
-      "filetypes": ["nw", "nwinp"],
-      "rootPatterns": ["*.nw", "*.nwinp"]
-    }
-  }
-}
-```
-
-VASP-LSP ships its own VS Code extension under `editors/vscode/`.
-
-## Alignment Rules
-
-1. Keep file extension and language-id decisions consistent across OpenQC and each standalone LSP.
-2. Prefer shared fixtures for parser behavior whenever the format appears in both places.
-3. Document any OpenQC-only behavior, such as visualization commands or sidebar integration.
-4. Track mismatches with the `lsp-alignment` label.
-5. Release notes should state which standalone LSP versions or commit SHAs were smoke tested.
-
-## Smoke Test Checklist
-
-Before a Marketplace release, open one minimal sample for each format and verify:
-
-- [ ] Syntax highlighting activates.
-- [ ] The expected language server or parser path starts.
-- [ ] Diagnostics appear for one intentionally invalid input.
-- [ ] Hover or completion works for one common keyword.
-- [ ] Visualization entry points do not break for molecule or structure-bearing inputs.
+| LSP Server | Language ID | Default Branch | Latest Release/Local Version | Domain | File Types | Stability | OpenQC Integration |
+|------------|-------------|----------------|------------------------------|--------|------------|-----------|--------------------|
+| [newtontech/abacus-lsp](https://github.com/newtontech/abacus-lsp) | `abacus` | `main` | 0.1.0 | ABACUS | `INPUT`, `STRU`, `KPT` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/abinit-lsp](https://github.com/newtontech/abinit-lsp) | `abinit` | `main` | 0.1.0 | ABINIT | `.abi`, `.abinit` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/cif-lsp](https://github.com/newtontech/cif-lsp) | `cif` | `master` | v1.0.2 | CIF | `.cif` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | `cp2k` | `develop` | v0.9.1 | CP2K | `.inp` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/VASP-LSP](https://github.com/newtontech/VASP-LSP) | `vasp` | `main` | 0.4.4 | VASP | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR`, `CONTCAR`, `OSZICAR`, `OUTCAR`, `vasprun.xml` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | `gaussian` | `main` | 0.2.11 | Gaussian | `.gjf`, `.com` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `main` | 0.5.4 | ORCA | `.inp` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/qe-lsp](https://github.com/newtontech/qe-lsp) | `qe` | `main` | 0.1.0 | Quantum ESPRESSO | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/gamess-lsp](https://github.com/newtontech/gamess-lsp) | `gamess` | `main` | 0.1.0 | GAMESS | `.inp` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | `nwchem` | `main` | v0.3.0 / local 0.5.0 | NWChem | `.nw`, `.nwinp` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | `gpumd` | `main` | 0.1.0 | GPUMD | `run.in`, `nep.in` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | `gromacs` | `main` | v0.0.2 | GROMACS | `.top`, `.itp`, `.mdp`, `.gro` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/lammps-lsp](https://github.com/newtontech/lammps-lsp) | `lammps` | `master` | 0.1.0-pre-release-3 | LAMMPS | `.lmp`, `.lammps`, `.lmps`, `in.lammps` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `main` | 0.1.0 | MLIP | `.mlip.json`, `.mlip.yaml`, `.mlip.yml`, `mlip.json`, `mlip.yaml`, `mlip.yml` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | 0.1.0 | PyATB | `.pyatb.py`, `run_pyatb.py` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | 0.1.0 | PySCF | `.pyscf.py`, `run_pyscf.py` | Experimental | Syntax, file detection, direct LSP startup |
+
+## OpenQC Integration Guarantees
+
+| Capability | OpenQC guarantee |
+|------------|------------------|
+| Language contribution | Every registry entry has a matching `contributes.languages` item in `package.json`. |
+| Grammar contribution | Every language has a TextMate grammar under `syntaxes/`. |
+| Configuration | Every language exposes `enabled`, `path`, `command`, `args`, and `env` settings under `openqc.lsp.<languageId>.*`. |
+| Startup | OpenQC starts the configured command over stdio and can prefer sibling local repositories when no user override is set. |
+| Latest tracking | Every registry entry records the upstream default branch used for latest-version checks. |
+
+## Release Verification
+
+Before publishing a VSIX or Marketplace release:
+
+1. Run `npm run typecheck`.
+2. Run `npm run test:unit -- --runTestsByPath tests/unit/lsp/registry.test.ts`.
+3. Run `npm run lsp:check-latest` to compare sibling LSP checkouts with each configured remote default-branch HEAD.
+4. Run `OpenQC LSP: Generate Compatibility Report` from VS Code and save the report with the release notes.
+5. For each LSP, smoke test one valid file and one intentionally invalid file on the latest configured executable or sibling repository checkout.
+6. Record the exact LSP version, release tag, or commit SHA used for the release smoke test.
+
+## Known Limits
+
+- The matrix records OpenQC integration support, not a promise that every standalone LSP implements every optional LSP method.
+- `cp2k-lsp-enhanced` uses `develop` as its latest upstream branch.
+- `cif-lsp` and `lammps-lsp` use `master` as their latest upstream branch.
+- Experimental entries are wired for startup and language support, but may have narrower standalone server capabilities than the stable chemistry LSPs.

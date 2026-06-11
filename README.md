@@ -2,9 +2,9 @@
 
 <div align="center">
 
-**Your Universal Gateway to Computational Chemistry**
+**VS Code integration for computational chemistry LSPs**
 
-*Parse, visualize, and analyze ANY DFT/quantum chemistry/MD input files with one powerful extension*
+*Syntax, file detection, visualization entry points, and LSP startup for 16 computational chemistry and molecular-simulation formats*
 
 [![Install](https://img.shields.io/badge/VS%20Code-Install-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=newtontech.openqc)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -17,19 +17,23 @@
 
 ## 🧪 Why OpenQC?
 
-Tired of switching between different editors for VASP, Gaussian, ORCA, CP2K, and other quantum chemistry software? **OpenQC** brings everything together in one place.
+Tired of switching between different editors for VASP, Gaussian, ORCA, CP2K, and other quantum chemistry software? **OpenQC** brings a shared VS Code surface to the newtontech language-server family.
 
-**OpenQC automatically recognizes and parses your computational chemistry files** — whether you're doing DFT calculations, molecular dynamics, or wavefunction analysis. Just open your file and start working.
+**OpenQC recognizes supported computational chemistry and molecular-simulation files** and routes them to the matching language contribution, parser, viewer entry point, or configured LSP command.
 
 ---
 
 ## 🎯 Supported Software
 
-OpenQC is the VS Code-facing workspace for the newtontech computational chemistry LSP family. It should stay aligned with the standalone language servers in `newtontech/gaussian-lsp`, `newtontech/orca-lsp`, `newtontech/gamess-lsp`, `newtontech/qe-lsp`, and `newtontech/cp2k-lsp-enhanced`.
+OpenQC is the VS Code-facing workspace for the newtontech computational chemistry and molecular-simulation LSP family. It should stay aligned with the standalone language servers listed in `src/lsp/registry.ts` and summarized in `docs/LSP_COMPATIBILITY.md`.
 
 The repository root is the canonical VS Code extension package root. Development, tests, packaging, and Marketplace publishing should use the root `package.json`; stale nested extension package roots are not maintained.
 
-We support **10+ major computational chemistry packages** with more on the way:
+OpenQC currently wires **16 bundled LSP integrations** for computational chemistry, materials, and molecular-simulation workflows:
+
+### Latest LSP Status
+
+OpenQC tracks latest LSP support by the upstream default branch recorded in `src/lsp/registry.ts`. Run `npm run lsp:check-latest` before release or PR handoff to compare local sibling checkouts with the configured remote branch heads. If the main `cp2k-lsp-enhanced` checkout has unrelated local work, OpenQC can use `.worktrees-lsp-latest/cp2k-lsp-enhanced` for the latest CP2K LSP without overwriting that checkout.
 
 ### LSP Alignment Matrix
 
@@ -37,29 +41,43 @@ We support **10+ major computational chemistry packages** with more on the way:
 
 | Format | Standalone LSP | OpenQC role |
 |--------|----------------|-------------|
-| Gaussian | `newtontech/gaussian-lsp` | Extension integration, syntax, visualization entry points |
-| ORCA | `newtontech/orca-lsp` | Extension integration, syntax, visualization entry points |
-| GAMESS (US) | `newtontech/gamess-lsp` | Extension integration, snippets, validation entry points |
-| Quantum ESPRESSO | `newtontech/qe-lsp` | Extension integration and shared UX conventions |
-| CP2K | `newtontech/cp2k-lsp-enhanced` | Extension integration with CP2K parser/linter tooling |
-| VASP | `newtontech/VASP-LSP` | Extension integration, quick fixes, formatting |
-| NWChem | `newtontech/nwchem-lsp` | Extension integration, inlay hints, semantic highlighting |
-| Others | OpenQC modules or future LSPs | Keep APIs compatible with the same LSP contract |
+| ABACUS | `newtontech/abacus-lsp` | Language contribution, syntax, file detection, LSP startup |
+| ABINIT | `newtontech/abinit-lsp` | Language contribution, syntax, file detection, LSP startup |
+| CIF | `newtontech/cif-lsp` | Language contribution, syntax, file detection, LSP startup |
+| CP2K | `newtontech/cp2k-lsp-enhanced` | Language contribution, syntax, file detection, LSP startup |
+| VASP | `newtontech/VASP-LSP` | Language contribution, syntax, file detection, LSP startup |
+| Gaussian | `newtontech/gaussian-lsp` | Language contribution, syntax, file detection, LSP startup |
+| ORCA | `newtontech/orca-lsp` | Language contribution, syntax, file detection, LSP startup |
+| GAMESS (US) | `newtontech/gamess-lsp` | Language contribution, syntax, file detection, LSP startup |
+| Quantum ESPRESSO | `newtontech/qe-lsp` | Language contribution, syntax, file detection, LSP startup |
+| NWChem | `newtontech/nwchem-lsp` | Language contribution, syntax, file detection, LSP startup |
+| GPUMD | `newtontech/gpumd-lsp` | Language contribution, syntax, file detection, LSP startup |
+| GROMACS | `newtontech/gromacs-lsp` | Language contribution, syntax, file detection, LSP startup |
+| LAMMPS | `newtontech/lammps-lsp` | Language contribution, syntax, file detection, LSP startup |
+| MLIP | `newtontech/mlip-lsp` | Language contribution, syntax, file detection, LSP startup |
+| PyATB | `newtontech/pyatb-lsp` | Language contribution, syntax, file detection, LSP startup |
+| PySCF | `newtontech/pyscf-lsp` | Language contribution, syntax, file detection, LSP startup |
 
-### ✅ Fully Supported (Now)
+### Supported Integrations
 
 | Software | File Types | Features |
 |----------|-----------|----------|
-| **VASP** | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR` | Visualization + Syntax |
-| **Gaussian** | `.com`, `.gjf` | Visualization + Syntax |
-| **ORCA** | `.inp` | Visualization + Syntax |
-| **CP2K** | `.inp` | Visualization + Syntax |
-| **Quantum ESPRESSO** | `.in`, `.pw.in`, `.relax.in` | Visualization + Syntax |
-| **GAMESS (US)** | `.inp` | Visualization + Syntax |
-| **NWChem** | `.nw`, `.nwinp` | Visualization + Syntax |
-| **Q-Chem** | `.in` | Syntax Highlighting |
-| **ADF** | `.adf`, `.adfinput` | Syntax Highlighting |
-| **TeraChem** | `.inp` | Syntax Highlighting |
+| **ABACUS** | `INPUT`, `STRU`, `KPT` | LSP startup + syntax + file detection |
+| **ABINIT** | `.abi`, `.abinit` | LSP startup + syntax + file detection |
+| **CIF** | `.cif` | LSP startup + syntax + file detection |
+| **CP2K** | `.inp` | LSP startup + syntax + file detection |
+| **VASP** | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR` | LSP startup + syntax + file detection |
+| **Gaussian** | `.com`, `.gjf` | LSP startup + syntax + file detection |
+| **ORCA** | `.inp` | LSP startup + syntax + file detection |
+| **Quantum ESPRESSO** | `.in`, `.pw.in`, `.relax.in` | LSP startup + syntax + file detection |
+| **GAMESS (US)** | `.inp` | LSP startup + syntax + file detection |
+| **NWChem** | `.nw`, `.nwinp` | LSP startup + syntax + file detection |
+| **GPUMD** | `run.in`, `nep.in` | LSP startup + syntax + file detection |
+| **GROMACS** | `.top`, `.itp`, `.mdp`, `.gro` | LSP startup + syntax + file detection |
+| **LAMMPS** | `.lmp`, `.lammps`, `.lmps` | LSP startup + syntax + file detection |
+| **MLIP** | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | LSP startup + syntax + file detection |
+| **PyATB** | `.pyatb.py`, `run_pyatb.py` | LSP startup + syntax + file detection |
+| **PySCF** | `.pyscf.py`, `run_pyscf.py` | LSP startup + syntax + file detection |
 
 ### 🚧 Coming Soon
 
@@ -70,7 +88,6 @@ We support **10+ major computational chemistry packages** with more on the way:
 - **Turbomole** - Efficient DFT calculations
 - **Crystal** - Periodic systems
 - **Castep** - Materials modeling
-- **Abinit** - Package for pseudopotential calculations
 
 ---
 
@@ -78,7 +95,7 @@ We support **10+ major computational chemistry packages** with more on the way:
 
 ### 🔬 Visualize Molecules in 3D
 
-Open any input file and instantly see your molecular structure in beautiful 3D:
+Open supported molecule or structure-bearing files and use the viewer entry points to inspect coordinates in 3D:
 
 - **Rotate, zoom, and pan** to explore your system
 - **Multiple rendering styles** — ball-and-stick, space-filling, wireframe
@@ -96,10 +113,10 @@ Extract and visualize key data from your output files:
 
 ### 📝 Write Better Input Files
 
-- **Syntax highlighting** for all supported formats
-- **Error detection** as you type
-- **Parameter validation** before you run
-- **Smart completion** for common keywords
+- **Syntax highlighting** for registered formats
+- **Diagnostics** from the configured standalone LSP when that server provides them
+- **Parameter validation** where the corresponding parser or LSP implements it
+- **Completion and hover** where the corresponding standalone LSP implements them
 
 ### 🗂️ Organize Your Work
 
@@ -241,8 +258,8 @@ OpenQC works out of the box, but you can customize it:
 
 - Confirm `package.json` version, publisher, display name, icon, and keywords.
 - Run the TypeScript build and extension packaging command from a clean checkout.
-- Smoke test each aligned LSP family member: Gaussian, ORCA, GAMESS, QE, and CP2K.
-- Smoke test VASP and NWChem sample files that are handled directly by OpenQC.
+- Run `npm run lsp:check-latest` and keep every bundled LSP at the configured remote branch head or an isolated latest worktree.
+- Smoke test each bundled LSP integration listed in `docs/LSP_COMPATIBILITY.md`.
 - Capture or refresh screenshots for syntax highlighting, diagnostics, 3D visualization, and validation.
 - Publish release notes that list supported formats, known parser gaps, VS Code version tested, and LSP versions or commit SHAs.
 

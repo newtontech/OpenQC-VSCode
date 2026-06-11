@@ -93,7 +93,7 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 ## Phase 2.5: Dynamic LSP Discovery (Week 8-9)
 
 ### Objectives
-- 动态获取 OpenQuantumChemistry 组织下的 LSP 仓库列表
+- 动态获取 newtontech 组织下的 LSP 仓库列表
 - 消除硬编码的 LSP 配置，实现自动发现新 LSP
 - 更新 cron job 和自动化脚本以支持动态列表
 
@@ -101,18 +101,28 @@ OpenQC-VSCode aims to become the definitive VSCode extension for quantum chemist
 **#13**: [Feature] 动态获取组织下的 LSP 仓库列表 (https://github.com/newtontech/OpenQC-VSCode/issues/13)
 
 ### Background
-Currently, OpenQC-VSCode hardcodes the list of supported LSPs in \`package.json\` and \`LSPManager.ts\` (CP2K, VASP, Gaussian, ORCA, QE, GAMESS, NWChem). This requires manual code updates whenever OpenQuantumChemistry organization adds new LSP repositories.
+OpenQC-VSCode now keeps the supported LSP list in `src/lsp/registry.ts` and mirrors it into `package.json`, docs, tests, and runtime compatibility reports. The current matrix covers 16 newtontech LSP repositories.
 
 ### Available LSP Repositories
-From https://github.com/orgs/OpenQuantumChemistry/repositories:
+From https://github.com/orgs/newtontech/repositories and `src/lsp/registry.ts`:
 | Repository | Description | Status |
 |------------|-------------|--------|
+| abacus-lsp | ABACUS LSP | ✅ Active |
+| abinit-lsp | ABINIT LSP | ✅ Active |
+| cif-lsp | CIF LSP | ✅ Active |
+| cp2k-lsp-enhanced | CP2K input file tools | ✅ Active |
+| VASP-LSP | VASP input/output files LSP | ✅ Active |
+| gaussian-lsp | Gaussian LSP | ✅ Active |
 | orca-lsp | ORCA quantum chemistry software LSP | ✅ Active |
 | gamess-lsp | GAMESS (US) input files LSP | ✅ Active |
 | qe-lsp | Quantum ESPRESSO LSP | ✅ Active |
-| cp2k-lsp-enhanced | CP2K input file tools | ✅ Active |
-| gaussian-lsp | Gaussian LSP | ✅ Active |
-| vasp-lsp | VASP input/output files LSP | ✅ Active |
+| nwchem-lsp | NWChem LSP | ✅ Active |
+| gpumd-lsp | GPUMD LSP | ✅ Active |
+| gromacs-lsp | GROMACS LSP | ✅ Active |
+| lammps-lsp | LAMMPS LSP | ✅ Active |
+| mlip-lsp | MLIP LSP | ✅ Active |
+| pyatb-lsp | PyATB LSP | ✅ Active |
+| pyscf-lsp | PySCF LSP | ✅ Active |
 
 ### Deliverables
 
@@ -142,7 +152,7 @@ From https://github.com/orgs/OpenQuantumChemistry/repositories:
 #### GitHub API Endpoint
 \`\`\`bash
 # List org repos with 'lsp' in name
-curl -s "https://api.github.com/orgs/OpenQuantumChemistry/repos?per_page=100" | \\
+curl -s "https://api.github.com/orgs/newtontech/repos?per_page=100" | \\
   jq '.[] | select(.name | contains("lsp")) | .name'
 \`\`\`
 
@@ -151,7 +161,7 @@ curl -s "https://api.github.com/orgs/OpenQuantumChemistry/repos?per_page=100" | 
 interface LSPServerDefinition {
   id: string;           // e.g., "vasp-lsp"
   name: string;         // e.g., "VASP"
-  repository: string;   // e.g., "OpenQuantumChemistry/vasp-lsp"
+  repository: string;   // e.g., "newtontech/VASP-LSP"
   executable: string;   // e.g., "vasp-lsp"
   languageId: string;   // e.g., "vasp"
   fileExtensions: string[];  // e.g., ["INCAR", "POSCAR"]

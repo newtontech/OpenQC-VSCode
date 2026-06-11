@@ -62,22 +62,42 @@ vscode.commands.executeCommand('openqc.restartLSP');
 
 ```json
 {
+  "openqc.lsp.abacus.enabled": true,
+  "openqc.lsp.abacus.command": "abacus-lsp",
+  "openqc.lsp.abinit.enabled": true,
+  "openqc.lsp.abinit.command": "abinit-lsp",
+  "openqc.lsp.cif.enabled": true,
+  "openqc.lsp.cif.command": "cif-lsp",
   "openqc.lsp.cp2k.enabled": true,
-  "openqc.lsp.cp2k.path": "cp2k-language-server",
+  "openqc.lsp.cp2k.command": "cp2k-language-server",
   "openqc.lsp.vasp.enabled": true,
-  "openqc.lsp.vasp.path": "vasp-lsp",
+  "openqc.lsp.vasp.command": "vasp-lsp",
   "openqc.lsp.gaussian.enabled": true,
-  "openqc.lsp.gaussian.path": "gaussian-lsp",
+  "openqc.lsp.gaussian.command": "gaussian-lsp",
   "openqc.lsp.orca.enabled": true,
-  "openqc.lsp.orca.path": "orca-lsp",
+  "openqc.lsp.orca.command": "orca-lsp",
   "openqc.lsp.qe.enabled": true,
-  "openqc.lsp.qe.path": "qe-lsp",
+  "openqc.lsp.qe.command": "qe-lsp",
   "openqc.lsp.gamess.enabled": true,
-  "openqc.lsp.gamess.path": "gamess-lsp",
+  "openqc.lsp.gamess.command": "gamess-lsp",
   "openqc.lsp.nwchem.enabled": true,
-  "openqc.lsp.nwchem.path": "nwchem-lsp"
+  "openqc.lsp.nwchem.command": "nwchem-lsp",
+  "openqc.lsp.gpumd.enabled": true,
+  "openqc.lsp.gpumd.command": "gpumd-lsp",
+  "openqc.lsp.gromacs.enabled": true,
+  "openqc.lsp.gromacs.command": "gromacs-lsp",
+  "openqc.lsp.lammps.enabled": true,
+  "openqc.lsp.lammps.command": "lmp-lsp",
+  "openqc.lsp.mlip.enabled": true,
+  "openqc.lsp.mlip.command": "mlip-lsp",
+  "openqc.lsp.pyatb.enabled": true,
+  "openqc.lsp.pyatb.command": "pyatb-lsp",
+  "openqc.lsp.pyscf.enabled": true,
+  "openqc.lsp.pyscf.command": "pyscf-lsp"
 }
 ```
+
+`openqc.lsp.<languageId>.path` remains a deprecated alias for older settings. Prefer `openqc.lsp.<languageId>.command` for new configuration.
 
 ### Visualization Settings
 
@@ -95,6 +115,9 @@ vscode.commands.executeCommand('openqc.restartLSP');
 
 | Package | Language ID | File Extensions |
 |---------|-------------|-----------------|
+| ABACUS | `abacus` | `INPUT`, `STRU`, `KPT` |
+| ABINIT | `abinit` | `.abi`, `.abinit` |
+| CIF | `cif` | `.cif` |
 | CP2K | `cp2k` | `.inp` |
 | VASP | `vasp` | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR` |
 | Gaussian | `gaussian` | `.gjf`, `.com` |
@@ -102,6 +125,12 @@ vscode.commands.executeCommand('openqc.restartLSP');
 | Quantum ESPRESSO | `qe` | `.in`, `.pw.in`, `.relax.in`, etc. |
 | GAMESS | `gamess` | `.inp` |
 | NWChem | `nwchem` | `.nw`, `.nwinp` |
+| GPUMD | `gpumd` | `run.in`, `nep.in` |
+| GROMACS | `gromacs` | `.top`, `.itp`, `.mdp`, `.gro` |
+| LAMMPS | `lammps` | `.lmp`, `.lammps`, `.lmps`, `in.lammps` |
+| MLIP | `mlip` | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` |
+| PyATB | `pyatb` | `.pyatb.py`, `run_pyatb.py` |
+| PySCF | `pyscf` | `.pyscf.py`, `run_pyscf.py` |
 
 ---
 

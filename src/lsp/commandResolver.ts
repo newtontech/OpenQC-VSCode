@@ -288,14 +288,18 @@ function candidateSearchRoots(extensionPath?: string): string[] {
     }
   };
 
+  add(process.env.OPENQC_LSP_REPOSITORY_ROOT);
+
   let current = path.resolve(extensionPath || process.cwd());
   for (let depth = 0; depth < 5; depth += 1) {
+    add(path.join(current, '.worktrees-lsp-latest'));
+    add(path.join(path.dirname(current), '.worktrees-lsp-latest'));
     add(current);
     add(path.dirname(current));
     current = path.dirname(current);
   }
 
-  add(process.env.OPENQC_LSP_REPOSITORY_ROOT);
+  add(path.join(os.homedir(), 'Desktop', 'code', '.worktrees-lsp-latest'));
   add(path.join(os.homedir(), 'Desktop', 'code'));
   return roots;
 }

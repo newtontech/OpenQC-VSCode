@@ -31,6 +31,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/abacus-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'abacus-lsp',
@@ -49,6 +50,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/abinit-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'abinit-lsp',
@@ -67,6 +69,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/cif-lsp',
     stability: 'experimental',
+    defaultBranch: 'master',
     localLaunch: {
       kind: 'nodeScript',
       repoName: 'cif-lsp',
@@ -85,6 +88,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/cp2k-lsp-enhanced',
     stability: 'experimental',
+    defaultBranch: 'develop',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'cp2k-lsp-enhanced',
@@ -113,6 +117,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/VASP-LSP',
     stability: 'stable',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'VASP-LSP',
@@ -131,6 +136,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/gaussian-lsp',
     stability: 'stable',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'gaussian-lsp',
@@ -149,6 +155,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/orca-lsp',
     stability: 'stable',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'orca-lsp',
@@ -177,6 +184,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/qe-lsp',
     stability: 'stable',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'qe-lsp',
@@ -195,6 +203,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/gamess-lsp',
     stability: 'stable',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'gamess-lsp',
@@ -213,6 +222,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/nwchem-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'nwchem-lsp',
@@ -231,6 +241,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/gpumd-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'gpumd-lsp',
@@ -249,6 +260,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/gromacs-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'gromacs-lsp',
@@ -269,6 +281,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/lammps-lsp',
     stability: 'experimental',
+    defaultBranch: 'master',
     localLaunch: {
       kind: 'cargoBinary',
       repoName: 'lammps-lsp',
@@ -286,6 +299,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/mlip-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'mlip-lsp',
@@ -304,6 +318,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/pyatb-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'pyatb-lsp',
@@ -322,6 +337,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
     enabled: true,
     repositoryUrl: 'https://github.com/newtontech/pyscf-lsp',
     stability: 'experimental',
+    defaultBranch: 'main',
     localLaunch: {
       kind: 'pythonFunction',
       repoName: 'pyscf-lsp',

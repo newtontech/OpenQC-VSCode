@@ -240,11 +240,8 @@ export interface LSPServerRegistryEntry {
   /** How to launch this server directly from a sibling local repository. */
   readonly localLaunch?: LocalLspLaunch;
 
-  /**
-   * Default branch to clone or reference, when it differs from "main".
-   * Omit this field when the default branch is the repo's default.
-   */
-  readonly defaultBranch?: string;
+  /** Repository default branch used when checking latest upstream support. */
+  readonly defaultBranch: string;
 }
 
 // ---------------------------------------------------------------------------
