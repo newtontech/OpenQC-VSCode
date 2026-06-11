@@ -25,7 +25,6 @@ Last updated: 2026-06-11. Latest support is tracked against each repository defa
 | [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | 0.1.0 | PyATB | `.pyatb.py`, `run_pyatb.py` | Experimental | Syntax, file detection, direct LSP startup |
 | [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | 0.1.0 | PySCF | `.pyscf.py`, `run_pyscf.py` | Experimental | Syntax, file detection, direct LSP startup |
 
-
 ## Diagnostic Engine v1 Readiness
 
 | LSP Server | Diagnostic Engine | Agent CLI | Rich Diagnostics | Closed Loop |
