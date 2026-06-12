@@ -4,6 +4,9 @@
  */
 
 import { OpenQCViewerWebview } from '../../../src/webviews/openqcViewerWebview';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vm from 'vm';
 
 // Mock vscode
 jest.mock('vscode', () => ({
@@ -115,6 +118,49 @@ describe('OpenQCViewerWebview', () => {
     it('sets local resource roots for media and 3dmol', () => {
       const options = OpenQCViewerWebview.getWebviewOptions(mockExtensionUri as any);
       expect(options.localResourceRoots).toHaveLength(2);
+    });
+  });
+
+  describe('bundled viewer script', () => {
+    it('converts fractional periodic coordinates to Cartesian XYZ before 3Dmol rendering', () => {
+      const script = fs.readFileSync(
+        path.resolve(__dirname, '../../../media/openqc-viewer.js'),
+        'utf8'
+      );
+      const context: any = {
+        window: { addEventListener: jest.fn() },
+        document: {
+          readyState: 'loading',
+          addEventListener: jest.fn(),
+          getElementById: jest.fn(),
+        },
+        acquireVsCodeApi: () => ({ postMessage: jest.fn() }),
+        setInterval,
+        clearInterval,
+        setTimeout,
+        JSON,
+        parseInt,
+      };
+
+      vm.runInNewContext(script, context);
+
+      const xyz = context.window.__openqcViewerTest.structureToXYZ({
+        name: 'Si',
+        kind: 'periodic',
+        atoms: [
+          { element: 'Si', x: 0, y: 0, z: 0 },
+          { element: 'Si', x: 0.25, y: 0.25, z: 0.25 },
+        ],
+        cell: {
+          a: [2.715, 2.715, 0],
+          b: [0, 2.715, 2.715],
+          c: [2.715, 0, 2.715],
+          pbc: [true, true, true],
+          coordinateMode: 'fractional',
+        },
+      });
+
+      expect(xyz).toContain('Si 1.357500 1.357500 1.357500');
     });
   });
 });
