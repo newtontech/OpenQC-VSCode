@@ -2,7 +2,7 @@
 
 This matrix is the OpenQC-facing contract for the newtontech LSP family. The source of truth is `src/lsp/registry.ts`; `package.json`, language configurations, TextMate grammars, and this document must stay aligned with that registry.
 
-Last updated: 2026-06-11. Latest support is tracked against each repository default branch unless a release tag is listed below. OpenQC does not pin old server binaries; it launches the configured executable or sibling local repository, so users can run the newest server available in their environment.
+Last updated: 2026-06-12. Latest support is tracked against each repository default branch unless a release tag is listed below. OpenQC does not pin old server binaries; it launches the configured executable or sibling local repository, so users can run the newest server available in their environment.
 
 ## Quick Reference
 
@@ -27,24 +27,26 @@ Last updated: 2026-06-11. Latest support is tracked against each repository defa
 
 ## Diagnostic Engine v1 Readiness
 
-| LSP Server | Diagnostic Engine | Agent CLI | Rich Diagnostics | Closed Loop |
-|------------|-------------------|-----------|------------------|-------------|
-| `abacus-lsp` | v1 | `abacus-lsp-tool` | Rich JSON check payload | Planned |
-| `abinit-lsp` | v1 | `abinit-lsp-tool` | Rich JSON check payload | Planned |
-| `cif-lsp` | v1 | `cif-lsp-tool` | Rich JSON check payload | Planned |
-| `cp2k-lsp-enhanced` | v1 | `cp2k-lsp-tool` | Rich JSON check payload | Partial |
-| `gamess-lsp` | v1 | `gamess-lsp-tool` | Rich JSON check payload | Planned |
-| `gaussian-lsp` | v1 | `gaussian-lsp-tool` | Rich JSON check payload | Planned |
-| `gpumd-lsp` | v1 | `gpumd-lsp-tool` | Rich JSON check payload | Planned |
-| `gromacs-lsp` | v1 | `gromacs-lsp-tool` | Rich JSON check payload | Planned |
-| `lammps-lsp` | v1 | `lammps-lsp-tool` | Rich JSON check payload | Partial |
-| `mlip-lsp` | v1 | `mlip-lsp-tool` | Rich JSON check payload | Planned |
-| `nwchem-lsp` | v1 | `nwchem-lsp-tool` | Rich JSON check payload | Planned |
-| `orca-lsp` | v1 | `orca-lsp-tool` | Rich JSON check payload | Planned |
-| `pyatb-lsp` | v1 | `pyatb-lsp-tool` | Rich JSON check payload | Planned |
-| `pyscf-lsp` | v1 | `pyscf-lsp-tool` | Rich JSON check payload | Planned |
-| `qe-lsp` | v1 | `qe-lsp-tool` | Rich JSON check payload | Partial |
-| `vasp-lsp` | v1 | `vasp-lsp-tool` | Rich JSON check payload | Partial |
+Every standalone LSP exposes the same agent CLI operation set: `check`, `context`, `complete`, `hover`, `symbols`, and `fix`. Optional provider depth can vary by backend, but unavailable provider data must be reported explicitly in JSON instead of returning reserved placeholders.
+
+| LSP Server | Diagnostic Engine | Agent CLI | Agent Operations | Help Smoke | Closed Loop |
+|------------|-------------------|-----------|------------------|------------|-------------|
+| `abacus-lsp` | v1 | `abacus-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `abinit-lsp` | v1 | `abinit-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `cif-lsp` | v1 | `cif-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `cp2k-lsp-enhanced` | v1 | `cp2k-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
+| `gamess-lsp` | v1 | `gamess-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `gaussian-lsp` | v1 | `gaussian-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `gpumd-lsp` | v1 | `gpumd-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `gromacs-lsp` | v1 | `gromacs-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `lammps-lsp` | v1 | `lammps-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
+| `mlip-lsp` | v1 | `mlip-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `nwchem-lsp` | v1 | `nwchem-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `orca-lsp` | v1 | `orca-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `pyatb-lsp` | v1 | `pyatb-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `pyscf-lsp` | v1 | `pyscf-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `qe-lsp` | v1 | `qe-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
+| `vasp-lsp` | v1 | `vasp-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 
 ## OpenQC Integration Guarantees
 
@@ -55,6 +57,7 @@ Last updated: 2026-06-11. Latest support is tracked against each repository defa
 | Configuration | Every language exposes `enabled`, `path`, `command`, `args`, and `env` settings under `openqc.lsp.<languageId>.*`. |
 | Startup | OpenQC starts the configured command over stdio and can prefer sibling local repositories when no user override is set. |
 | Latest tracking | Every registry entry records the upstream default branch used for latest-version checks. |
+| Agent CLI probe | `npm run lsp:check-latest -- --fail-on-drift` verifies remote HEAD, local worktree cleanliness, and source-backed `*-lsp-tool --help`. |
 
 ## Release Verification
 
@@ -62,7 +65,7 @@ Before publishing a VSIX or Marketplace release:
 
 1. Run `npm run typecheck`.
 2. Run `npm run test:unit -- --runTestsByPath tests/unit/lsp/registry.test.ts`.
-3. Run `npm run lsp:check-latest` to compare sibling LSP checkouts with each configured remote default-branch HEAD.
+3. Run `npm run lsp:check-latest -- --fail-on-drift` to compare sibling LSP checkouts with each configured remote default-branch HEAD and verify source-backed `*-lsp-tool --help`.
 4. Run `OpenQC LSP: Generate Compatibility Report` from VS Code and save the report with the release notes.
 5. For each LSP, smoke test one valid file and one intentionally invalid file on the latest configured executable or sibling repository checkout.
 6. Record the exact LSP version, release tag, or commit SHA used for the release smoke test.

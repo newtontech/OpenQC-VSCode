@@ -14,6 +14,23 @@ import { DiagnosticReadiness, LSPServerRegistryEntry } from './types';
 // Registry data
 // ---------------------------------------------------------------------------
 
+const AGENT_CLI_OPERATIONS = ['check', 'context', 'complete', 'hover', 'symbols', 'fix'] as const;
+
+function diagnosticReadiness(
+  agentCli: string,
+  closedLoop: DiagnosticReadiness['closedLoop'],
+  agentCliSmokeStatus: DiagnosticReadiness['agentCliSmokeStatus'] = 'pending'
+): DiagnosticReadiness {
+  return {
+    diagnosticEngine: 'v1',
+    agentCli,
+    agentOperations: AGENT_CLI_OPERATIONS,
+    agentCliSmokeStatus,
+    richDiagnostics: true,
+    closedLoop,
+  };
+}
+
 /**
  * The canonical list of bundled LSP server entries.
  *
@@ -348,102 +365,22 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
 ] as const;
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
-  'abacus-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'abacus-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'abinit-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'abinit-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'cif-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'cif-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'cp2k-lsp-enhanced': {
-    diagnosticEngine: 'v1',
-    agentCli: 'cp2k-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'partial',
-  },
-  'gamess-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'gamess-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'gaussian-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'gaussian-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'gpumd-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'gpumd-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'gromacs-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'gromacs-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'lammps-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'lammps-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'partial',
-  },
-  'mlip-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'mlip-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'nwchem-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'nwchem-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'orca-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'orca-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'pyatb-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'pyatb-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'pyscf-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'pyscf-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'planned',
-  },
-  'qe-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'qe-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'partial',
-  },
-  'vasp-lsp': {
-    diagnosticEngine: 'v1',
-    agentCli: 'vasp-lsp-tool',
-    richDiagnostics: true,
-    closedLoop: 'partial',
-  },
+  'abacus-lsp': diagnosticReadiness('abacus-lsp-tool', 'planned'),
+  'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'planned'),
+  'cif-lsp': diagnosticReadiness('cif-lsp-tool', 'planned'),
+  'cp2k-lsp-enhanced': diagnosticReadiness('cp2k-lsp-tool', 'partial'),
+  'gamess-lsp': diagnosticReadiness('gamess-lsp-tool', 'planned'),
+  'gaussian-lsp': diagnosticReadiness('gaussian-lsp-tool', 'planned'),
+  'gpumd-lsp': diagnosticReadiness('gpumd-lsp-tool', 'planned'),
+  'gromacs-lsp': diagnosticReadiness('gromacs-lsp-tool', 'planned'),
+  'lammps-lsp': diagnosticReadiness('lammps-lsp-tool', 'partial'),
+  'mlip-lsp': diagnosticReadiness('mlip-lsp-tool', 'planned'),
+  'nwchem-lsp': diagnosticReadiness('nwchem-lsp-tool', 'planned'),
+  'orca-lsp': diagnosticReadiness('orca-lsp-tool', 'planned'),
+  'pyatb-lsp': diagnosticReadiness('pyatb-lsp-tool', 'planned'),
+  'pyscf-lsp': diagnosticReadiness('pyscf-lsp-tool', 'planned'),
+  'qe-lsp': diagnosticReadiness('qe-lsp-tool', 'partial'),
+  'vasp-lsp': diagnosticReadiness('vasp-lsp-tool', 'partial'),
 } as const;
 
 // ---------------------------------------------------------------------------

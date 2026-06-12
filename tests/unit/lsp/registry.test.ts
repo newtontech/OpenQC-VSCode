@@ -3,6 +3,7 @@ import * as path from 'path';
 import packageJson from '../../../package.json';
 import {
   getBundledLspServerCount,
+  getLspDiagnosticReadiness,
   getLspServerByLanguageId,
   getLspServerBySoftwareName,
   listBundledLspServers,
@@ -226,6 +227,18 @@ describe('LSP Registry', () => {
       expect(entry.repositoryUrl).toBeTruthy();
       expect(entry.defaultBranch).toBeTruthy();
       expect(entry.localLaunch).toBeDefined();
+    }
+  });
+
+  it('defines canonical agent CLI operation metadata for every bundled local LSP', () => {
+    const expectedOperations = ['check', 'context', 'complete', 'hover', 'symbols', 'fix'];
+
+    for (const entry of allServers) {
+      const readiness = getLspDiagnosticReadiness(entry.id);
+      expect(readiness?.agentCli).toMatch(/-lsp-tool$/);
+      expect(readiness?.agentOperations).toEqual(expectedOperations);
+      expect(readiness?.agentCliSmokeStatus).toMatch(/^(pending|passing|failing|unavailable)$/);
+      expect(readiness?.richDiagnostics).toBe(true);
     }
   });
 
