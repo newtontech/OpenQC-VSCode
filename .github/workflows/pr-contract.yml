@@ -1,0 +1,61 @@
+name: PR Contract
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR body contract
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+
+          printf '%s\n' "$PR_BODY" | grep -E "(Fixes|Closes|Resolves) #[0-9]+" >/dev/null \
+            || { echo "PR body must include Fixes/Closes/Resolves #<issue-number>"; exit 1; }
+
+          printf '%s\n' "$PR_BODY" | grep -E "(TDD Evidence|Tests|Test Plan|No-test justification)" >/dev/null \
+            || { echo "PR body must include test evidence or a no-test justification"; exit 1; }
+
+          if printf '%s\n' "$PR_HEAD" | grep -E '^agent/issue-[0-9]+-' >/dev/null; then
+            echo "Agent branch naming is valid: $PR_HEAD"
+          else
+            echo "Non-agent or legacy branch name: $PR_HEAD"
+          fi
+
+      - name: Require tests or explicit no-test justification
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$BASE_REF" --depth=1
+          changed="$(git diff --name-only "origin/${BASE_REF}"...HEAD)"
+          printf '%s\n' "$changed"
+
+          code_changed="$(printf '%s\n' "$changed" | grep -E '\.(py|ts|tsx|js|jsx|rs)$' || true)"
+          if [ -z "$code_changed" ]; then
+            echo "No source-code changes detected."
+            exit 0
+          fi
+
+          test_changed="$(printf '%s\n' "$changed" | grep -E '(^tests/|/tests/|test_|_test\.|\.spec\.|\.test\.)' || true)"
+          if [ -n "$test_changed" ]; then
+            echo "Test changes detected."
+            exit 0
+          fi
+
+          printf '%s\n' "$PR_BODY" | grep -Ei "no-test justification|docs-only|config-only|refactor-only" >/dev/null \
+            || { echo "Code PRs require test changes or explicit no-test justification."; exit 1; }

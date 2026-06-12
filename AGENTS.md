@@ -60,3 +60,17 @@ git worktree prune
 # 3. (Optional) Delete the local branch, as it's been merged
 git branch -d feat/new-ui
 ```
+
+
+<!-- repo-governance-kit:agent-ready-v1 -->
+
+## Agent-Ready Governance
+
+This repository follows the shared Repo Governance Kit contract.
+
+- Work one GitHub issue per branch.
+- Use `agent/issue-<number>-<slug>` for agent branches and `.worktrees/issue-<number>-<slug>` for local worktrees.
+- Keep PRs tied to an issue with `Fixes #<issue-number>`.
+- Before opening a PR, run `make format`, `make lint`, `make typecheck`, `make test`, and `make check`.
+- Keep tests and user-facing documentation synchronized with behavior changes.
+- Do not weaken checks, rewrite unrelated files, or commit secrets/generated caches.

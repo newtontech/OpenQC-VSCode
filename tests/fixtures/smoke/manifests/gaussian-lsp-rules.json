@@ -1,0 +1,45 @@
+{
+  "serverId": "gaussian-lsp",
+  "serverName": "Gaussian",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-06-12T00:00:00Z",
+  "rules": [
+    {
+      "code": "E001",
+      "message": "Syntax error in route section",
+      "severity": "error",
+      "category": "syntax",
+      "blocking": true,
+      "confidence": 0.95
+    },
+    {
+      "code": "W001",
+      "message": "Deprecated keyword usage",
+      "severity": "warning",
+      "category": "best-practice",
+      "blocking": false,
+      "confidence": 0.9
+    },
+    {
+      "code": "I001",
+      "message": "Informational: consider using tighter SCF convergence",
+      "severity": "information",
+      "category": "performance",
+      "blocking": false,
+      "confidence": 0.7
+    },
+    {
+      "code": "E002",
+      "message": "Missing required keyword",
+      "severity": "error",
+      "category": "semantics",
+      "blocking": true,
+      "confidence": 1.0
+    }
+  ],
+  "source": {
+    "repository": "newtontech/gaussian-lsp",
+    "commit": "abc1234",
+    "branch": "main"
+  }
+}

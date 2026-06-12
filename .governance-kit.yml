@@ -1,0 +1,17 @@
+version: 1
+source: repo-governance-kit
+profile: agent-ready-lsp
+standard_commands:
+  install: make install
+  format: make format
+  lint: make lint
+  typecheck: make typecheck
+  test: make test
+  check: make check
+branch_policy:
+  agent: agent/issue-<number>-<slug>
+  worktree: .worktrees/issue-<number>-<slug>
+pr_contract:
+  issue_link_required: true
+  test_evidence_required: true
+  no_test_justification_allowed: true
