@@ -416,3 +416,12 @@ Contributors are recognized in:
 - GitHub contributors page
 
 Thank you for contributing! 🎉
+
+
+<!-- repo-governance-kit:contributing-v1 -->
+
+## Agent-Ready Issue and PR Contract
+
+Agent-ready work must have a GitHub issue with a goal, acceptance criteria, required tests, and out-of-scope notes. Branches should use `agent/issue-<number>-<slug>`, and PR bodies must include `Fixes #<issue-number>`.
+
+Before requesting review, run `make format`, `make lint`, `make typecheck`, `make test`, and `make check`. Code changes should include tests or an explicit no-test justification in the PR body.

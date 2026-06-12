@@ -1,0 +1,22 @@
+{
+  "serverId": "vasp-lsp",
+  "serverName": "VASP",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-06-12T00:00:00Z",
+  "rules": [
+    {
+      "code": "E001",
+      "message": "Unknown INCAR tag",
+      "severity": "error",
+      "category": "semantics"
+    },
+    {
+      "code": "W001",
+      "message": "ENCUT below recommended minimum",
+      "severity": "warning",
+      "category": "best-practice",
+      "blocking": false,
+      "confidence": 0.85
+    }
+  ]
+}

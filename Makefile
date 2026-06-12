@@ -199,7 +199,16 @@ vscode-publish: ## 发布 VS Code 扩展（需要令牌）
 
 dev: watch ## 启动开发模式（监听文件变化）
 
-check: lint format-check test ## 运行完整检查（lint + 格式检查 + 测试）
+check: lint typecheck format-check test ## 运行完整检查（lint + typecheck + 格式检查 + 测试）
 
 pr-ready: format lint test ## 准备 PR（格式化 + lint + 测试）
 	@echo "$(GREEN)PR is ready!$(RESET)"
+
+# repo-governance-kit:standard-targets-v1
+.PHONY: install format lint typecheck test check cleanup-merged
+
+typecheck:
+	bash scripts/typecheck.sh
+
+cleanup-merged:
+	bash scripts/cleanup_merged_worktrees.sh

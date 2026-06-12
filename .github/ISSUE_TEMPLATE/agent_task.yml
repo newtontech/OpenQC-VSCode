@@ -1,0 +1,39 @@
+name: Agent Task
+description: A task that can be implemented by an AI coding agent
+title: "[Agent Task]: "
+labels: ["agent-ready", "needs-plan"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should be changed?
+      placeholder: Describe the observable change.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Bullet list of observable success conditions.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: test_plan
+    attributes:
+      label: Required Tests
+      description: What tests must be added, changed, or run?
+      placeholder: |
+        - [ ] Add or update a failing test first
+        - [ ] Run unit tests
+        - [ ] Run lint/typecheck
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of Scope
+      description: What must not be changed?
