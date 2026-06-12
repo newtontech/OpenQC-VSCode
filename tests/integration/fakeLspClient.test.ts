@@ -1,13 +1,14 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import {
   CompletionRequest,
   DidChangeTextDocumentNotification,
   DidOpenTextDocumentNotification,
+  LanguageClient,
   PublishDiagnosticsNotification,
-} from 'vscode-languageserver-protocol';
+  TransportKind,
+} from 'vscode-languageclient/node';
 
 interface FakeLspEvent {
   method: string;

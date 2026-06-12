@@ -1552,8 +1552,7 @@
     "three": "^0.183.2",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3",
-    "vitepress": "^1.6.4",
-    "vscode-languageserver-protocol": "^3.18.0"
+    "vitepress": "^1.6.4"
   },
   "dependencies": {
     "3dmol": "^2.5.5",
