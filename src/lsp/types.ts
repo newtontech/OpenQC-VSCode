@@ -179,11 +179,21 @@ export interface DiagnosticReadiness {
   readonly diagnosticEngine: 'v1';
   /** Agent-facing CLI command for non-editor check/context loops. */
   readonly agentCli?: string;
+  /** Agent CLI operations expected to be available for coding agents. */
+  readonly agentOperations: readonly AgentCliOperation[];
+  /** Latest known local smoke state for the agent CLI surface. */
+  readonly agentCliSmokeStatus: AgentCliSmokeStatus;
   /** Whether diagnostics are serialized with category, confidence, and blocking metadata. */
   readonly richDiagnostics: boolean;
   /** Closed-loop fixture and repair-harness readiness. */
   readonly closedLoop: 'planned' | 'partial' | 'available';
 }
+
+/** Canonical command-line operations exposed by standalone LSP tools. */
+export type AgentCliOperation = 'check' | 'context' | 'complete' | 'hover' | 'symbols' | 'fix';
+
+/** Registry-level smoke status for agent CLI availability. */
+export type AgentCliSmokeStatus = 'pending' | 'passing' | 'failing' | 'unavailable';
 
 /** Local sibling-repository launch strategy for a bundled LSP server. */
 export type LocalLspLaunch =
