@@ -7,6 +7,7 @@ import {
   xyzToOpenQCStructure,
   molecularStructureToOpenQCStructure,
   openQCStructureToMolecularStructure,
+  openQCStructureToCartesianAtoms,
   poscarToOpenQCStructure,
   createOpenQCStructure,
 } from '../../../src/structures/converters';
@@ -33,6 +34,13 @@ describe('openQCStructureToXYZ', () => {
     expect(lines[1]).toBe('Water');
     expect(lines.length).toBe(5); // 3 atoms + header + comment
     expect(lines[2].trim().split(/\s+/)[0]).toBe('O');
+  });
+
+  it('converts fractional periodic atoms to Cartesian coordinates for XYZ output', () => {
+    const xyz = openQCStructureToXYZ(SILICON_STRUCTURE);
+    const atomLine = xyz.trim().split('\n')[3].trim();
+
+    expect(atomLine).toBe('Si 1.357500 1.357500 1.357500');
   });
 
   it('uses "OpenQCStructure" as default comment when name is undefined', () => {
@@ -212,6 +220,7 @@ describe('openQCStructureToMolecularStructure', () => {
 
     expect(ms.lattice).toBeDefined();
     expect(ms.lattice?.a).toEqual([5.43, 0, 0]);
+    expect(ms.atoms[1]).toMatchObject({ element: 'Si', x: 1.3575, y: 1.3575, z: 1.3575 });
   });
 
   it('converts bonds back', () => {
@@ -270,6 +279,55 @@ describe('poscarToOpenQCStructure', () => {
     expect(structure.metadata?.source?.software).toBe('vasp');
   });
 
+  it('maps primitive-cell Direct coordinates to Cartesian Angstroms for renderers', () => {
+    const primitiveSi = `Si_bulk
+5.43
+0.5 0.5 0.0
+0.0 0.5 0.5
+0.5 0.0 0.5
+Si
+2
+Direct
+0.0 0.0 0.0
+0.25 0.25 0.25
+`;
+
+    const structure = poscarToOpenQCStructure(primitiveSi, 'POSCAR');
+    const cartesianAtoms = openQCStructureToCartesianAtoms(structure);
+
+    expect(structure.cell?.coordinateMode).toBe('fractional');
+    expect(structure.atoms[1]).toMatchObject({ x: 0.25, y: 0.25, z: 0.25 });
+    expect(cartesianAtoms[1]).toMatchObject({
+      element: 'Si',
+      x: 1.3575,
+      y: 1.3575,
+      z: 1.3575,
+    });
+  });
+
+  it('scales Cartesian POSCAR coordinates once during parsing', () => {
+    const cartesianPoscar = `Scaled Cartesian
+2.0
+1.0 0.0 0.0
+0.0 1.0 0.0
+0.0 0.0 1.0
+H
+1
+Cartesian
+0.5 0.25 0.125
+`;
+
+    const structure = poscarToOpenQCStructure(cartesianPoscar);
+
+    expect(structure.cell?.coordinateMode).toBe('cartesian');
+    expect(structure.atoms[0]).toMatchObject({ x: 1.0, y: 0.5, z: 0.25 });
+    expect(openQCStructureToCartesianAtoms(structure)[0]).toMatchObject({
+      x: 1.0,
+      y: 0.5,
+      z: 0.25,
+    });
+  });
+
   it('throws on too-short POSCAR content', () => {
     expect(() => poscarToOpenQCStructure('short')).toThrow('too few lines');
   });
@@ -283,10 +341,12 @@ describe('poscarToOpenQCStructure', () => {
 Si
 1
 Selective dynamics
+Direct
 0.0 0.0 0.0 T T F
 `;
 
     const structure = poscarToOpenQCStructure(poscarWithSD);
+    expect(structure.cell?.coordinateMode).toBe('fractional');
     expect(structure.atoms[0].selectiveDynamics).toEqual([true, true, false]);
   });
 });

@@ -33,7 +33,7 @@ import { validateOpenQCStructure } from './validation';
  * @returns XYZ string (atom-count header, comment line, then atom lines).
  */
 export function openQCStructureToXYZ(structure: OpenQCStructure): string {
-  const atoms = structure.atoms;
+  const atoms = openQCStructureToCartesianAtoms(structure);
   const name = structure.name ?? 'OpenQCStructure';
   const lines: string[] = [String(atoms.length), name];
 
@@ -46,6 +46,37 @@ export function openQCStructureToXYZ(structure: OpenQCStructure): string {
   }
 
   return lines.join('\n') + '\n';
+}
+
+/**
+ * Return atom coordinates in Cartesian Angstroms for renderer/export paths.
+ *
+ * POSCAR Direct coordinates are represented as fractional coordinates in the
+ * DTO. 3Dmol.js, XYZ, and legacy molecular viewers all require Cartesian
+ * coordinates, so renderer-facing code should use this helper instead of
+ * reading `structure.atoms` directly.
+ */
+export function openQCStructureToCartesianAtoms(structure: OpenQCStructure): OpenQCAtom[] {
+  if (structure.cell?.coordinateMode !== 'fractional') {
+    return structure.atoms.map(atom => ({ ...atom }));
+  }
+
+  return structure.atoms.map(atom => {
+    const [x, y, z] = fractionalToCartesian([atom.x, atom.y, atom.z], structure.cell!);
+    return { ...atom, x, y, z };
+  });
+}
+
+function fractionalToCartesian(
+  fractional: [number, number, number],
+  cell: OpenQCCell
+): [number, number, number] {
+  const [u, v, w] = fractional;
+  return [
+    u * cell.a[0] + v * cell.b[0] + w * cell.c[0],
+    u * cell.a[1] + v * cell.b[1] + w * cell.c[1],
+    u * cell.a[2] + v * cell.b[2] + w * cell.c[2],
+  ];
 }
 
 /**
@@ -216,7 +247,7 @@ export function molecularStructureToOpenQCStructure(
 export function openQCStructureToMolecularStructure(
   structure: OpenQCStructure
 ): MolecularStructure {
-  const atoms: Atom[] = structure.atoms.map(a => ({
+  const atoms: Atom[] = openQCStructureToCartesianAtoms(structure).map(a => ({
     element: a.element,
     x: a.x,
     y: a.y,
@@ -290,12 +321,20 @@ export function poscarToOpenQCStructure(content: string, filename?: string): Ope
   const elementNames = hasElementNames ? typeLine : countLine.map((_, i) => `El${i + 1}`);
   const atomCounts = hasElementNames ? countLine : typeLine.map(Number);
 
-  // Coordinate mode
-  const modeLine = lines[7].trim().toLowerCase();
-  const isSelective = modeLine.startsWith('s');
+  // Coordinate mode. POSCAR may include a Selective dynamics line before the
+  // Direct/Cartesian mode line.
+  let modeLineIdx = 7;
+  const isSelective = lines[modeLineIdx].trim().toLowerCase().startsWith('s');
+  if (isSelective) {
+    modeLineIdx++;
+  }
+  const modeLine = lines[modeLineIdx]?.trim().toLowerCase() ?? '';
+  const modeLineIsCoordinate = isCoordinateLine(modeLine);
   const isDirect =
-    modeLine.startsWith('d') || (!isSelective && !modeLine.startsWith('c') && modeLine !== '');
-  const coordLine = isSelective || isDirect || modeLine.startsWith('c') ? 8 : 7;
+    modeLine.startsWith('d') ||
+    (isSelective && modeLineIsCoordinate) ||
+    (!modeLine.startsWith('c') && !modeLine.startsWith('k'));
+  const coordLine = isSelective && modeLineIsCoordinate ? modeLineIdx : modeLineIdx + 1;
   const coordinateMode = isDirect ? 'fractional' : 'cartesian';
 
   const cell: OpenQCCell = {
@@ -325,9 +364,12 @@ export function poscarToOpenQCStructure(content: string, filename?: string): Ope
         continue;
       }
 
-      const x = parseFloat(parts[0]);
-      const y = parseFloat(parts[1]);
-      const z = parseFloat(parts[2]);
+      const rawX = parseFloat(parts[0]);
+      const rawY = parseFloat(parts[1]);
+      const rawZ = parseFloat(parts[2]);
+      const x = isDirect ? rawX : rawX * scaleF;
+      const y = isDirect ? rawY : rawY * scaleF;
+      const z = isDirect ? rawZ : rawZ * scaleF;
 
       const atom: OpenQCAtom = { element, x, y, z };
 
@@ -361,6 +403,14 @@ export function poscarToOpenQCStructure(content: string, filename?: string): Ope
   };
 
   return structure;
+}
+
+function isCoordinateLine(line: string): boolean {
+  const parts = line.trim().split(/\s+/);
+  if (parts.length < 3) {
+    return false;
+  }
+  return parts.slice(0, 3).every(value => !Number.isNaN(Number(value)));
 }
 
 // ---------------------------------------------------------------------------

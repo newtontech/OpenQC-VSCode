@@ -130,9 +130,11 @@ describe('OpenQCViewerPanel', () => {
       OpenQCViewerPanel.createOrShow({ fsPath: '/ext' } as any, SILICON_STRUCTURE, 'POSCAR');
 
       const loadMsg = vscode._messages.find((m: any) => m.type === 'loadStructure');
+      const initMsg = vscode._messages.find((m: any) => m.type === 'initialize');
       const parsedStructure = JSON.parse(loadMsg.structure);
       expect(parsedStructure.cell).toBeDefined();
       expect(parsedStructure.cell.a).toEqual([5.43, 0.0, 0.0]);
+      expect(initMsg.structure.xyz).toContain('Si 1.357500 1.357500 1.357500');
     });
   });
 

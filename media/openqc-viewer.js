@@ -114,13 +114,34 @@
   }
 
   function structureToXYZ(structure) {
-    const atoms = structure.atoms || [];
+    const atoms = cartesianAtomsForRendering(structure);
     const comment = structure.name || 'OpenQC';
     let xyz = atoms.length + '\n' + comment + '\n';
     for (const atom of atoms) {
       xyz += `${atom.element.padEnd(2)} ${atom.x.toFixed(6)} ${atom.y.toFixed(6)} ${atom.z.toFixed(6)}\n`;
     }
     return xyz;
+  }
+
+  function cartesianAtomsForRendering(structure) {
+    const atoms = structure.atoms || [];
+    if (!structure.cell || structure.cell.coordinateMode !== 'fractional') {
+      return atoms.map((atom) => ({ ...atom }));
+    }
+
+    return atoms.map((atom) => {
+      const [x, y, z] = fractionalToCartesian([atom.x, atom.y, atom.z], structure.cell);
+      return { ...atom, x, y, z };
+    });
+  }
+
+  function fractionalToCartesian(fractional, cell) {
+    const [u, v, w] = fractional;
+    return [
+      u * cell.a[0] + v * cell.b[0] + w * cell.c[0],
+      u * cell.a[1] + v * cell.b[1] + w * cell.c[1],
+      u * cell.a[2] + v * cell.b[2] + w * cell.c[2],
+    ];
   }
 
   // -----------------------------------------------------------------------
@@ -299,7 +320,7 @@
 
     // Generate supercell by replicating atoms
     const cell = currentStructure.cell;
-    const baseAtoms = currentStructure.atoms;
+    const baseAtoms = cartesianAtomsForRendering(currentStructure);
     const superAtoms = [];
 
     for (let ia = 0; ia < na; ia++) {
@@ -329,6 +350,7 @@
         b: [cell.b[0] * nb, cell.b[1] * nb, cell.b[2] * nb],
         c: [cell.c[0] * nc, cell.c[1] * nc, cell.c[2] * nc],
         pbc: cell.pbc,
+        coordinateMode: 'cartesian',
       },
     };
 
@@ -486,6 +508,14 @@
         break;
     }
   });
+
+  if (typeof window !== 'undefined') {
+    window.__openqcViewerTest = {
+      cartesianAtomsForRendering,
+      fractionalToCartesian,
+      structureToXYZ,
+    };
+  }
 
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
