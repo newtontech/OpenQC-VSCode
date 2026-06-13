@@ -2,7 +2,7 @@
   "name": "openqc",
   "displayName": "OpenQC - Quantum Chemistry & Molecular Dynamics Suite",
   "description": "Parse, visualize, and analyze computational chemistry, materials, and molecular-simulation files with 16 bundled LSP integrations.",
-  "version": "3.0.7",
+  "version": "3.0.13",
   "publisher": "newtontech",
   "engines": {
     "vscode": "^1.120.0"

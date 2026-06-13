@@ -1,10 +1,5 @@
 import * as vscode from 'vscode';
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind,
-} from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 import { FileTypeDetector, QuantumChemistrySoftware } from './FileTypeDetector';
 import { LSPDiscovery, LSPServerDefinition } from '../utils/LSPDiscovery';
 import { createComponentLogger } from '../utils/Logger';
@@ -279,7 +274,6 @@ export class LSPManager {
       const serverOptions: ServerOptions = {
         command: serverCommand,
         args: serverArgs,
-        transport: TransportKind.stdio,
         ...(serverEnv || serverCwd
           ? { options: { env: { ...process.env, ...serverEnv }, cwd: serverCwd } }
           : {}),

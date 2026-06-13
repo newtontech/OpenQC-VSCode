@@ -437,6 +437,17 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  for (const document of vscode.workspace.textDocuments) {
+    if (fileTypeDetector.detectSoftware(document)) {
+      if (languageFeaturePolicy.autoStartLsp) {
+        void lspManager.startLSPForDocument(document);
+      }
+      if (languageFeaturePolicy.validateWithLocalDiagnostics) {
+        void diagnosticsProvider.validateDocument(document);
+      }
+    }
+  }
+
   // Register ASE commands
   registerPythonBackendCommands(context);
   registerScientificBridgeCommands(context);
