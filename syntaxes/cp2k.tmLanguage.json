@@ -1,44 +1,99 @@
 {
   "scopeName": "source.cp2k",
+  "name": "CP2K Input",
   "patterns": [
-    {
-      "match": "^\\s*(#|!).*",
-      "name": "comment.line.number-sign.cp2k"
+    { "include": "#comments" },
+    { "include": "#preprocessor" },
+    { "include": "#sections" },
+    { "include": "#keywords" },
+    { "include": "#values" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "^\\s*(#|!).*",
+          "name": "comment.line.cp2k"
+        },
+        {
+          "match": "(?<!\\S)(#|!).*$",
+          "name": "comment.line.inline.cp2k"
+        }
+      ]
     },
-    {
-      "match": "\\b(&[A-Z_]+)\\b",
-      "name": "keyword.control.cp2k"
+    "preprocessor": {
+      "patterns": [
+        {
+          "match": "^\\s*(@(?:SET|IF|ELIF|ELSE|ENDIF|INCLUDE))\\b",
+          "name": "keyword.control.preprocessor.cp2k"
+        },
+        {
+          "match": "\\$\\{[A-Za-z_][A-Za-z0-9_]*\\}",
+          "name": "variable.other.cp2k"
+        },
+        {
+          "match": "(?<=@INCLUDE\\s)(?:\"[^\"]+\"|'[^']+'|\\S+)",
+          "name": "string.unquoted.include.cp2k"
+        }
+      ]
     },
-    {
-      "match": "\\b(&END)\\s*([A-Z_]+)",
-      "name": "keyword.control.cp2k"
+    "sections": {
+      "patterns": [
+        {
+          "match": "^\\s*&END(?:\\s+([A-Za-z_][A-Za-z0-9_]*))?\\b",
+          "name": "keyword.control.section.end.cp2k"
+        },
+        {
+          "match": "^\\s*&([A-Za-z_][A-Za-z0-9_]*)\\b",
+          "name": "keyword.control.section.begin.cp2k"
+        }
+      ]
     },
-    {
-      "match": "\\b([A-Z_]+)\\s*=\\s*([^\\s]+)",
-      "captures": {
-        "1": { "name": "variable.parameter.cp2k" },
-        "2": { "name": "string.unquoted.cp2k" }
-      }
+    "keywords": {
+      "patterns": [
+        {
+          "match": "^\\s*([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*(?:=|\\S))",
+          "captures": {
+            "1": { "name": "variable.parameter.cp2k" }
+          }
+        }
+      ]
     },
-    {
-      "match": "\\b(\\.TRUE\\.|\\.FALSE\\.|\\.YES\\.|\\.NO\\.)\\b",
-      "name": "constant.language.boolean.cp2k"
-    },
-    {
-      "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b",
-      "name": "constant.numeric.float.cp2k"
-    },
-    {
-      "match": "\\b\\d+\\b",
-      "name": "constant.numeric.integer.cp2k"
-    },
-    {
-      "match": "\"([^\"]*)\"",
-      "name": "string.quoted.double.cp2k"
-    },
-    {
-      "match": "'([^']*)'",
-      "name": "string.quoted.single.cp2k"
+    "values": {
+      "patterns": [
+        {
+          "match": "\\b(?:\\.TRUE\\.|\\.FALSE\\.|\\.YES\\.|\\.NO\\.|TRUE|FALSE|YES|NO|ON|OFF|T|F)\\b",
+          "name": "constant.language.boolean.cp2k"
+        },
+        {
+          "match": "(?<![A-Za-z_])[-+]?\\d+\\.\\d*(?:[eE][-+]?\\d+)?\\b",
+          "name": "constant.numeric.float.cp2k"
+        },
+        {
+          "match": "(?<![A-Za-z_])[-+]?\\d+(?:[eE][-+]?\\d+)?\\b",
+          "name": "constant.numeric.integer.cp2k"
+        },
+        {
+          "match": "\\[[A-Za-z_][A-Za-z0-9_./-]*\\]",
+          "name": "constant.other.unit.cp2k"
+        },
+        {
+          "match": "\"(?:[^\"\\\\]|\\\\.)*\"",
+          "name": "string.quoted.double.cp2k"
+        },
+        {
+          "match": "'(?:[^'\\\\]|\\\\.)*'",
+          "name": "string.quoted.single.cp2k"
+        },
+        {
+          "match": "(?<=\\s)(?:\\.\\.?/|/)?[A-Za-z0-9_./+-]+\\.(?:inp|inc|basis|pot|dat|xyz|pdb|restart)\\b",
+          "name": "string.unquoted.path.cp2k"
+        },
+        {
+          "match": "\\b(?:BASIS_[A-Za-z0-9_+-]+|GTH-[A-Za-z0-9_+-]+|POTENTIALS?|BASIS_MOLOPT)\\b",
+          "name": "string.unquoted.datafile.cp2k"
+        }
+      ]
     }
-  ]
+  }
 }
