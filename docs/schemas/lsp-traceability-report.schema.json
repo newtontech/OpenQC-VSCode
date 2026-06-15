@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/newtontech/OpenQC-VSCode/docs/schemas/lsp-traceability-report.schema.json",
+  "title": "OpenQC LSP Traceability Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "serverId",
+    "repository",
+    "languageId",
+    "generatedAt",
+    "summary",
+    "docstrings",
+    "wikiSources",
+    "ruleIds",
+    "sourceUrls",
+    "rawManifest"
+  ],
+  "$defs": {
+    "repoRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:[\\\\/])(?!file:)(?!.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)).+"
+    }
+  },
+  "properties": {
+    "schemaVersion": {
+      "const": "openqc.lsp.traceability.v1"
+    },
+    "serverId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "languageId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "docstringsTotal",
+        "docstringsLinked",
+        "brokenWikiLinks",
+        "wikiSourcesWithoutRaw",
+        "rawManifestFailures"
+      ],
+      "properties": {
+        "docstringsTotal": { "type": "integer", "minimum": 0 },
+        "docstringsLinked": { "type": "integer", "minimum": 0 },
+        "brokenWikiLinks": { "type": "integer", "minimum": 0 },
+        "wikiSourcesWithoutRaw": { "type": "integer", "minimum": 0 },
+        "rawManifestFailures": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "docstrings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "symbol", "wikiPath"],
+        "properties": {
+          "path": { "$ref": "#/$defs/repoRelativePath" },
+          "symbol": { "type": "string", "minLength": 1 },
+          "wikiPath": { "$ref": "#/$defs/repoRelativePath" }
+        }
+      }
+    },
+    "wikiSources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["wikiPath", "sourceUrl", "rawPath"],
+        "properties": {
+          "wikiPath": { "$ref": "#/$defs/repoRelativePath" },
+          "sourceUrl": { "type": "string", "minLength": 1 },
+          "rawPath": { "$ref": "#/$defs/repoRelativePath" }
+        }
+      }
+    },
+    "ruleIds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "sourcePath"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]+-[A-Z0-9_]+-[A-Z0-9_]+-[0-9]{3}$"
+          },
+          "sourcePath": { "$ref": "#/$defs/repoRelativePath" }
+        }
+      }
+    },
+    "sourceUrls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "rawPath"],
+        "properties": {
+          "url": { "type": "string", "minLength": 1 },
+          "rawPath": { "$ref": "#/$defs/repoRelativePath" },
+          "kind": { "type": "string" }
+        }
+      }
+    },
+    "rawManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "ok"],
+      "properties": {
+        "path": { "$ref": "#/$defs/repoRelativePath" },
+        "ok": { "type": "boolean" }
+      }
+    }
+  }
+}

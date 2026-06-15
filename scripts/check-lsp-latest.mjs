@@ -2,13 +2,13 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { basename, dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const codeRoot = resolve(repoRoot, '..');
+const codeRoot = resolveCodeRoot(repoRoot);
 const registryPath = join(repoRoot, 'src/lsp/registry.ts');
 const failOnDrift = process.argv.includes('--fail-on-drift');
 
@@ -42,6 +42,11 @@ function git(args, options = {}) {
     stdio: ['ignore', 'pipe', options.quiet ? 'ignore' : 'pipe'],
     ...options,
   }).trim();
+}
+
+function resolveCodeRoot(root) {
+  const parent = resolve(root, '..');
+  return basename(parent) === '.worktrees' ? resolve(parent, '..') : parent;
 }
 
 function remoteHead(entry) {

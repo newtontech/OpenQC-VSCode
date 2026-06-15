@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "openqc.lsp.traceability.v1",
+  "serverId": "dpgen-lsp",
+  "repository": "newtontech/dpgen-lsp",
+  "languageId": "dpgen",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "summary": {
+    "docstringsTotal": 2,
+    "docstringsLinked": 2,
+    "brokenWikiLinks": 0,
+    "wikiSourcesWithoutRaw": 0,
+    "rawManifestFailures": 0
+  },
+  "docstrings": [
+    {
+      "path": "src/dpgen_lsp/features/diagnostic.py",
+      "symbol": "validate_machine_sections",
+      "wikiPath": "wiki/entities/machine-json.md"
+    },
+    {
+      "path": "src/dpgen_lsp/features/log_parser.py",
+      "symbol": "parse_log_content",
+      "wikiPath": "wiki/synthesis/openqc-agent-context.md"
+    }
+  ],
+  "wikiSources": [
+    {
+      "wikiPath": "wiki/entities/machine-json.md",
+      "sourceUrl": "https://docs.deepmodeling.com/projects/dpgen/en/latest/run/mdata.html",
+      "rawPath": "raw/assets/dpgen-official-docs.json"
+    }
+  ],
+  "ruleIds": [
+    {
+      "code": "DPGEN-MACHINE-SCHEMA-001",
+      "sourcePath": "src/dpgen_lsp/features/diagnostic.py"
+    },
+    {
+      "code": "DPGEN-LOG-RUNTIME-001",
+      "sourcePath": "src/dpgen_lsp/features/log_parser.py"
+    }
+  ],
+  "sourceUrls": [
+    {
+      "url": "https://docs.deepmodeling.com/projects/dpgen/en/latest/run/param.html",
+      "kind": "official_docs",
+      "rawPath": "raw/assets/dpgen-official-docs.json"
+    }
+  ],
+  "rawManifest": {
+    "path": "raw/assets/manifest.json",
+    "ok": true
+  }
+}

@@ -20,12 +20,12 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { basename, dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const codeRoot = resolve(repoRoot, '..');
+const codeRoot = resolveCodeRoot(repoRoot);
 
 // ---------------------------------------------------------------------------
 // CLI flags
@@ -75,6 +75,9 @@ const SEVERITY = {
   WARNING: 'warning',   // maturity gap, does not block
   INFO: 'info',         // informational
 };
+
+const TRACEABILITY_REPORT_SCHEMA_VERSION = 'openqc.lsp.traceability.v1';
+const TRACEABILITY_RULE_ID_PATTERN = /^[A-Z0-9]+-[A-Z0-9_]+-[A-Z0-9_]+-\d{3}$/;
 
 // ---------------------------------------------------------------------------
 // Warning categories for actionable maturity tracking
@@ -535,9 +538,23 @@ function checkTraceability(entry) {
     };
   }
 
-  const counts = traceabilityCounts(report);
   const gaps = [];
   const actions = [];
+  const schemaErrors = validateTraceabilityReportContract(entry, report);
+
+  for (const error of schemaErrors) {
+    gaps.push({
+      severity: SEVERITY.ERROR,
+      message: `Traceability schema compatibility failure: ${error}`,
+    });
+  }
+  if (schemaErrors.length > 0) {
+    actions.push(
+      `Regenerate the backend traceability report with schemaVersion ${TRACEABILITY_REPORT_SCHEMA_VERSION} and repo-relative wiki/raw links.`
+    );
+  }
+
+  const counts = traceabilityCounts(report);
 
   if (counts.docstringsTotal === null || counts.docstringsLinked === null) {
     gaps.push({
@@ -594,6 +611,11 @@ function git(args, options = {}) {
   } catch {
     return '';
   }
+}
+
+function resolveCodeRoot(root) {
+  const parent = resolve(root, '..');
+  return basename(parent) === '.worktrees' ? resolve(parent, '..') : parent;
 }
 
 function findLocalCheckout(entry) {
@@ -663,6 +685,138 @@ function traceabilityCounts(report) {
   };
 }
 
+function validateTraceabilityReportContract(entry, report) {
+  const errors = [];
+  if (!isObject(report)) {
+    return ['report must be a non-null object'];
+  }
+
+  if (report.schemaVersion !== TRACEABILITY_REPORT_SCHEMA_VERSION) {
+    errors.push(
+      `schemaVersion must be "${TRACEABILITY_REPORT_SCHEMA_VERSION}", got ${JSON.stringify(report.schemaVersion)}`
+    );
+  }
+
+  if (!nonEmptyString(report.serverId)) {
+    errors.push('serverId must be a non-empty string');
+  } else if (report.serverId !== entry.id) {
+    errors.push(`serverId mismatch: expected "${entry.id}", got "${report.serverId}"`);
+  }
+
+  for (const field of ['repository', 'languageId', 'generatedAt']) {
+    if (!nonEmptyString(report[field])) {
+      errors.push(`${field} must be a non-empty string`);
+    }
+  }
+  if (nonEmptyString(report.generatedAt) && Number.isNaN(Date.parse(report.generatedAt))) {
+    errors.push('generatedAt must be an ISO-8601 timestamp');
+  }
+
+  validateTraceabilitySummary(report.summary, errors);
+  validateTraceabilityPathArray(report.docstrings, 'docstrings', ['path', 'wikiPath'], ['symbol'], errors);
+  validateTraceabilityPathArray(report.wikiSources, 'wikiSources', ['wikiPath', 'rawPath'], ['sourceUrl'], errors);
+  validateTraceabilityRuleIds(report.ruleIds, errors);
+  validateTraceabilityPathArray(report.sourceUrls, 'sourceUrls', ['rawPath'], ['url'], errors);
+  validateTraceabilityRawManifest(report.rawManifest, errors);
+
+  return errors;
+}
+
+function validateTraceabilitySummary(value, errors) {
+  if (!isObject(value)) {
+    errors.push('summary must be an object');
+    return;
+  }
+
+  for (const field of [
+    'docstringsTotal',
+    'docstringsLinked',
+    'brokenWikiLinks',
+    'wikiSourcesWithoutRaw',
+    'rawManifestFailures',
+  ]) {
+    if (!nonNegativeInteger(value[field])) {
+      errors.push(`summary.${field} must be a non-negative integer`);
+    }
+  }
+
+  if (
+    nonNegativeInteger(value.docstringsTotal)
+    && nonNegativeInteger(value.docstringsLinked)
+    && value.docstringsLinked > value.docstringsTotal
+  ) {
+    errors.push('summary.docstringsLinked cannot exceed summary.docstringsTotal');
+  }
+}
+
+function validateTraceabilityPathArray(value, fieldName, pathFields, stringFields, errors) {
+  if (!Array.isArray(value)) {
+    errors.push(`${fieldName} must be an array`);
+    return;
+  }
+
+  value.forEach((item, index) => {
+    const prefix = `${fieldName}[${index}]`;
+    if (!isObject(item)) {
+      errors.push(`${prefix} must be an object`);
+      return;
+    }
+
+    for (const field of stringFields) {
+      if (!nonEmptyString(item[field])) {
+        errors.push(`${prefix}.${field} must be a non-empty string`);
+      }
+    }
+    for (const field of pathFields) {
+      validateTraceabilityRepoRelativePath(item, field, prefix, errors);
+    }
+  });
+}
+
+function validateTraceabilityRuleIds(value, errors) {
+  if (!Array.isArray(value)) {
+    errors.push('ruleIds must be an array');
+    return;
+  }
+
+  value.forEach((item, index) => {
+    const prefix = `ruleIds[${index}]`;
+    if (!isObject(item)) {
+      errors.push(`${prefix} must be an object`);
+      return;
+    }
+
+    if (!nonEmptyString(item.code)) {
+      errors.push(`${prefix}.code must be a non-empty string`);
+    } else if (!TRACEABILITY_RULE_ID_PATTERN.test(item.code)) {
+      errors.push(`${prefix}.code must match <BACKEND>-<FILE_ROLE>-<CATEGORY>-NNN`);
+    }
+    validateTraceabilityRepoRelativePath(item, 'sourcePath', prefix, errors);
+  });
+}
+
+function validateTraceabilityRawManifest(value, errors) {
+  if (!isObject(value)) {
+    errors.push('rawManifest must be an object');
+    return;
+  }
+
+  validateTraceabilityRepoRelativePath(value, 'path', 'rawManifest', errors);
+  if (typeof value.ok !== 'boolean') {
+    errors.push('rawManifest.ok must be a boolean');
+  }
+}
+
+function validateTraceabilityRepoRelativePath(item, field, prefix, errors) {
+  if (!nonEmptyString(item[field])) {
+    errors.push(`${prefix}.${field} must be a non-empty string`);
+    return;
+  }
+  if (!isRepoRelativePath(item[field])) {
+    errors.push(`${prefix}.${field} must be a repository-relative path`);
+  }
+}
+
 function numberOrNull(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -680,6 +834,27 @@ function readJsonIfExists(path) {
   } catch {
     return null;
   }
+}
+
+function isObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function nonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function nonNegativeInteger(value) {
+  return Number.isInteger(value) && value >= 0;
+}
+
+function isRepoRelativePath(value) {
+  return (
+    !value.startsWith('/')
+    && !/^[A-Za-z]:[\\/]/.test(value)
+    && !value.startsWith('file:')
+    && !value.split(/[\\/]+/).includes('..')
+  );
 }
 
 function manifestReleaseVersion(manifest) {
