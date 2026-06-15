@@ -12,7 +12,9 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { execFileSync } from 'child_process';
 import { listBundledLspServers, getLspDiagnosticReadiness } from '../lsp/registry';
+import { getSiblingRepoPath, loadCapabilityManifest } from '../lsp/capabilityManifest';
 import type { LSPServerRegistryEntry } from '../lsp/types';
 import type {
   CompatibilityCheck,
@@ -52,6 +54,8 @@ export function generateCompatibilityReport(
   const compatDoc = loadTextSafe(docPath);
 
   const entries: LspCompatibilityEntry[] = servers.map(server => {
+    const capabilityManifest = loadCapabilityManifest(repoRoot, server);
+    const repoPath = getSiblingRepoPath(repoRoot, server);
     const checks: CompatibilityCheck[] = [
       checkRegistryEntryExists(server),
       checkPackageJsonLanguage(server, packageJson),
@@ -62,15 +66,27 @@ export function generateCompatibilityReport(
       checkDiagnosticReadiness(server),
       checkRuleManifest(server, manifestDir),
       checkLocalLaunchConfig(server),
+      checkCapabilityManifest(server, repoRoot),
     ];
 
     const passed = checks.every(c => c.status === 'pass' || c.status === 'skip');
+    const manifestSummary = capabilityManifest.manifest
+      ? summarizeCapabilityManifest(
+          repoRoot,
+          capabilityManifest.manifest,
+          capabilityManifest.manifestPath
+        )
+      : undefined;
 
     return {
       serverId: server.id,
       serverName: server.name,
       languageId: server.languageId,
       stability: server.stability,
+      runtimeCommand: [server.executable, ...(server.args ?? ['--stdio'])].join(' '),
+      repoPath,
+      repoCommit: readGitCommit(repoPath),
+      manifest: manifestSummary,
       checks,
       passed,
     };
@@ -150,6 +166,8 @@ function checkPackageJsonConfiguration(
     `openqc.lsp.${server.languageId}.enabled`,
     `openqc.lsp.${server.languageId}.path`,
     `openqc.lsp.${server.languageId}.command`,
+    `openqc.lsp.${server.languageId}.args`,
+    `openqc.lsp.${server.languageId}.env`,
   ];
 
   const missing = requiredSettings.filter(key => !(key in properties));
@@ -368,6 +386,49 @@ function checkLocalLaunchConfig(server: LSPServerRegistryEntry): CompatibilityCh
   };
 }
 
+function checkCapabilityManifest(
+  server: LSPServerRegistryEntry,
+  repoRoot: string
+): CompatibilityCheck {
+  const result = loadCapabilityManifest(repoRoot, server);
+  if (result.error || !result.manifest) {
+    return {
+      name: 'lsp-capability-manifest',
+      description: `Capability manifest for ${server.name}`,
+      status: 'fail',
+      detail: `${result.manifestPath}: ${result.error ?? 'manifest was not loaded'}`,
+    };
+  }
+
+  const manifestDir = path.dirname(result.manifestPath);
+  const requiredPaths = [
+    result.manifest.diagnosticSchema,
+    result.manifest.wikiPaths.plan,
+    result.manifest.wikiPaths.rawAssets,
+    result.manifest.wikiPaths.entities,
+    result.manifest.wikiPaths.concepts,
+    result.manifest.wikiPaths.synthesis,
+    result.manifest.wikiPaths.index,
+    result.manifest.wikiPaths.log,
+  ];
+  const missing = requiredPaths.filter(p => !fs.existsSync(path.join(manifestDir, p)));
+  if (missing.length > 0) {
+    return {
+      name: 'lsp-capability-manifest',
+      description: `Capability manifest for ${server.name}`,
+      status: 'fail',
+      detail: `Missing manifest paths: ${missing.join(', ')}`,
+    };
+  }
+
+  return {
+    name: 'lsp-capability-manifest',
+    description: `Capability manifest for ${server.name}`,
+    status: 'pass',
+    detail: `${result.manifest.agentCli.command}; ${result.manifest.capabilities.length} capabilities`,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -408,6 +469,56 @@ function getPackageJsonProperties(pkg: Record<string, unknown>): Record<string, 
   return (configuration.properties as Record<string, unknown>) ?? {};
 }
 
+function summarizeCapabilityManifest(
+  repoRoot: string,
+  manifest: NonNullable<ReturnType<typeof loadCapabilityManifest>['manifest']>,
+  manifestPath: string
+): NonNullable<LspCompatibilityEntry['manifest']> {
+  const manifestDir = path.dirname(manifestPath);
+  const hasAnyExisting = (paths: readonly string[]) =>
+    paths.some(p => fs.existsSync(path.join(manifestDir, p)));
+  const wikiFreshness = fs.existsSync(path.join(manifestDir, manifest.wikiPaths.log))
+    ? 'present'
+    : 'missing';
+  const expectedCapabilities = [
+    'diagnostics',
+    'rich-diagnostics',
+    'completion',
+    'hover',
+    'symbols',
+    'fix-preview',
+    'llm-wiki',
+    'openqc-context',
+  ];
+  const actual = new Set(manifest.capabilities);
+  const missingCapabilities = expectedCapabilities.filter(capability => !actual.has(capability));
+
+  return {
+    path: path.relative(repoRoot, manifestPath),
+    capabilities: manifest.capabilities,
+    agentCli: manifest.agentCli.command,
+    blockingPolicy: manifest.blockingPolicy.mode,
+    wikiFreshness,
+    smokeFixtures: {
+      valid: hasAnyExisting(manifest.fixturePaths.valid),
+      invalid: hasAnyExisting(manifest.fixturePaths.invalid),
+      logs: hasAnyExisting(manifest.fixturePaths.logs),
+    },
+    missingCapabilities,
+  };
+}
+
+function readGitCommit(repoPath: string): string | undefined {
+  try {
+    return execFileSync('git', ['-C', repoPath, 'rev-parse', '--short=12', 'HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return undefined;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Report formatting
 // ---------------------------------------------------------------------------
@@ -436,6 +547,23 @@ export function formatReportAsMarkdown(report: CompatibilityReport): string {
     lines.push('');
     lines.push(`- Language: \`${entry.languageId}\``);
     lines.push(`- Stability: ${entry.stability}`);
+    if (entry.runtimeCommand) {
+      lines.push(`- Runtime command: \`${entry.runtimeCommand}\``);
+    }
+    if (entry.repoCommit) {
+      lines.push(`- Repo commit: \`${entry.repoCommit}\``);
+    }
+    if (entry.manifest) {
+      lines.push(`- Manifest: \`${entry.manifest.path}\``);
+      lines.push(`- Agent CLI: \`${entry.manifest.agentCli}\``);
+      lines.push(`- Blocking policy: ${entry.manifest.blockingPolicy}`);
+      lines.push(
+        `- Smoke fixtures: valid=${entry.manifest.smokeFixtures.valid}, invalid=${entry.manifest.smokeFixtures.invalid}, logs=${entry.manifest.smokeFixtures.logs}`
+      );
+      if (entry.manifest.missingCapabilities.length > 0) {
+        lines.push(`- Missing capabilities: ${entry.manifest.missingCapabilities.join(', ')}`);
+      }
+    }
 
     for (const check of entry.checks) {
       const checkIcon =

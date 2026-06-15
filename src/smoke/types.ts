@@ -85,6 +85,26 @@ export interface LspCompatibilityEntry {
   readonly languageId: string;
   /** Stability classification. */
   readonly stability: string;
+  /** Runtime command OpenQC will use by default. */
+  readonly runtimeCommand?: string;
+  /** Local sibling repository path, when known. */
+  readonly repoPath?: string;
+  /** Git commit of the sibling repository, when available. */
+  readonly repoCommit?: string;
+  /** Capability manifest summary, when available. */
+  readonly manifest?: {
+    readonly path: string;
+    readonly capabilities: readonly string[];
+    readonly agentCli: string;
+    readonly blockingPolicy: string;
+    readonly wikiFreshness: string;
+    readonly smokeFixtures: {
+      readonly valid: boolean;
+      readonly invalid: boolean;
+      readonly logs: boolean;
+    };
+    readonly missingCapabilities: readonly string[];
+  };
   /** Individual check results. */
   readonly checks: readonly CompatibilityCheck[];
   /** Overall pass/fail. */

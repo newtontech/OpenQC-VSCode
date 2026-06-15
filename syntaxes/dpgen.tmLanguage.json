@@ -1,0 +1,21 @@
+{
+  "scopeName": "source.dpgen",
+  "patterns": [
+    {
+      "match": "\\b(true|false|null)\\b",
+      "name": "constant.language.json.dpgen"
+    },
+    {
+      "match": "\\b[-+]?\\d+(?:\\.\\d+)?(?:[eE][-+]?\\d+)?\\b",
+      "name": "constant.numeric.dpgen"
+    },
+    {
+      "match": "\"([^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.dpgen"
+    },
+    {
+      "match": "\\b[A-Za-z_][A-Za-z0-9_./-]*\\b",
+      "name": "support.type.property-name.dpgen"
+    }
+  ]
+}

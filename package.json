@@ -1,7 +1,7 @@
 {
   "name": "openqc",
   "displayName": "OpenQC - Quantum Chemistry & Molecular Dynamics Suite",
-  "description": "Parse, visualize, and analyze computational chemistry, materials, and molecular-simulation files with 16 bundled LSP integrations.",
+  "description": "Parse, visualize, and analyze computational chemistry, materials, and molecular-simulation files with 17 bundled LSP integrations.",
   "version": "3.0.7",
   "publisher": "newtontech",
   "engines": {
@@ -30,6 +30,7 @@
     "GROMACS",
     "LAMMPS",
     "PySCF",
+    "DP-GEN",
     "Molpro",
     "Psi4",
     "molecular visualization",
@@ -56,6 +57,7 @@
     "onLanguage:mlip",
     "onLanguage:pyatb",
     "onLanguage:pyscf",
+    "onLanguage:dpgen",
     "onCommand:openqc.startLSP",
     "onCommand:openqc.stopLSP",
     "onCommand:openqc.restartLSP",
@@ -296,6 +298,19 @@
           "run_pyscf.py"
         ],
         "configuration": "./language-configurations/pyscf.json"
+      },
+      {
+        "id": "dpgen",
+        "aliases": [
+          "DP-GEN",
+          "dpgen",
+          "DPGEN"
+        ],
+        "filenames": [
+          "param.json",
+          "machine.json"
+        ],
+        "configuration": "./language-configurations/dpgen.json"
       }
     ],
     "grammars": [
@@ -378,6 +393,11 @@
         "language": "pyscf",
         "scopeName": "source.pyscf",
         "path": "./syntaxes/pyscf.tmLanguage.json"
+      },
+      {
+        "language": "dpgen",
+        "scopeName": "source.dpgen",
+        "path": "./syntaxes/dpgen.tmLanguage.json"
       }
     ],
     "commands": [
@@ -1230,6 +1250,39 @@
           "default": {},
           "description": "Extra environment variables for the PySCF Language Server process"
         },
+        "openqc.lsp.dpgen.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable DP-GEN Language Server"
+        },
+        "openqc.lsp.dpgen.path": {
+          "type": "string",
+          "default": "dpgen-lsp",
+          "description": "Path to DP-GEN Language Server executable (deprecated: use command instead). In Remote SSH, WSL, Dev Containers, or Codespaces this path is resolved inside the extension host environment."
+        },
+        "openqc.lsp.dpgen.command": {
+          "type": "string",
+          "default": "dpgen-lsp",
+          "description": "Command to start the DP-GEN Language Server (executable name or absolute path). In Remote SSH, WSL, Dev Containers, or Codespaces this command runs inside the extension host environment."
+        },
+        "openqc.lsp.dpgen.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "--stdio"
+          ],
+          "description": "Arguments passed to the DP-GEN Language Server"
+        },
+        "openqc.lsp.dpgen.env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "Extra environment variables for the DP-GEN Language Server process"
+        },
         "openqc.languageFeatures.mode": {
           "type": "string",
           "enum": [
@@ -1511,6 +1564,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lsp:check-latest": "node scripts/check-lsp-latest.mjs",
+    "lsp:check-family": "node scripts/check-lsp-family.mjs",
+    "lsp:install-latest": "node scripts/install-latest-lsp-fleet.mjs",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "typecheck": "tsc --noEmit",

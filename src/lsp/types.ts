@@ -185,6 +185,53 @@ export interface DiagnosticReadiness {
   readonly closedLoop: 'planned' | 'partial' | 'available';
 }
 
+export interface LspCapabilityManifest {
+  readonly schema: 'OpenQCLspCapabilities';
+  readonly version: 1;
+  readonly id: string;
+  readonly software: string;
+  readonly displayName?: string;
+  readonly languageId: string;
+  readonly executable: string;
+  readonly defaultBranch: string;
+  readonly filePatterns: readonly string[];
+  readonly maturity: string;
+  readonly blockingPolicy: {
+    readonly mode: 'blocking' | 'warning-only';
+    readonly description?: string;
+  };
+  readonly capabilities: readonly string[];
+  readonly agentCli: {
+    readonly command: string;
+    readonly operations: readonly string[];
+    readonly jsonFormat: boolean;
+    readonly failOnBlocking: boolean;
+  };
+  readonly diagnosticSchema: string;
+  readonly wikiPaths: {
+    readonly plan: string;
+    readonly rawAssets: string;
+    readonly entities: string;
+    readonly concepts: string;
+    readonly synthesis: string;
+    readonly index: string;
+    readonly log: string;
+  };
+  readonly fixturePaths: {
+    readonly valid: readonly string[];
+    readonly invalid: readonly string[];
+    readonly logs: readonly string[];
+  };
+  readonly outputLogPatterns: readonly string[];
+  readonly openqc: {
+    readonly registryId: string;
+    readonly repoName: string;
+    readonly contextContract: 'DSLAuthoringContext';
+    readonly diagnosticEnvelope: 'DiagnosticEnvelope/v1';
+  };
+  readonly sourceProvenance?: readonly Record<string, unknown>[];
+}
+
 /** Local sibling-repository launch strategy for a bundled LSP server. */
 export type LocalLspLaunch =
   | {

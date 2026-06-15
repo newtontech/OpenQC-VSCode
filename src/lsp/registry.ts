@@ -345,6 +345,25 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
       functionName: 'lsp_main',
     },
   },
+  {
+    id: 'dpgen-lsp',
+    name: 'DP-GEN',
+    repository: 'newtontech/dpgen-lsp',
+    executable: 'dpgen-lsp',
+    languageId: 'dpgen',
+    fileExtensions: [],
+    fileNames: ['param.json', 'machine.json'],
+    enabled: true,
+    repositoryUrl: 'https://github.com/newtontech/dpgen-lsp',
+    stability: 'experimental',
+    defaultBranch: 'main',
+    localLaunch: {
+      kind: 'pythonFunction',
+      repoName: 'dpgen-lsp',
+      importPath: 'dpgen_lsp.server',
+      functionName: 'main',
+    },
+  },
 ] as const;
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
@@ -371,6 +390,12 @@ export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadine
     agentCli: 'cp2k-lsp-tool',
     richDiagnostics: true,
     closedLoop: 'partial',
+  },
+  'dpgen-lsp': {
+    diagnosticEngine: 'v1',
+    agentCli: 'dpgen-lsp-tool',
+    richDiagnostics: true,
+    closedLoop: 'planned',
   },
   'gamess-lsp': {
     diagnosticEngine: 'v1',

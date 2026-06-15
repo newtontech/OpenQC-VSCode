@@ -12,6 +12,7 @@ import {
   generateCompatibilityReport,
   formatReportAsMarkdown,
 } from '../../../src/smoke/compatibilityReport';
+import { getBundledLspServerCount } from '../../../src/lsp/registry';
 
 const REPO_ROOT = path.resolve(__dirname, '../../../');
 const MANIFESTS_DIR = path.join(REPO_ROOT, 'tests/fixtures/smoke/manifests');
@@ -21,10 +22,10 @@ const MANIFESTS_DIR = path.join(REPO_ROOT, 'tests/fixtures/smoke/manifests');
 // ---------------------------------------------------------------------------
 
 describe('generateCompatibilityReport', () => {
-  it('generates a report covering all 16 LSP servers', () => {
+  it('generates a report covering every bundled LSP server', () => {
     const report = generateCompatibilityReport(REPO_ROOT);
-    expect(report.totalServers).toBe(16);
-    expect(report.entries).toHaveLength(16);
+    expect(report.totalServers).toBe(getBundledLspServerCount());
+    expect(report.entries).toHaveLength(getBundledLspServerCount());
   });
 
   it('includes timestamps', () => {
@@ -93,6 +94,30 @@ describe('generateCompatibilityReport', () => {
     }
   });
 
+  it('checks capability manifests for sibling LSP repositories that expose them', () => {
+    const report = generateCompatibilityReport(REPO_ROOT);
+    for (const entry of report.entries) {
+      const manifestCheck = entry.checks.find(c => c.name === 'lsp-capability-manifest');
+      expect(manifestCheck).toBeDefined();
+      if (manifestCheck!.status === 'pass') {
+        expect(entry.manifest).toBeDefined();
+        expect(entry.manifest!.agentCli).toBeTruthy();
+        expect(entry.manifest!.capabilities).toContain('diagnostics');
+      }
+      expect(entry.runtimeCommand).toContain(entry.languageId === 'cp2k' ? 'cp2k' : '');
+    }
+  });
+
+  it('includes runtime and manifest fields in each report entry', () => {
+    const report = generateCompatibilityReport(REPO_ROOT);
+    const dpgen = report.entries.find(e => e.serverId === 'dpgen-lsp');
+    expect(dpgen).toBeDefined();
+    expect(dpgen!.runtimeCommand).toBe('dpgen-lsp --stdio');
+    expect(dpgen!.repoPath).toContain('dpgen-lsp');
+    expect(dpgen!.manifest?.blockingPolicy).toBe('blocking');
+    expect(dpgen!.manifest?.missingCapabilities).toEqual([]);
+  });
+
   it('checks rule manifests when manifestDir is provided', () => {
     const report = generateCompatibilityReport(REPO_ROOT, MANIFESTS_DIR);
     const gaussian = report.entries.find(e => e.serverId === 'gaussian-lsp');
@@ -114,7 +139,7 @@ describe('generateCompatibilityReport', () => {
 
   it('handles invalid repoRoot gracefully', () => {
     const report = generateCompatibilityReport('/nonexistent/path');
-    expect(report.totalServers).toBe(16);
+    expect(report.totalServers).toBe(getBundledLspServerCount());
     // Should still generate the report but with failures
     for (const entry of report.entries) {
       const docsCheck = entry.checks.find(c => c.name === 'docs-alignment');
@@ -147,5 +172,7 @@ describe('formatReportAsMarkdown', () => {
     const md = formatReportAsMarkdown(report);
     expect(md).toContain('registry-entry-exists');
     expect(md).toContain('package-json-language');
+    expect(md).toContain('lsp-capability-manifest');
+    expect(md).toContain('Runtime command');
   });
 });
