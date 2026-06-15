@@ -384,7 +384,7 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
 ] as const;
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
-  'abacus-lsp': diagnosticReadiness('abacus-lsp-tool', 'planned'),
+  'abacus-lsp': diagnosticReadiness('abacus-lsp-tool', 'partial', 'passing'),
   'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'partial', 'passing'),
   'cif-lsp': diagnosticReadiness('cif-lsp-tool', 'partial', 'passing'),
   'cp2k-lsp-enhanced': diagnosticReadiness('cp2k-lsp-tool', 'partial'),
