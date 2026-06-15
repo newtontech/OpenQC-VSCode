@@ -27,6 +27,9 @@ features:
     details: Interactive molecular structure visualization directly in VS Code.
   - title: ✅ Validation
     details: Real-time input file validation and error detection.
+  - title: 📋 LSP Family Audit
+    details: Latest release-gate evidence and remaining maturity work for the bundled scientific LSP fleet.
+    link: /LSP_FAMILY_MATURITY_AUDIT_2026-06-15
   - title: 🚀 AI-Ready
     details: Built for AI-assisted modifications and intelligent suggestions.
 ---

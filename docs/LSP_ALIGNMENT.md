@@ -3,6 +3,8 @@
 OpenQC is the VS Code product surface for the newtontech computational chemistry LSP family. Standalone LSP repositories remain useful for editor-agnostic language support; OpenQC should integrate them with a consistent VS Code experience.
 
 > **Full feature-by-feature compatibility matrix**: See [LSP_COMPATIBILITY.md](./LSP_COMPATIBILITY.md) for per-server parser status, diagnostics, completion, hover, formatting, code actions, build commands, and integration details.
+>
+> **Current family release-gate audit**: See [LSP_FAMILY_MATURITY_AUDIT_2026-06-15.md](./LSP_FAMILY_MATURITY_AUDIT_2026-06-15.md) for the latest managed-checkout evidence, maturity warnings, and remaining work toward editor-grade parity.
 
 ## Canonical repositories
 
