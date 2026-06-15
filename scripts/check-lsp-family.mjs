@@ -34,6 +34,7 @@ const codeRoot = resolve(repoRoot, '..');
 const jsonMode = process.argv.includes('--json');
 const strictMode = process.argv.includes('--strict');
 const verbose = process.argv.includes('--verbose');
+const reportPath = process.argv.find((arg, i) => process.argv[i - 1] === '--report-path') ?? null;
 
 // ---------------------------------------------------------------------------
 // Parse registry
@@ -74,6 +75,141 @@ const SEVERITY = {
   WARNING: 'warning',   // maturity gap, does not block
   INFO: 'info',         // informational
 };
+
+// ---------------------------------------------------------------------------
+// Warning categories for actionable maturity tracking
+// ---------------------------------------------------------------------------
+
+const WARNING_CATEGORIES = {
+  MANIFEST: {
+    id: 'manifest',
+    label: 'Capability Manifest',
+    description: 'lsp-capabilities.json presence and shape',
+    graduationWeight: 3,
+  },
+  PROVENANCE: {
+    id: 'provenance',
+    label: 'Provenance & Versioning',
+    description: 'Git tags, CHANGELOG, VERSION files',
+    graduationWeight: 2,
+  },
+  FIXTURES: {
+    id: 'fixtures',
+    label: 'Test Fixtures',
+    description: 'Valid/invalid fixture coverage',
+    graduationWeight: 2,
+  },
+  DIAGNOSTIC: {
+    id: 'diagnostic',
+    label: 'Diagnostic Readiness',
+    description: 'Agent CLI, closed-loop support',
+    graduationWeight: 3,
+  },
+  CHECKOUT: {
+    id: 'checkout',
+    label: 'Local Checkout',
+    description: 'Sibling checkout availability',
+    graduationWeight: 1,
+  },
+};
+
+/**
+ * Categorize a warning message into a warning category.
+ */
+function categorizeWarning(message) {
+  const lower = message.toLowerCase();
+  if (lower.includes('manifest') || lower.includes('capabilities') || lower.includes('lsp-capabilities')) {
+    return WARNING_CATEGORIES.MANIFEST;
+  }
+  if (lower.includes('tag') || lower.includes('changelog') || lower.includes('version')) {
+    return WARNING_CATEGORIES.PROVENANCE;
+  }
+  if (lower.includes('fixture')) {
+    return WARNING_CATEGORIES.FIXTURES;
+  }
+  if (lower.includes('closed-loop') || lower.includes('diagnostic') || lower.includes('agent cli')) {
+    return WARNING_CATEGORIES.DIAGNOSTIC;
+  }
+  if (lower.includes('checkout') || lower.includes('local')) {
+    return WARNING_CATEGORIES.CHECKOUT;
+  }
+  return { id: 'other', label: 'Other', description: 'Uncategorized warnings', graduationWeight: 1 };
+}
+
+/**
+ * Calculate graduation score (0-100) based on warning categories resolved.
+ */
+function calculateGraduationScore(results) {
+  const totalWeight = Object.values(WARNING_CATEGORIES).reduce((sum, cat) => sum + cat.graduationWeight, 0);
+  const repoCount = results.length;
+
+  // Count warnings per category across all repos
+  const categoryWarnings = new Map();
+  for (const cat of Object.values(WARNING_CATEGORIES)) {
+    categoryWarnings.set(cat.id, 0);
+  }
+
+  for (const result of results) {
+    for (const gap of result.warningGaps) {
+      const cat = categorizeWarning(gap.message);
+      const existing = categoryWarnings.get(cat.id) ?? 0;
+      categoryWarnings.set(cat.id, existing + 1);
+    }
+  }
+
+  // Calculate score: each category contributes proportionally
+  // A category with 0 warnings across all repos gets full weight
+  let earnedWeight = 0;
+  for (const cat of Object.values(WARNING_CATEGORIES)) {
+    const warnings = categoryWarnings.get(cat.id) ?? 0;
+    const maxPossibleWarnings = repoCount; // Each repo could have this warning
+    const resolvedRatio = Math.max(0, 1 - warnings / maxPossibleWarnings);
+    earnedWeight += cat.graduationWeight * resolvedRatio;
+  }
+
+  return Math.round((earnedWeight / totalWeight) * 100);
+}
+
+/**
+ * Build warning summary grouped by category.
+ */
+function buildWarningSummary(results) {
+  const summary = new Map();
+
+  for (const cat of Object.values(WARNING_CATEGORIES)) {
+    summary.set(cat.id, {
+      category: cat.label,
+      description: cat.description,
+      count: 0,
+      repos: [],
+      messages: new Set(),
+    });
+  }
+
+  for (const result of results) {
+    for (const gap of result.warningGaps) {
+      const cat = categorizeWarning(gap.message);
+      const entry = summary.get(cat.id);
+      if (entry) {
+        entry.count++;
+        if (!entry.repos.includes(result.id)) {
+          entry.repos.push(result.id);
+        }
+        entry.messages.add(gap.message);
+      }
+    }
+  }
+
+  // Convert Sets to Arrays for JSON serialization
+  const output = {};
+  for (const [id, entry] of summary) {
+    output[id] = {
+      ...entry,
+      messages: [...entry.messages],
+    };
+  }
+  return output;
+}
 
 // ---------------------------------------------------------------------------
 // Gate checks
@@ -438,6 +574,13 @@ const report = {
   totalGaps,
   blockingGaps,
   warningGaps,
+  graduationScore: calculateGraduationScore(results),
+  warningSummary: buildWarningSummary(results),
+  graduationTargets: Object.values(WARNING_CATEGORIES).map(cat => ({
+    category: cat.label,
+    weight: cat.graduationWeight,
+    description: cat.description,
+  })),
   results,
 };
 
@@ -452,7 +595,25 @@ if (jsonMode) {
   console.log('='.repeat(60));
   console.log(`Checked at: ${report.checkedAt}`);
   console.log(`Repos: ${report.totalRepos} | Passing: ${report.passing} | Blocking gaps: ${report.blockingGaps} | Warnings: ${report.warningGaps}`);
+  console.log(`Graduation Score: ${report.graduationScore}/100`);
   console.log('');
+
+  // Warning summary
+  if (report.warningGaps > 0) {
+    console.log('Warning Summary by Category:');
+    console.log('-'.repeat(40));
+    for (const [id, entry] of Object.entries(report.warningSummary)) {
+      if (entry.count > 0) {
+        console.log(`  ${entry.category}: ${entry.count} warning(s) across ${entry.repos.length} repo(s)`);
+        if (verbose) {
+          for (const msg of entry.messages) {
+            console.log(`    - ${msg}`);
+          }
+        }
+      }
+    }
+    console.log('');
+  }
 
   for (const r of results) {
     const icon = r.blockingGaps.length > 0 ? 'FAIL' : r.warningGaps.length > 0 ? 'WARN' : 'PASS';
@@ -480,6 +641,22 @@ if (jsonMode) {
   console.log('  preview     - Missing manifest; cannot validate against fleet requirements.');
   console.log('  experimental - Manifest present but has warnings (fixtures, provenance, or closed-loop gaps).');
   console.log('  stable       - All required gates pass. Safe for VSIX release blocking.');
+  console.log('');
+  console.log('Graduation Targets:');
+  for (const target of report.graduationTargets) {
+    console.log(`  ${target.category} (weight ${target.weight}): ${target.description}`);
+  }
+}
+
+// Write report to file if --report-path specified
+if (reportPath) {
+  const { writeFileSync, mkdirSync } = await import('fs');
+  const { dirname } = await import('path');
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  if (!jsonMode) {
+    console.log(`\nReport written to: ${reportPath}`);
+  }
 }
 
 // Exit code
