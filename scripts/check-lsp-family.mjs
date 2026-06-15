@@ -105,6 +105,12 @@ const WARNING_CATEGORIES = {
     description: 'Agent CLI, closed-loop support',
     graduationWeight: 3,
   },
+  TRACEABILITY: {
+    id: 'traceability',
+    label: 'Docstring/Wiki/Raw Traceability',
+    description: 'Code docstrings link to LLM Wiki nodes and raw evidence',
+    graduationWeight: 3,
+  },
   CHECKOUT: {
     id: 'checkout',
     label: 'Local Checkout',
@@ -129,6 +135,9 @@ function categorizeWarning(message) {
   }
   if (lower.includes('closed-loop') || lower.includes('diagnostic') || lower.includes('agent cli')) {
     return WARNING_CATEGORIES.DIAGNOSTIC;
+  }
+  if (lower.includes('traceability') || lower.includes('docstring') || lower.includes('wiki') || lower.includes('raw')) {
+    return WARNING_CATEGORIES.TRACEABILITY;
   }
   if (lower.includes('checkout') || lower.includes('local')) {
     return WARNING_CATEGORIES.CHECKOUT;
@@ -292,29 +301,94 @@ function checkProvenance(entry) {
   const localPath = findLocalCheckout(entry);
 
   if (!localPath) {
-    return { status: 'missing', gaps: [{ severity: SEVERITY.WARNING, message: 'No local checkout found' }] };
+    return {
+      status: 'missing',
+      gaps: [{ severity: SEVERITY.WARNING, message: 'No local checkout found' }],
+      evidence: {
+        localPath: null,
+        head: null,
+        latestTag: null,
+        remoteTagPresent: null,
+        versionFiles: [],
+        changelogPaths: [],
+        manifestPath: null,
+        manifestReleaseVersion: null,
+        sourceProvenanceCount: 0,
+      },
+      actions: ['Refresh .worktrees-lsp-latest or create a sibling checkout for this backend.'],
+    };
   }
 
   const gaps = [];
+  const actions = [];
+  const manifestPath = join(localPath, 'lsp-capabilities.json');
+  const manifest = readJsonIfExists(manifestPath);
+  const sourceProvenance = getSourceProvenance(manifest);
+  const head = git(['-C', localPath, 'rev-parse', 'HEAD'], { quiet: true }) || null;
+  let latestTag = null;
+  let remoteTagPresent = null;
 
   // Check for version/tag
   try {
     const tags = git(['-C', localPath, 'tag', '--sort=-version:refname'], { quiet: true });
     if (tags.trim().length === 0) {
       gaps.push({ severity: SEVERITY.WARNING, message: 'No git tags found (no release version)' });
+      actions.push('Create and push a semver release tag for the commit verified by the family gate.');
+    } else {
+      latestTag = tags.split(/\r?\n/).find(Boolean) ?? null;
+      if (!isSemverTag(latestTag)) {
+        gaps.push({ severity: SEVERITY.WARNING, message: `Latest git tag is not semver-like: ${latestTag}` });
+        actions.push('Create a semver-like release tag such as v0.1.0 for the verified commit.');
+      }
+      remoteTagPresent = hasRemoteTag(localPath, latestTag);
+      if (remoteTagPresent === false) {
+        gaps.push({ severity: SEVERITY.WARNING, message: `Latest local tag ${latestTag} is not present on origin` });
+        actions.push(`Push tag ${latestTag} to origin or retag the verified remote commit.`);
+      }
     }
   } catch {
     gaps.push({ severity: SEVERITY.INFO, message: 'Could not read tags' });
+    actions.push('Verify git tag metadata is available in the local checkout.');
   }
 
   // Check for CHANGELOG or version file
-  const hasChangelog = existsSync(join(localPath, 'CHANGELOG.md')) || existsSync(join(localPath, 'CHANGELOG'));
-  const hasVersion = existsSync(join(localPath, 'VERSION')) || existsSync(join(localPath, 'version.txt'));
+  const changelogPaths = ['CHANGELOG.md', 'CHANGELOG']
+    .map(file => join(localPath, file))
+    .filter(path => existsSync(path));
+  const versionFiles = ['VERSION', 'version.txt']
+    .map(file => join(localPath, file))
+    .filter(path => existsSync(path));
+  const hasChangelog = changelogPaths.length > 0;
+  const hasVersion = versionFiles.length > 0;
   if (!hasChangelog && !hasVersion) {
     gaps.push({ severity: SEVERITY.WARNING, message: 'No CHANGELOG.md or VERSION file' });
+    actions.push('Add CHANGELOG.md or VERSION so release evidence is visible without inspecting git tags.');
   }
 
-  return { status: gaps.length === 0 ? 'pass' : 'partial', gaps };
+  if (existsSync(manifestPath) && sourceProvenance.length === 0) {
+    gaps.push({
+      severity: SEVERITY.WARNING,
+      message: 'No sourceProvenance entries in lsp-capabilities.json',
+    });
+    actions.push('Add sourceProvenance entries linking rule coverage to upstream manuals, examples, or generated indexes.');
+  }
+
+  return {
+    status: gaps.length === 0 ? 'pass' : 'partial',
+    gaps,
+    evidence: {
+      localPath,
+      head,
+      latestTag,
+      remoteTagPresent,
+      versionFiles,
+      changelogPaths,
+      manifestPath: existsSync(manifestPath) ? manifestPath : null,
+      manifestReleaseVersion: manifestReleaseVersion(manifest),
+      sourceProvenanceCount: sourceProvenance.length,
+    },
+    actions,
+  };
 }
 
 /**
@@ -410,6 +484,101 @@ function checkDiagnosticReadiness(entry) {
   };
 }
 
+/**
+ * Check for backend-provided docstring -> LLM Wiki -> raw provenance reports.
+ *
+ * This is intentionally an aggregation contract: backend repos own language
+ * parsing and docstring scanning, while OpenQC consumes their deterministic
+ * report and makes missing/broken provenance visible in the family gate.
+ */
+function checkTraceability(entry) {
+  const localPath = findLocalCheckout(entry);
+
+  if (!localPath) {
+    return {
+      status: 'missing',
+      reportPath: null,
+      evidence: null,
+      gaps: [{ severity: SEVERITY.WARNING, message: 'No local checkout; cannot check docstring/wiki/raw traceability' }],
+      actions: ['Refresh the latest backend checkout before running the traceability gate.'],
+    };
+  }
+
+  const reportPath = traceabilityReportCandidates(localPath).find(path => existsSync(path)) ?? null;
+  if (!reportPath) {
+    return {
+      status: 'missing',
+      reportPath: null,
+      evidence: {
+        localPath,
+        searchedPaths: traceabilityReportCandidates(localPath),
+      },
+      gaps: [{
+        severity: SEVERITY.WARNING,
+        message: 'No docstring/wiki/raw traceability report found',
+      }],
+      actions: [
+        'Add a backend traceability checker that emits a deterministic report consumed by OpenQC.',
+        'Verify every scientific docstring links to a specific wiki node and every wiki source links to raw evidence.',
+      ],
+    };
+  }
+
+  const report = readJsonIfExists(reportPath);
+  if (!report) {
+    return {
+      status: 'invalid',
+      reportPath,
+      evidence: { localPath, reportPath },
+      gaps: [{ severity: SEVERITY.ERROR, message: `Invalid traceability report JSON: ${reportPath}` }],
+      actions: ['Regenerate the traceability report as valid JSON.'],
+    };
+  }
+
+  const counts = traceabilityCounts(report);
+  const gaps = [];
+  const actions = [];
+
+  if (counts.docstringsTotal === null || counts.docstringsLinked === null) {
+    gaps.push({
+      severity: SEVERITY.WARNING,
+      message: 'Traceability report missing docstring scan counts',
+    });
+    actions.push('Emit docstringsTotal and docstringsLinked counts from the backend checker.');
+  } else if (counts.docstringsLinked < counts.docstringsTotal) {
+    gaps.push({
+      severity: SEVERITY.ERROR,
+      message: `Unlinked docstrings: ${counts.docstringsTotal - counts.docstringsLinked}`,
+    });
+    actions.push('Link every scientific docstring/doc comment to a specific LLM Wiki node.');
+  }
+
+  if (counts.brokenWikiLinks > 0) {
+    gaps.push({ severity: SEVERITY.ERROR, message: `Broken wiki links: ${counts.brokenWikiLinks}` });
+    actions.push('Repair broken docstring-to-wiki references.');
+  }
+  if (counts.wikiSourcesWithoutRaw > 0) {
+    gaps.push({ severity: SEVERITY.ERROR, message: `Wiki source nodes without raw evidence: ${counts.wikiSourcesWithoutRaw}` });
+    actions.push('Link every wiki source node to raw/ evidence or raw/assets/manifest.json stable ids.');
+  }
+  if (counts.rawManifestFailures > 0) {
+    gaps.push({ severity: SEVERITY.ERROR, message: `Raw manifest failures: ${counts.rawManifestFailures}` });
+    actions.push('Fix raw/assets/manifest.json entries, checksums, and missing raw artifact paths.');
+  }
+
+  return {
+    status: gaps.length === 0 ? 'pass' : 'partial',
+    reportPath,
+    evidence: {
+      localPath,
+      reportPath,
+      counts,
+    },
+    gaps,
+    actions,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -462,6 +631,88 @@ function listFilesRecursive(dir, files = []) {
     }
   }
   return files;
+}
+
+function traceabilityReportCandidates(localPath) {
+  return [
+    join(localPath, 'traceability-report.json'),
+    join(localPath, 'docstring-traceability.json'),
+    join(localPath, 'reports', 'traceability.json'),
+    join(localPath, 'reports', 'docstring-wiki-raw-traceability.json'),
+    join(localPath, 'docs', 'traceability-report.json'),
+    join(localPath, 'raw', 'assets', 'traceability-report.json'),
+  ];
+}
+
+function traceabilityCounts(report) {
+  const summary = report.summary ?? report.traceability ?? report;
+  return {
+    docstringsTotal: numberOrNull(summary.docstringsTotal ?? summary.docstrings_total ?? summary.totalDocstrings),
+    docstringsLinked: numberOrNull(summary.docstringsLinked ?? summary.docstrings_linked ?? summary.linkedDocstrings),
+    brokenWikiLinks: numberOrZero(summary.brokenWikiLinks ?? summary.broken_wiki_links ?? summary.brokenLinks),
+    wikiSourcesWithoutRaw: numberOrZero(
+      summary.wikiSourcesWithoutRaw
+      ?? summary.wiki_sources_without_raw
+      ?? summary.wikiSourcesMissingRaw
+    ),
+    rawManifestFailures: numberOrZero(
+      summary.rawManifestFailures
+      ?? summary.raw_manifest_failures
+      ?? summary.rawManifestErrors
+    ),
+  };
+}
+
+function numberOrNull(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function numberOrZero(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function readJsonIfExists(path) {
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function manifestReleaseVersion(manifest) {
+  if (!manifest || typeof manifest !== 'object') return null;
+  return manifest.releaseVersion
+    ?? manifest.release_version
+    ?? manifest.softwareVersion
+    ?? manifest.software_version
+    ?? null;
+}
+
+function getSourceProvenance(manifest) {
+  if (!manifest || typeof manifest !== 'object') return [];
+  const value = manifest.sourceProvenance
+    ?? manifest.source_provenance
+    ?? manifest.provenance
+    ?? manifest.sources
+    ?? [];
+  return Array.isArray(value) ? value : value ? [value] : [];
+}
+
+function isSemverTag(tag) {
+  return typeof tag === 'string' && /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(tag);
+}
+
+function hasRemoteTag(localPath, tag) {
+  if (!tag) return null;
+  try {
+    const remoteTags = git(['-C', localPath, 'ls-remote', '--tags', 'origin', `refs/tags/${tag}`], { quiet: true });
+    return remoteTags.trim().length > 0;
+  } catch {
+    return null;
+  }
 }
 
 function agentHelpProbe(entry, localPath) {
@@ -527,6 +778,7 @@ function checkRepo(entry) {
   const fixtures = checkFixtures(entry);
   const smoke = checkSmoke(entry);
   const diagReadiness = checkDiagnosticReadiness(entry);
+  const traceability = checkTraceability(entry);
 
   const allGaps = [
     ...manifest.gaps,
@@ -534,6 +786,7 @@ function checkRepo(entry) {
     ...fixtures.gaps,
     ...smoke.gaps,
     ...diagReadiness.gaps,
+    ...traceability.gaps,
   ];
 
   const hasBlocking = allGaps.some(g => g.severity === SEVERITY.ERROR);
@@ -547,9 +800,15 @@ function checkRepo(entry) {
     manifest: manifest.status,
     manifestPath: manifest.path,
     provenance: provenance.status,
+    provenanceEvidence: provenance.evidence,
+    provenanceActions: provenance.actions,
     fixtures: fixtures.status,
     smoke: smoke.status,
     diagnosticReadiness: diagReadiness.status,
+    traceability: traceability.status,
+    traceabilityReportPath: traceability.reportPath,
+    traceabilityEvidence: traceability.evidence,
+    traceabilityActions: traceability.actions,
     maturity,
     gaps: allGaps,
     blockingGaps: allGaps.filter(g => g.severity === SEVERITY.ERROR),
@@ -618,7 +877,7 @@ if (jsonMode) {
   for (const r of results) {
     const icon = r.blockingGaps.length > 0 ? 'FAIL' : r.warningGaps.length > 0 ? 'WARN' : 'PASS';
     console.log(`[${icon}] ${r.id} (${r.languageId})`);
-    console.log(`    manifest: ${r.manifest} | provenance: ${r.provenance} | fixtures: ${r.fixtures} | smoke: ${r.smoke} | diag: ${r.diagnosticReadiness}`);
+    console.log(`    manifest: ${r.manifest} | provenance: ${r.provenance} | fixtures: ${r.fixtures} | smoke: ${r.smoke} | diag: ${r.diagnosticReadiness} | trace: ${r.traceability}`);
 
     if (verbose || r.blockingGaps.length > 0) {
       for (const gap of r.blockingGaps) {
@@ -628,6 +887,12 @@ if (jsonMode) {
     if (verbose) {
       for (const gap of r.warningGaps) {
         console.log(`    WARN:  ${gap.message}`);
+      }
+      for (const action of r.provenanceActions ?? []) {
+        console.log(`    ACTION: ${action}`);
+      }
+      for (const action of r.traceabilityActions ?? []) {
+        console.log(`    ACTION: ${action}`);
       }
     }
     console.log('');
