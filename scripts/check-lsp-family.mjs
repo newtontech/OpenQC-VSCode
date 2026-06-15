@@ -84,11 +84,8 @@ const SEVERITY = {
  */
 function checkManifest(entry) {
   const repoName = entry.repository.split('/')[1];
-  const candidates = [
-    join(codeRoot, repoName, 'lsp-capabilities.json'),
-    join(codeRoot, '.worktrees-lsp-latest', repoName, 'lsp-capabilities.json'),
-    join(codeRoot, '.worktrees-lsp-wiki-agent-cli-20260612', repoName, 'lsp-capabilities.json'),
-  ];
+  const candidates = checkoutCandidates(entry)
+    .map(path => join(path, 'lsp-capabilities.json'));
 
   for (const path of candidates) {
     if (existsSync(path)) {
@@ -111,14 +108,39 @@ function checkManifest(entry) {
  */
 function validateManifestShape(entry, manifest) {
   const gaps = [];
-  const required = ['languageId', 'version', 'repository'];
-  for (const field of required) {
-    if (!manifest[field]) {
-      gaps.push({ severity: SEVERITY.ERROR, message: `Missing required field: ${field}` });
+  const repoName = entry.repository.split('/')[1];
+  const manifestLanguageId = manifest.languageId ?? manifest.language_id;
+  const manifestVersion = manifest.version
+    ?? manifest.capabilities_version
+    ?? manifest.schema_version
+    ?? manifest.diagnostic_engine;
+  const manifestRepository = manifest.repository
+    ?? (manifest.openqc?.repoName ? `newtontech/${manifest.openqc.repoName}` : undefined);
+  const manifestIdentity = manifest.id ?? manifest.name ?? manifest.openqc?.registryId;
+
+  if (!manifestLanguageId && manifestIdentity !== entry.id && manifestRepository !== entry.repository) {
+    gaps.push({
+      severity: SEVERITY.WARNING,
+      message: 'No canonical languageId field; relying on registry/repository identity',
+    });
+  }
+  if (!manifestVersion) {
+    gaps.push({
+      severity: SEVERITY.WARNING,
+      message: 'No canonical version field or known version alias',
+    });
+  }
+  if (!manifestRepository && manifestIdentity !== entry.id) {
+    gaps.push({ severity: SEVERITY.ERROR, message: 'Missing repository identity (repository/openqc.repoName/id/name)' });
+  }
+  if (manifestRepository && manifestRepository !== entry.repository) {
+    const manifestRepoName = manifestRepository.split('/')[1] ?? manifestRepository;
+    if (manifestRepoName !== repoName) {
+      gaps.push({ severity: SEVERITY.ERROR, message: `repository mismatch: manifest=${manifestRepository} registry=${entry.repository}` });
     }
   }
-  if (manifest.languageId && manifest.languageId !== entry.languageId) {
-    gaps.push({ severity: SEVERITY.ERROR, message: `languageId mismatch: manifest=${manifest.languageId} registry=${entry.languageId}` });
+  if (manifestLanguageId && manifestLanguageId !== entry.languageId) {
+    gaps.push({ severity: SEVERITY.ERROR, message: `languageId mismatch: manifest=${manifestLanguageId} registry=${entry.languageId}` });
   }
   if (!manifest.capabilities) {
     gaps.push({ severity: SEVERITY.WARNING, message: 'No capabilities section (editor parity tracking incomplete)' });
@@ -270,19 +292,21 @@ function git(args, options = {}) {
 }
 
 function findLocalCheckout(entry) {
-  const repoName = entry.repository.split('/')[1];
-  const candidates = [
-    join(codeRoot, repoName),
-    join(codeRoot, '.worktrees-lsp-latest', repoName),
-    join(codeRoot, '.worktrees-lsp-wiki-agent-cli-20260612', repoName),
-  ];
-
-  for (const path of candidates) {
+  for (const path of checkoutCandidates(entry)) {
     if (existsSync(join(path, '.git'))) {
       return path;
     }
   }
   return null;
+}
+
+function checkoutCandidates(entry) {
+  const repoName = entry.repository.split('/')[1];
+  return [
+    join(codeRoot, '.worktrees-lsp-latest', repoName),
+    join(codeRoot, repoName),
+    join(codeRoot, '.worktrees-lsp-wiki-agent-cli-20260612', repoName),
+  ];
 }
 
 function listFilesRecursive(dir, files = []) {
@@ -331,12 +355,8 @@ function agentHelpProbe(entry, localPath) {
     command = 'cargo';
     args = ['run', '--quiet', '--bin', 'lammps-lsp-tool', '--', '--help'];
   } else {
-    const repoName = entry.repository.split('/')[1];
-    let moduleName = entry.id.replace(/-lsp$/, '_lsp').replaceAll('-', '_');
-    if (repoName === 'cp2k-lsp-enhanced') moduleName = 'cp2k_input_tools.tool';
-    if (repoName === 'VASP-LSP') moduleName = 'vasp_lsp.tool';
     command = 'python3';
-    args = ['-m', `${moduleName}.tool`, '--help'];
+    args = ['-m', pythonModuleFor(entry), '--help'];
   }
 
   try {
@@ -352,6 +372,13 @@ function agentHelpProbe(entry, localPath) {
     const stderr = error.stderr?.toString?.() || error.message;
     return { status: 'fail', detail: `${metadata.agentCli}: ${stderr.split('\n')[0]}` };
   }
+}
+
+function pythonModuleFor(entry) {
+  const repoName = entry.repository.split('/')[1];
+  if (repoName === 'cp2k-lsp-enhanced') return 'cp2k_input_tools.tool';
+  if (repoName === 'VASP-LSP') return 'vasp_lsp.tool';
+  return `${entry.id.replace(/-lsp$/, '_lsp').replaceAll('-', '_')}.tool`;
 }
 
 // ---------------------------------------------------------------------------
