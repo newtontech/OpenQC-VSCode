@@ -396,7 +396,7 @@ export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadine
   'lammps-lsp': diagnosticReadiness('lammps-lsp-tool', 'partial'),
   'mlip-lsp': diagnosticReadiness('mlip-lsp-tool', 'partial', 'passing'),
   'nwchem-lsp': diagnosticReadiness('nwchem-lsp-tool', 'partial', 'passing'),
-  'orca-lsp': diagnosticReadiness('orca-lsp-tool', 'planned'),
+  'orca-lsp': diagnosticReadiness('orca-lsp-tool', 'partial', 'passing'),
   'pyatb-lsp': diagnosticReadiness('pyatb-lsp-tool', 'partial', 'passing'),
   'pyscf-lsp': diagnosticReadiness('pyscf-lsp-tool', 'planned'),
   'qe-lsp': diagnosticReadiness('qe-lsp-tool', 'partial'),

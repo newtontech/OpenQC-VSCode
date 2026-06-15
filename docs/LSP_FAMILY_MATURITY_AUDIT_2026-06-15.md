@@ -60,7 +60,7 @@ The OpenQC family gate has no blocking errors, but it still reports these maturi
 | `cp2k-lsp-enhanced` | No current family-gate warnings. |
 | `VASP-LSP` | No git tags. |
 | `gaussian-lsp` | Missing canonical capabilities section; no git tags; closed-loop support still planned. |
-| `orca-lsp` | No git tags; closed-loop support still planned. |
+| `orca-lsp` | No git tags. Closed-loop repair previews and log diagnostics are now wired, but exhaustive ORCA version/rule coverage is still open. |
 | `qe-lsp` | No git tags. |
 | `gamess-lsp` | No git tags; closed-loop support still planned. |
 | `nwchem-lsp` | No invalid fixture files detected by the family gate; closed-loop support still planned. |
@@ -121,4 +121,3 @@ A repo can be treated as mature only when all of the following are true:
 - OpenQC `lsp:check-latest -- --fail-on-drift` passes.
 - OpenQC `lsp:check-family -- --strict` passes with zero blocking gaps.
 - Remaining warnings are either zero or documented as non-blocking product decisions.
-
