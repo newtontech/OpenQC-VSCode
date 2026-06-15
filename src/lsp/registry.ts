@@ -388,7 +388,7 @@ export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadine
   'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'planned'),
   'cif-lsp': diagnosticReadiness('cif-lsp-tool', 'planned'),
   'cp2k-lsp-enhanced': diagnosticReadiness('cp2k-lsp-tool', 'partial'),
-  'dpgen-lsp': diagnosticReadiness('dpgen-lsp-tool', 'planned'),
+  'dpgen-lsp': diagnosticReadiness('dpgen-lsp-tool', 'partial', 'passing'),
   'gamess-lsp': diagnosticReadiness('gamess-lsp-tool', 'planned'),
   'gaussian-lsp': diagnosticReadiness('gaussian-lsp-tool', 'planned'),
   'gpumd-lsp': diagnosticReadiness('gpumd-lsp-tool', 'planned'),
