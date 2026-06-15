@@ -12,19 +12,21 @@ import {
   generateCompatibilityReport,
   formatReportAsMarkdown,
 } from '../../../src/smoke/compatibilityReport';
+import { getBundledLspServerCount } from '../../../src/lsp/registry';
 
 const REPO_ROOT = path.resolve(__dirname, '../../../');
 const MANIFESTS_DIR = path.join(REPO_ROOT, 'tests/fixtures/smoke/manifests');
+const EXPECTED_SERVER_COUNT = getBundledLspServerCount();
 
 // ---------------------------------------------------------------------------
 // generateCompatibilityReport
 // ---------------------------------------------------------------------------
 
 describe('generateCompatibilityReport', () => {
-  it('generates a report covering all 17 LSP servers', () => {
+  it('generates a report covering every bundled LSP server', () => {
     const report = generateCompatibilityReport(REPO_ROOT);
-    expect(report.totalServers).toBe(17);
-    expect(report.entries).toHaveLength(17);
+    expect(report.totalServers).toBe(EXPECTED_SERVER_COUNT);
+    expect(report.entries).toHaveLength(EXPECTED_SERVER_COUNT);
   });
 
   it('includes timestamps', () => {
@@ -114,7 +116,7 @@ describe('generateCompatibilityReport', () => {
 
   it('handles invalid repoRoot gracefully', () => {
     const report = generateCompatibilityReport('/nonexistent/path');
-    expect(report.totalServers).toBe(17);
+    expect(report.totalServers).toBe(EXPECTED_SERVER_COUNT);
     // Should still generate the report but with failures
     for (const entry of report.entries) {
       const docsCheck = entry.checks.find(c => c.name === 'docs-alignment');

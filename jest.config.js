@@ -7,7 +7,10 @@ module.exports = {
   },
   roots: ['<rootDir>'],
   testMatch: ['**/tests/**/*.test.ts'],
-  testPathIgnorePatterns: ['<rootDir>/tests/unit/visualizers/ThreeJsRenderer.test.ts'],
+  testPathIgnorePatterns: [
+    '<rootDir>/.worktrees/',
+    '<rootDir>/tests/unit/visualizers/ThreeJsRenderer.test.ts',
+  ],
   moduleNameMapper: {
     '^vscode$': '<rootDir>/tests/mocks/vscode.ts',
   },
