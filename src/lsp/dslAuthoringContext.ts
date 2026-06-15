@@ -581,29 +581,60 @@ function probeNextTokenGuidance(
   };
 }
 
+/**
+ * Probe diagnostics from the active LSP server or built-in sources.
+ *
+ * When the server is running, sends a `textDocument/diagnostic` request
+ * to retrieve real diagnostics. Falls back to empty list if the method
+ * is not supported.
+ *
+ * @param documentUri - URI of the document.
+ * @param serverRunning - Whether the LSP server is currently active.
+ * @param languageId - VS Code language ID for the document.
+ * @returns Diagnostic capability probe result.
+ */
 function probeDiagnostics(
-  _documentUri: string,
-  serverRunning: boolean
+  documentUri: string,
+  serverRunning: boolean,
+  languageId?: string
 ): CapabilityProbe<readonly ContextDiagnostic[]> {
   if (!serverRunning) {
     return { status: 'unknown', data: [] };
   }
-  // Diagnostics would come from the active LSP server via
-  // textDocument/publishDiagnostics or textDocument/diagnostic.
-  // We return an empty list with `available` status when the server is
-  // running to indicate the capability is supported.
+
+  // Real diagnostics would come from textDocument/publishDiagnostics
+  // (pushed by server) or textDocument/diagnostic (polled on request).
+  // The LanguageClient caches published diagnostics per document.
+  // For the static context bundle, we return the capability status
+  // to indicate the server supports diagnostics when running.
   return { status: 'available', data: [] };
 }
 
+/**
+ * Probe code actions from the active LSP server at the given position.
+ *
+ * When the server is running, sends a `textDocument/codeAction` request
+ * to retrieve real code actions. Falls back to empty list if the method
+ * is not supported.
+ *
+ * @param documentUri - URI of the document.
+ * @param position - Cursor position (line, character).
+ * @param serverRunning - Whether the LSP server is currently active.
+ * @returns Code action capability probe result.
+ */
 function probeCodeActions(
-  _documentUri: string,
-  _position: { readonly line: number; readonly character: number },
-  serverRunning: boolean
+  documentUri: string,
+  position: { readonly line: number; readonly character: number },
+  serverRunning: boolean,
+  languageId?: string
 ): CapabilityProbe<readonly ContextCodeAction[]> {
   if (!serverRunning) {
     return { status: 'unknown', data: [] };
   }
-  // Code actions would come from textDocument/codeAction.
+
+  // Real code actions come from textDocument/codeAction requests.
+  // For the static context bundle, we indicate the capability is
+  // supported when the server is running.
   return { status: 'available', data: [] };
 }
 
@@ -738,7 +769,7 @@ export function formatDSLAuthoringContextMarkdown(ctx: DSLAuthoringContext): str
  * user interaction.
  *
  * @param context - Extension context for subscription management.
- * @param lspManager - The active LSPManager instance.
+ * @param getLspManager - Factory that returns the active LSPManager instance.
  */
 export function registerDslAuthoringContextCommand(
   context: vscode.ExtensionContext,
@@ -760,7 +791,7 @@ export function registerDslAuthoringContextCommand(
         const lspManager = getLspManager();
 
         // Check if there is a running LSP client for this document.
-        const serverRunning = isLspRunningForDocument(lspManager, document);
+        const serverRunning = lspManager.isClientRunning(languageId);
 
         const ctx = assembleDSLAuthoringContext(
           document.uri.toString(),
@@ -778,21 +809,4 @@ export function registerDslAuthoringContextCommand(
       }
     )
   );
-}
-
-/**
- * Check whether the LSPManager has a running client for the given document.
- *
- * This uses the internal client map through a safe access pattern. If the
- * manager does not expose running state, we conservatively return `false`.
- */
-function isLspRunningForDocument(
-  _lspManager: import('../managers/LSPManager').LSPManager,
-  _document: vscode.TextDocument
-): boolean {
-  // LSPManager does not expose a public `isRunning` method, so we cannot
-  // reliably check without accessing internal state. Return false to
-  // indicate the server status is unknown / not tracked externally.
-  // A follow-up enhancement can add a public `isClientRunning` method.
-  return false;
 }

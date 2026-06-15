@@ -62,6 +62,7 @@ export function generateCompatibilityReport(
       checkDiagnosticReadiness(server),
       checkRuleManifest(server, manifestDir),
       checkLocalLaunchConfig(server),
+      checkCapabilityManifest(server, repoRoot),
     ];
 
     const passed = checks.every(c => c.status === 'pass' || c.status === 'skip');
@@ -366,6 +367,93 @@ function checkLocalLaunchConfig(server: LSPServerRegistryEntry): CompatibilityCh
     status: 'pass',
     detail: `kind: ${server.localLaunch.kind}, repo: ${server.localLaunch.repoName}`,
   };
+}
+
+/**
+ * Check for lsp-capabilities.json manifest in sibling repo.
+ *
+ * Verifies the manifest exists, has correct languageId, and reports
+ * capability gaps vs. the registry's known feature set.
+ *
+ * @see https://github.com/newtontech/OpenQC-VSCode/issues/187
+ */
+function checkCapabilityManifest(
+  server: LSPServerRegistryEntry,
+  repoRoot: string
+): CompatibilityCheck {
+  const codeRoot = path.resolve(repoRoot, '..');
+  const repoName = server.repository.split('/')[1];
+
+  // Search multiple checkout locations
+  const searchPaths = [
+    path.join(codeRoot, repoName, 'lsp-capabilities.json'),
+    path.join(codeRoot, '.worktrees-lsp-latest', repoName, 'lsp-capabilities.json'),
+  ];
+
+  let manifestPath: string | null = null;
+  for (const p of searchPaths) {
+    if (fs.existsSync(p)) {
+      manifestPath = p;
+      break;
+    }
+  }
+
+  if (!manifestPath) {
+    return {
+      name: 'capability-manifest',
+      description: `Capability manifest for ${server.name}`,
+      status: 'warn',
+      detail: 'lsp-capabilities.json not found in sibling checkout',
+    };
+  }
+
+  try {
+    const content = fs.readFileSync(manifestPath, 'utf8');
+    const manifest = JSON.parse(content);
+
+    // Validate languageId match
+    if (manifest.languageId && manifest.languageId !== server.languageId) {
+      return {
+        name: 'capability-manifest',
+        description: `Capability manifest for ${server.name}`,
+        status: 'fail',
+        detail: `languageId mismatch: manifest="${manifest.languageId}" registry="${server.languageId}"`,
+      };
+    }
+
+    // Report capability coverage
+    const caps = manifest.capabilities || {};
+    const capabilityNames = [
+      'diagnostics',
+      'completion',
+      'hover',
+      'documentSymbol',
+      'semanticTokens',
+      'formatting',
+      'codeAction',
+      'references',
+      'rename',
+      'definition',
+      'inlayHint',
+    ];
+    const supported = capabilityNames.filter(k => caps[k] === true);
+    const missing = capabilityNames.filter(k => caps[k] === false);
+    const unknown = capabilityNames.filter(k => caps[k] === undefined);
+
+    return {
+      name: 'capability-manifest',
+      description: `Capability manifest for ${server.name}`,
+      status: 'pass',
+      detail: `${supported.length}/${capabilityNames.length} capabilities declared, ${missing.length} explicitly unsupported, ${unknown.length} unknown`,
+    };
+  } catch (e) {
+    return {
+      name: 'capability-manifest',
+      description: `Capability manifest for ${server.name}`,
+      status: 'fail',
+      detail: `Failed to parse manifest: ${(e as Error).message}`,
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------

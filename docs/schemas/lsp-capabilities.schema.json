@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/newtontech/OpenQC-VSCode/schemas/lsp-capabilities.json",
+  "title": "LSP Capabilities Manifest",
+  "description": "Machine-readable manifest for a standalone LSP server in the newtontech fleet. Each sibling repo should expose this file at its root for fleet-wide release gates and compatibility tracking.",
+  "type": "object",
+  "required": ["languageId", "version", "repository", "capabilities"],
+  "properties": {
+    "languageId": {
+      "type": "string",
+      "description": "VS Code language ID (must match the OpenQC registry entry)."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version or git tag of this manifest's server release."
+    },
+    "repository": {
+      "type": "string",
+      "description": "GitHub repository in owner/repo format."
+    },
+    "commit": {
+      "type": "string",
+      "description": "Git commit SHA this manifest was generated from."
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Standard LSP capabilities advertised by the server during initialize.",
+      "properties": {
+        "diagnostics": { "type": "boolean", "description": "Server supports textDocument/publishDiagnostics." },
+        "completion": { "type": "boolean", "description": "Server supports textDocument/completion." },
+        "hover": { "type": "boolean", "description": "Server supports textDocument/hover." },
+        "documentSymbol": { "type": "boolean", "description": "Server supports textDocument/documentSymbol." },
+        "semanticTokens": { "type": "boolean", "description": "Server supports textDocument/semanticTokens." },
+        "formatting": { "type": "boolean", "description": "Server supports textDocument/formatting." },
+        "codeAction": { "type": "boolean", "description": "Server supports textDocument/codeAction." },
+        "references": { "type": "boolean", "description": "Server supports textDocument/references." },
+        "rename": { "type": "boolean", "description": "Server supports textDocument/rename." },
+        "definition": { "type": "boolean", "description": "Server supports textDocument/definition." },
+        "inlayHint": { "type": "boolean", "description": "Server supports textDocument/inlayHint." }
+      }
+    },
+    "domainCapabilities": {
+      "type": "object",
+      "description": "OpenQC-specific domain capabilities for scientific input authoring.",
+      "properties": {
+        "languageDescription": { "type": "boolean" },
+        "sectionKeywordLookup": { "type": "boolean" },
+        "minimalExamples": { "type": "boolean" },
+        "nextTokenGuidance": { "type": "boolean" }
+      }
+    },
+    "agentCli": {
+      "type": "object",
+      "description": "Agent CLI surface for non-editor integration.",
+      "properties": {
+        "command": { "type": "string", "description": "CLI command name (e.g. 'vasp-lsp-tool')." },
+        "operations": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["check", "context", "complete", "hover", "symbols", "fix"] },
+          "description": "Available CLI operations."
+        }
+      }
+    },
+    "smokeFixtures": {
+      "type": "object",
+      "description": "Paths to smoke test fixtures relative to the repo root.",
+      "properties": {
+        "valid": { "type": "string", "description": "Path to a valid input file for smoke testing." },
+        "invalid": { "type": "string", "description": "Path to an intentionally invalid input file." }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Build/provenance metadata.",
+      "properties": {
+        "buildCommand": { "type": "string" },
+        "testCommand": { "type": "string" },
+        "diagnosticEngine": { "type": "string", "const": "v1" }
+      }
+    }
+  }
+}
