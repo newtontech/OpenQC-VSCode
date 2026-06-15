@@ -4,7 +4,7 @@
 
 **VS Code integration for computational chemistry LSPs**
 
-*Syntax, file detection, visualization entry points, and LSP startup for 16 computational chemistry and molecular-simulation formats*
+*Syntax, file detection, visualization entry points, and LSP startup for 17 computational chemistry and molecular-simulation formats*
 
 [![Install](https://img.shields.io/badge/VS%20Code-Install-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=newtontech.openqc)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -29,7 +29,7 @@ OpenQC is the VS Code-facing workspace for the newtontech computational chemistr
 
 The repository root is the canonical VS Code extension package root. Development, tests, packaging, and Marketplace publishing should use the root `package.json`; stale nested extension package roots are not maintained.
 
-OpenQC currently wires **16 bundled LSP integrations** for computational chemistry, materials, and molecular-simulation workflows:
+OpenQC currently wires **17 bundled LSP integrations** for computational chemistry, materials, and molecular-simulation workflows:
 
 ### Latest LSP Status
 
@@ -57,6 +57,7 @@ OpenQC tracks latest LSP support by the upstream default branch recorded in `src
 | MLIP | `newtontech/mlip-lsp` | Language contribution, syntax, file detection, LSP startup |
 | PyATB | `newtontech/pyatb-lsp` | Language contribution, syntax, file detection, LSP startup |
 | PySCF | `newtontech/pyscf-lsp` | Language contribution, syntax, file detection, LSP startup |
+| DP-GEN | `newtontech/dpgen-lsp` | Language contribution, syntax, file detection, LSP startup |
 
 ### Supported Integrations
 
@@ -78,6 +79,7 @@ OpenQC tracks latest LSP support by the upstream default branch recorded in `src
 | **MLIP** | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | LSP startup + syntax + file detection |
 | **PyATB** | `.pyatb.py`, `run_pyatb.py` | LSP startup + syntax + file detection |
 | **PySCF** | `.pyscf.py`, `run_pyscf.py` | LSP startup + syntax + file detection |
+| **DP-GEN** | `param.json`, `machine.json` | LSP startup + syntax + file detection |
 
 ### 🚧 Coming Soon
 

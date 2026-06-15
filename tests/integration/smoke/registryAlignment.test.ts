@@ -137,7 +137,7 @@ describe('Registry/Package/Docs Alignment Integration', () => {
 
   test('full compatibility report passes for all servers', () => {
     const report = generateCompatibilityReport(REPO_ROOT);
-    expect(report.totalServers).toBe(16);
+    expect(report.totalServers).toBe(17);
 
     // All should pass core checks
     for (const entry of report.entries) {

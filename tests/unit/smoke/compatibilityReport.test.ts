@@ -21,10 +21,10 @@ const MANIFESTS_DIR = path.join(REPO_ROOT, 'tests/fixtures/smoke/manifests');
 // ---------------------------------------------------------------------------
 
 describe('generateCompatibilityReport', () => {
-  it('generates a report covering all 16 LSP servers', () => {
+  it('generates a report covering all 17 LSP servers', () => {
     const report = generateCompatibilityReport(REPO_ROOT);
-    expect(report.totalServers).toBe(16);
-    expect(report.entries).toHaveLength(16);
+    expect(report.totalServers).toBe(17);
+    expect(report.entries).toHaveLength(17);
   });
 
   it('includes timestamps', () => {
@@ -114,7 +114,7 @@ describe('generateCompatibilityReport', () => {
 
   it('handles invalid repoRoot gracefully', () => {
     const report = generateCompatibilityReport('/nonexistent/path');
-    expect(report.totalServers).toBe(16);
+    expect(report.totalServers).toBe(17);
     // Should still generate the report but with failures
     for (const entry of report.entries) {
       const docsCheck = entry.checks.find(c => c.name === 'docs-alignment');

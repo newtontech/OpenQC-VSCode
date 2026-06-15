@@ -48,10 +48,10 @@ describe('runSmokeTestForLsp', () => {
 // ---------------------------------------------------------------------------
 
 describe('runAllSmokeTests', () => {
-  it('runs smoke tests for all 16 servers', () => {
+  it('runs smoke tests for all 17 servers', () => {
     const summary = runAllSmokeTests('/nonexistent/fixtures');
-    expect(summary.totalServers).toBe(16);
-    expect(summary.results).toHaveLength(16);
+    expect(summary.totalServers).toBe(17);
+    expect(summary.results).toHaveLength(17);
     expect(summary.generatedAt).toBeTruthy();
   });
 });
@@ -81,9 +81,9 @@ describe('verifyVsixPackage', () => {
 // ---------------------------------------------------------------------------
 
 describe('runLocalGates', () => {
-  it('checks all 16 repos', () => {
+  it('checks all 17 repos', () => {
     const results = runLocalGates(CODE_ROOT);
-    expect(results).toHaveLength(16);
+    expect(results).toHaveLength(17);
   });
 
   it('reports missing checkouts gracefully', () => {
@@ -100,9 +100,9 @@ describe('runLocalGates', () => {
 // ---------------------------------------------------------------------------
 
 describe('checkRepoCleanliness', () => {
-  it('checks all 16 repos', () => {
+  it('checks all 17 repos', () => {
     const statuses = checkRepoCleanliness(CODE_ROOT);
-    expect(statuses).toHaveLength(16);
+    expect(statuses).toHaveLength(17);
   });
 
   it('reports non-existent repos', () => {
@@ -128,12 +128,12 @@ describe('generateCampaignReport', () => {
 
     expect(report.runId).toBe('test-run-001');
     expect(report.generatedAt).toBeTruthy();
-    expect(report.repoStatuses).toHaveLength(16);
-    expect(report.gateResults).toHaveLength(16);
-    expect(report.cleanStatuses).toHaveLength(16);
+    expect(report.repoStatuses).toHaveLength(17);
+    expect(report.gateResults).toHaveLength(17);
+    expect(report.cleanStatuses).toHaveLength(17);
     expect(report.compatibilityReport).toBeDefined();
     if (report.compatibilityReport) {
-      expect(report.compatibilityReport.totalServers).toBe(16);
+      expect(report.compatibilityReport.totalServers).toBe(17);
     }
   });
 

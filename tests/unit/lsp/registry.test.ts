@@ -18,7 +18,7 @@ describe('LSP Registry', () => {
   const allServers = listBundledLspServers();
 
   it('contains all local LSP repositories from the OpenQC workspace', () => {
-    expect(getBundledLspServerCount()).toBe(16);
+    expect(getBundledLspServerCount()).toBe(17);
     expect(allServers.map(server => server.languageId)).toEqual([
       'abacus',
       'abinit',
@@ -36,12 +36,14 @@ describe('LSP Registry', () => {
       'mlip',
       'pyatb',
       'pyscf',
+      'dpgen',
     ]);
     expect(allServers.map(server => server.id).sort()).toEqual([
       'abacus-lsp',
       'abinit-lsp',
       'cif-lsp',
       'cp2k-lsp-enhanced',
+      'dpgen-lsp',
       'gamess-lsp',
       'gaussian-lsp',
       'gpumd-lsp',
@@ -89,6 +91,7 @@ describe('LSP Registry', () => {
       'nwchem',
       'pyatb',
       'pyscf',
+      'dpgen',
     ];
 
     for (const languageId of experimentalIds) {
@@ -206,7 +209,7 @@ describe('LSP Registry', () => {
     expect(first).toEqual(second);
 
     first.push({} as LSPServerRegistryEntry);
-    expect(listBundledLspServers()).toHaveLength(16);
+    expect(listBundledLspServers()).toHaveLength(17);
   });
 
   it('defines a local launch strategy for every bundled local LSP', () => {

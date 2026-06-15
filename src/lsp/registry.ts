@@ -362,6 +362,25 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
       functionName: 'lsp_main',
     },
   },
+  {
+    id: 'dpgen-lsp',
+    name: 'DP-GEN',
+    repository: 'newtontech/dpgen-lsp',
+    executable: 'dpgen-lsp',
+    languageId: 'dpgen',
+    fileExtensions: [],
+    fileNames: ['param.json', 'machine.json'],
+    enabled: true,
+    repositoryUrl: 'https://github.com/newtontech/dpgen-lsp',
+    stability: 'experimental',
+    defaultBranch: 'main',
+    localLaunch: {
+      kind: 'pythonFunction',
+      repoName: 'dpgen-lsp',
+      importPath: 'dpgen_lsp.server',
+      functionName: 'main',
+    },
+  },
 ] as const;
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
@@ -369,6 +388,7 @@ export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadine
   'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'planned'),
   'cif-lsp': diagnosticReadiness('cif-lsp-tool', 'planned'),
   'cp2k-lsp-enhanced': diagnosticReadiness('cp2k-lsp-tool', 'partial'),
+  'dpgen-lsp': diagnosticReadiness('dpgen-lsp-tool', 'planned'),
   'gamess-lsp': diagnosticReadiness('gamess-lsp-tool', 'planned'),
   'gaussian-lsp': diagnosticReadiness('gaussian-lsp-tool', 'planned'),
   'gpumd-lsp': diagnosticReadiness('gpumd-lsp-tool', 'planned'),

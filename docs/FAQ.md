@@ -4,7 +4,7 @@
 
 ### Q: What quantum chemistry packages are supported?
 
-A: OpenQC-VSCode supports 16 LSP-backed packages:
+A: OpenQC-VSCode supports 17 LSP-backed packages:
 - ABACUS
 - ABINIT
 - CIF
@@ -21,6 +21,7 @@ A: OpenQC-VSCode supports 16 LSP-backed packages:
 - MLIP
 - PyATB
 - PySCF
+- DP-GEN
 
 ### Q: Is this extension free?
 
@@ -92,6 +93,7 @@ A: Each quantum chemistry package has its own LSP:
 - MLIP: `mlip-lsp`
 - PyATB: `pyatb-lsp`
 - PySCF: `pyscf-lsp`
+- DP-GEN: `dpgen-lsp`
 
 ### Q: How do I configure LSP commands?
 

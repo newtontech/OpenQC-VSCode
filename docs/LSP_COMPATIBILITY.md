@@ -2,7 +2,7 @@
 
 This matrix is the OpenQC-facing contract for the newtontech LSP family. The source of truth is `src/lsp/registry.ts`; `package.json`, language configurations, TextMate grammars, and this document must stay aligned with that registry.
 
-Last updated: 2026-06-12. Latest support is tracked against each repository default branch unless a release tag is listed below. OpenQC does not pin old server binaries; it launches the configured executable or sibling local repository, so users can run the newest server available in their environment.
+Last updated: 2026-06-15. Latest support is tracked against each repository default branch unless a release tag is listed below. OpenQC does not pin old server binaries; it launches the configured executable or sibling local repository, so users can run the newest server available in their environment.
 
 ## Quick Reference
 
@@ -24,6 +24,7 @@ Last updated: 2026-06-12. Latest support is tracked against each repository defa
 | [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `main` | 0.1.0 | MLIP | `.mlip.json`, `.mlip.yaml`, `.mlip.yml`, `mlip.json`, `mlip.yaml`, `mlip.yml` | Experimental | Syntax, file detection, direct LSP startup |
 | [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | 0.1.0 | PyATB | `.pyatb.py`, `run_pyatb.py` | Experimental | Syntax, file detection, direct LSP startup |
 | [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | 0.1.0 | PySCF | `.pyscf.py`, `run_pyscf.py` | Experimental | Syntax, file detection, direct LSP startup |
+| [newtontech/dpgen-lsp](https://github.com/newtontech/dpgen-lsp) | `dpgen` | `main` | 0.1.0 | DP-GEN | `param.json`, `machine.json` | Experimental | Syntax, file detection, direct LSP startup |
 
 ## Diagnostic Engine v1 Readiness
 
@@ -45,6 +46,7 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 | `orca-lsp` | v1 | `orca-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `pyatb-lsp` | v1 | `pyatb-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `pyscf-lsp` | v1 | `pyscf-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `dpgen-lsp` | v1 | `dpgen-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `qe-lsp` | v1 | `qe-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 | `vasp-lsp` | v1 | `vasp-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 
