@@ -60,6 +60,48 @@ export interface RuleManifest {
 // Compatibility Report types (Issue #163)
 // ---------------------------------------------------------------------------
 
+/** Summary counts exported by backend docstring/wiki/raw traceability reports. */
+export interface TraceabilityReportSummary {
+  readonly docstringsTotal: number;
+  readonly docstringsLinked: number;
+  readonly brokenWikiLinks: number;
+  readonly wikiSourcesWithoutRaw: number;
+  readonly rawManifestFailures: number;
+}
+
+/** Full backend provenance traceability report consumed by OpenQC. */
+export interface TraceabilityReport {
+  readonly schemaVersion: 'openqc.lsp.traceability.v1';
+  readonly serverId: string;
+  readonly repository: string;
+  readonly languageId: string;
+  readonly generatedAt: string;
+  readonly summary: TraceabilityReportSummary;
+  readonly docstrings: readonly {
+    readonly path: string;
+    readonly symbol: string;
+    readonly wikiPath: string;
+  }[];
+  readonly wikiSources: readonly {
+    readonly wikiPath: string;
+    readonly sourceUrl: string;
+    readonly rawPath: string;
+  }[];
+  readonly ruleIds: readonly {
+    readonly code: string;
+    readonly sourcePath: string;
+  }[];
+  readonly sourceUrls: readonly {
+    readonly url: string;
+    readonly rawPath: string;
+    readonly kind?: string;
+  }[];
+  readonly rawManifest: {
+    readonly path: string;
+    readonly ok: boolean;
+  };
+}
+
 /** Status of an individual compatibility check. */
 export type CheckStatus = 'pass' | 'fail' | 'skip' | 'warn';
 

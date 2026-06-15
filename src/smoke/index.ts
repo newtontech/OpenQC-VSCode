@@ -14,6 +14,8 @@ export type {
   CompatibilityCheck,
   LspCompatibilityEntry,
   CompatibilityReport,
+  TraceabilityReportSummary,
+  TraceabilityReport,
   DocumentKind,
   DocumentDetectionResult,
   SmokeTestResult,
@@ -35,6 +37,11 @@ export {
   getManifestCategories,
   countRulesBySeverity,
 } from './ruleManifestReader';
+
+export {
+  TRACEABILITY_REPORT_SCHEMA_VERSION,
+  validateTraceabilityReport,
+} from './traceabilityReport';
 
 export {
   detectDocument,

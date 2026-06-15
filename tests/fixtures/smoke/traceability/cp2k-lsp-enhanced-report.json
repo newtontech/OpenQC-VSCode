@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "openqc.lsp.traceability.v1",
+  "serverId": "cp2k-lsp-enhanced",
+  "repository": "newtontech/cp2k-lsp-enhanced",
+  "languageId": "cp2k",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "summary": {
+    "docstringsTotal": 2,
+    "docstringsLinked": 2,
+    "brokenWikiLinks": 0,
+    "wikiSourcesWithoutRaw": 0,
+    "rawManifestFailures": 0
+  },
+  "docstrings": [
+    {
+      "path": "cp2k_input_tools/diagnostics.py",
+      "symbol": "validate_kind_aliases",
+      "wikiPath": "wiki/rules/kind-aliases.md"
+    },
+    {
+      "path": "cp2k_input_tools/log_parser.py",
+      "symbol": "parse_log_file",
+      "wikiPath": "wiki/rules/runtime-log-diagnostics.md"
+    }
+  ],
+  "wikiSources": [
+    {
+      "wikiPath": "wiki/rules/kind-aliases.md",
+      "sourceUrl": "https://manual.cp2k.org/trunk/CP2K_INPUT/FORCE_EVAL/SUBSYS/KIND.html",
+      "rawPath": "raw/assets/cp2k-kind-reference.html"
+    }
+  ],
+  "ruleIds": [
+    {
+      "code": "CP2K-INPUT-SYNTAX-001",
+      "sourcePath": "cp2k_input_tools/diagnostics.py"
+    },
+    {
+      "code": "CP2K-LOG-RUNTIME-001",
+      "sourcePath": "cp2k_input_tools/log_parser.py"
+    }
+  ],
+  "sourceUrls": [
+    {
+      "url": "https://manual.cp2k.org/trunk/CP2K_INPUT.html",
+      "kind": "official_docs",
+      "rawPath": "raw/assets/cp2k-input-reference.html"
+    }
+  ],
+  "rawManifest": {
+    "path": "raw/assets/manifest.json",
+    "ok": true
+  }
+}
