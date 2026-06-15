@@ -385,12 +385,12 @@ const BUNDLED_LSP_SERVERS: readonly LSPServerRegistryEntry[] = [
 
 export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadiness>> = {
   'abacus-lsp': diagnosticReadiness('abacus-lsp-tool', 'planned'),
-  'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'planned'),
+  'abinit-lsp': diagnosticReadiness('abinit-lsp-tool', 'partial', 'passing'),
   'cif-lsp': diagnosticReadiness('cif-lsp-tool', 'partial', 'passing'),
   'cp2k-lsp-enhanced': diagnosticReadiness('cp2k-lsp-tool', 'partial'),
   'dpgen-lsp': diagnosticReadiness('dpgen-lsp-tool', 'partial', 'passing'),
   'gamess-lsp': diagnosticReadiness('gamess-lsp-tool', 'partial', 'passing'),
-  'gaussian-lsp': diagnosticReadiness('gaussian-lsp-tool', 'planned'),
+  'gaussian-lsp': diagnosticReadiness('gaussian-lsp-tool', 'partial', 'passing'),
   'gpumd-lsp': diagnosticReadiness('gpumd-lsp-tool', 'partial', 'passing'),
   'gromacs-lsp': diagnosticReadiness('gromacs-lsp-tool', 'partial', 'passing'),
   'lammps-lsp': diagnosticReadiness('lammps-lsp-tool', 'partial'),
@@ -398,7 +398,7 @@ export const LSP_DIAGNOSTIC_READINESS: Readonly<Record<string, DiagnosticReadine
   'nwchem-lsp': diagnosticReadiness('nwchem-lsp-tool', 'partial', 'passing'),
   'orca-lsp': diagnosticReadiness('orca-lsp-tool', 'partial', 'passing'),
   'pyatb-lsp': diagnosticReadiness('pyatb-lsp-tool', 'partial', 'passing'),
-  'pyscf-lsp': diagnosticReadiness('pyscf-lsp-tool', 'planned'),
+  'pyscf-lsp': diagnosticReadiness('pyscf-lsp-tool', 'partial', 'passing'),
   'qe-lsp': diagnosticReadiness('qe-lsp-tool', 'partial'),
   'vasp-lsp': diagnosticReadiness('vasp-lsp-tool', 'partial'),
 } as const;
