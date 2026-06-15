@@ -33,11 +33,11 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 | LSP Server | Diagnostic Engine | Agent CLI | Agent Operations | Help Smoke | Closed Loop |
 |------------|-------------------|-----------|------------------|------------|-------------|
 | `abacus-lsp` | v1 | `abacus-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
-| `abinit-lsp` | v1 | `abinit-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `abinit-lsp` | v1 | `abinit-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `cif-lsp` | v1 | `cif-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `cp2k-lsp-enhanced` | v1 | `cp2k-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 | `gamess-lsp` | v1 | `gamess-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
-| `gaussian-lsp` | v1 | `gaussian-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `gaussian-lsp` | v1 | `gaussian-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `gpumd-lsp` | v1 | `gpumd-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `gromacs-lsp` | v1 | `gromacs-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `lammps-lsp` | v1 | `lammps-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
@@ -45,7 +45,7 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 | `nwchem-lsp` | v1 | `nwchem-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `orca-lsp` | v1 | `orca-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `pyatb-lsp` | v1 | `pyatb-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
-| `pyscf-lsp` | v1 | `pyscf-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `pyscf-lsp` | v1 | `pyscf-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `dpgen-lsp` | v1 | `dpgen-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `qe-lsp` | v1 | `qe-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 | `vasp-lsp` | v1 | `vasp-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |

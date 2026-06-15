@@ -55,11 +55,11 @@ The OpenQC family gate has no blocking errors, but it still reports these maturi
 | Repo | Remaining warnings |
 |------|--------------------|
 | `abacus-lsp` | Missing canonical capabilities section; no git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
-| `abinit-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
+| `abinit-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`. Runtime/log diagnostics and fix-hint envelopes are now wired, but exhaustive ABINIT version/rule coverage is still open. |
 | `cif-lsp` | Closed-loop support still planned. |
 | `cp2k-lsp-enhanced` | No current family-gate warnings. |
 | `VASP-LSP` | No git tags. |
-| `gaussian-lsp` | Missing canonical capabilities section; no git tags; closed-loop support still planned. |
+| `gaussian-lsp` | No git tags. Runtime-log diagnostics, parse-log routing, and unsafe-fix refusals are now wired, but exhaustive Gaussian rule/version coverage is still open. |
 | `orca-lsp` | No git tags. Closed-loop repair previews and log diagnostics are now wired, but exhaustive ORCA version/rule coverage is still open. |
 | `qe-lsp` | No git tags. |
 | `gamess-lsp` | No git tags; closed-loop support still planned. |
@@ -69,7 +69,7 @@ The OpenQC family gate has no blocking errors, but it still reports these maturi
 | `lammps-lsp` | No current family-gate warnings. |
 | `mlip-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
 | `pyatb-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
-| `pyscf-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
+| `pyscf-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`. Traceback/log diagnostics and fix previews are now wired, but exhaustive PySCF API/version coverage is still open. |
 | `dpgen-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`; no valid/invalid fixtures detected by the family gate; closed-loop support still planned. |
 
 ## Open Issue Summary
