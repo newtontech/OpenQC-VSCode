@@ -1564,6 +1564,7 @@
     "watch": "tsc -watch -p ./",
     "lsp:check-latest": "node scripts/check-lsp-latest.mjs",
     "lsp:check-family": "node scripts/check-lsp-family.mjs",
+    "lsp:check-bohrium-registry": "node scripts/check-bohrium-registry-alignment.mjs --strict",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "typecheck": "tsc --noEmit",
