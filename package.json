@@ -1511,6 +1511,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "lsp:check-latest": "node scripts/check-lsp-latest.mjs",
+    "lsp:check-family": "node scripts/check-lsp-family.mjs",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "typecheck": "tsc --noEmit",

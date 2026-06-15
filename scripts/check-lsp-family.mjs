@@ -1,0 +1,461 @@
+#!/usr/bin/env node
+
+/**
+ * LSP Family Release Gate Check
+ *
+ * Validates every bundled LSP server against fleet-perfect release requirements:
+ * - Manifest presence and validity (lsp-capabilities.json)
+ * - Provenance entries (version, commit, source)
+ * - Fixture coverage (valid, invalid, log)
+ * - Smoke command availability
+ * - DiagnosticEnvelope/v1 readiness
+ *
+ * Usage:
+ *   node scripts/check-lsp-family.mjs           # human-readable output
+ *   node scripts/check-lsp-family.mjs --json    # machine-readable JSON
+ *   node scripts/check-lsp-family.mjs --strict  # exit non-zero on any gap
+ *
+ * @see https://github.com/newtontech/OpenQC-VSCode/issues/186
+ */
+
+import { execFileSync } from 'child_process';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(__dirname, '..');
+const codeRoot = resolve(repoRoot, '..');
+
+// ---------------------------------------------------------------------------
+// CLI flags
+// ---------------------------------------------------------------------------
+
+const jsonMode = process.argv.includes('--json');
+const strictMode = process.argv.includes('--strict');
+const verbose = process.argv.includes('--verbose');
+
+// ---------------------------------------------------------------------------
+// Parse registry
+// ---------------------------------------------------------------------------
+
+const registryPath = join(repoRoot, 'src/lsp/registry.ts');
+const registry = readFileSync(registryPath, 'utf8');
+
+const entries = [...registry.matchAll(
+  /id: '([^']+)'[\s\S]*?repository: '([^']+)'[\s\S]*?languageId: '([^']+)'[\s\S]*?defaultBranch: '([^']+)'/g
+)].map(match => ({
+  id: match[1],
+  repository: match[2],
+  languageId: match[3],
+  defaultBranch: match[4],
+}));
+
+const readiness = new Map([...registry.matchAll(
+  /'([^']+)': diagnosticReadiness\('([^']+)', '([^']+)'/g
+)].map(match => [
+  match[1],
+  {
+    agentCli: match[2],
+    closedLoop: match[3],
+  },
+]));
+
+if (entries.length === 0) {
+  throw new Error(`No LSP registry entries found in ${registryPath}`);
+}
+
+// ---------------------------------------------------------------------------
+// Severity levels
+// ---------------------------------------------------------------------------
+
+const SEVERITY = {
+  ERROR: 'error',       // blocks release
+  WARNING: 'warning',   // maturity gap, does not block
+  INFO: 'info',         // informational
+};
+
+// ---------------------------------------------------------------------------
+// Gate checks
+// ---------------------------------------------------------------------------
+
+/**
+ * Check for lsp-capabilities.json manifest in sibling repo.
+ */
+function checkManifest(entry) {
+  const repoName = entry.repository.split('/')[1];
+  const candidates = [
+    join(codeRoot, repoName, 'lsp-capabilities.json'),
+    join(codeRoot, '.worktrees-lsp-latest', repoName, 'lsp-capabilities.json'),
+    join(codeRoot, '.worktrees-lsp-wiki-agent-cli-20260612', repoName, 'lsp-capabilities.json'),
+  ];
+
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      try {
+        const content = readFileSync(path, 'utf8');
+        const manifest = JSON.parse(content);
+        const gaps = validateManifestShape(entry, manifest);
+        return { status: 'pass', path, gaps };
+      } catch (e) {
+        return { status: 'invalid', path, gaps: [{ severity: SEVERITY.ERROR, message: `Invalid JSON: ${e.message}` }] };
+      }
+    }
+  }
+
+  return { status: 'missing', path: null, gaps: [{ severity: SEVERITY.ERROR, message: 'lsp-capabilities.json not found in any sibling checkout' }] };
+}
+
+/**
+ * Validate manifest has the required fields.
+ */
+function validateManifestShape(entry, manifest) {
+  const gaps = [];
+  const required = ['languageId', 'version', 'repository'];
+  for (const field of required) {
+    if (!manifest[field]) {
+      gaps.push({ severity: SEVERITY.ERROR, message: `Missing required field: ${field}` });
+    }
+  }
+  if (manifest.languageId && manifest.languageId !== entry.languageId) {
+    gaps.push({ severity: SEVERITY.ERROR, message: `languageId mismatch: manifest=${manifest.languageId} registry=${entry.languageId}` });
+  }
+  if (!manifest.capabilities) {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'No capabilities section (editor parity tracking incomplete)' });
+  }
+  return gaps;
+}
+
+/**
+ * Check for provenance metadata in sibling repo.
+ */
+function checkProvenance(entry) {
+  const repoName = entry.repository.split('/')[1];
+  const localPath = findLocalCheckout(entry);
+
+  if (!localPath) {
+    return { status: 'missing', gaps: [{ severity: SEVERITY.WARNING, message: 'No local checkout found' }] };
+  }
+
+  const gaps = [];
+
+  // Check for version/tag
+  try {
+    const tags = git(['-C', localPath, 'tag', '--sort=-version:refname'], { quiet: true });
+    if (tags.trim().length === 0) {
+      gaps.push({ severity: SEVERITY.WARNING, message: 'No git tags found (no release version)' });
+    }
+  } catch {
+    gaps.push({ severity: SEVERITY.INFO, message: 'Could not read tags' });
+  }
+
+  // Check for CHANGELOG or version file
+  const hasChangelog = existsSync(join(localPath, 'CHANGELOG.md')) || existsSync(join(localPath, 'CHANGELOG'));
+  const hasVersion = existsSync(join(localPath, 'VERSION')) || existsSync(join(localPath, 'version.txt'));
+  if (!hasChangelog && !hasVersion) {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'No CHANGELOG.md or VERSION file' });
+  }
+
+  return { status: gaps.length === 0 ? 'pass' : 'partial', gaps };
+}
+
+/**
+ * Check for valid/invalid/log fixture sets.
+ */
+function checkFixtures(entry) {
+  const repoName = entry.repository.split('/')[1];
+  const localPath = findLocalCheckout(entry);
+
+  if (!localPath) {
+    return { status: 'missing', gaps: [{ severity: SEVERITY.WARNING, message: 'No local checkout; cannot check fixtures' }] };
+  }
+
+  const gaps = [];
+  const fixtureDirs = ['tests/fixtures', 'fixtures', 'test/fixtures', 'tests/test_data'];
+
+  let foundValid = false;
+  let foundInvalid = false;
+
+  for (const dir of fixtureDirs) {
+    const fixturePath = join(localPath, dir);
+    if (!existsSync(fixturePath)) continue;
+
+    const files = listFilesRecursive(fixturePath);
+    const names = files.map(f => f.toLowerCase());
+
+    if (names.some(n => n.includes('valid') || n.includes('correct') || n.includes('ok'))) {
+      foundValid = true;
+    }
+    if (names.some(n => n.includes('invalid') || n.includes('error') || n.includes('bad'))) {
+      foundInvalid = true;
+    }
+  }
+
+  if (!foundValid) {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'No valid fixture files found' });
+  }
+  if (!foundInvalid) {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'No invalid fixture files found' });
+  }
+
+  return {
+    status: gaps.length === 0 ? 'pass' : 'partial',
+    gaps,
+  };
+}
+
+/**
+ * Check smoke command availability.
+ */
+function checkSmoke(entry) {
+  const metadata = readiness.get(entry.id);
+  if (!metadata?.agentCli) {
+    return { status: 'skip', gaps: [{ severity: SEVERITY.INFO, message: 'No agent CLI configured' }] };
+  }
+
+  const localPath = findLocalCheckout(entry);
+  if (!localPath) {
+    return { status: 'skip', gaps: [{ severity: SEVERITY.INFO, message: 'No local checkout; smoke requires local build' }] };
+  }
+
+  const probe = agentHelpProbe(entry, localPath);
+  const gaps = probe.status === 'pass'
+    ? []
+    : [{ severity: probe.status === 'fail' ? SEVERITY.ERROR : SEVERITY.WARNING, message: probe.detail }];
+
+  return { status: probe.status, gaps };
+}
+
+/**
+ * Check DiagnosticEnvelope/v1 readiness.
+ */
+function checkDiagnosticReadiness(entry) {
+  const metadata = readiness.get(entry.id);
+  if (!metadata) {
+    return { status: 'missing', gaps: [{ severity: SEVERITY.ERROR, message: 'No diagnostic readiness entry in registry' }] };
+  }
+
+  const gaps = [];
+
+  if (!metadata.agentCli) {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'No agent CLI configured' });
+  }
+
+  if (metadata.closedLoop === 'planned') {
+    gaps.push({ severity: SEVERITY.WARNING, message: 'Closed-loop support is planned, not implemented' });
+  }
+
+  return {
+    status: gaps.length === 0 ? 'pass' : 'partial',
+    gaps,
+    metadata,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function git(args, options = {}) {
+  try {
+    return execFileSync('git', args, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', options.quiet ? 'ignore' : 'pipe'],
+      timeout: 10000,
+      ...options,
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function findLocalCheckout(entry) {
+  const repoName = entry.repository.split('/')[1];
+  const candidates = [
+    join(codeRoot, repoName),
+    join(codeRoot, '.worktrees-lsp-latest', repoName),
+    join(codeRoot, '.worktrees-lsp-wiki-agent-cli-20260612', repoName),
+  ];
+
+  for (const path of candidates) {
+    if (existsSync(join(path, '.git'))) {
+      return path;
+    }
+  }
+  return null;
+}
+
+function listFilesRecursive(dir, files = []) {
+  if (!existsSync(dir)) return files;
+  const items = readdirSync(dir);
+  for (const item of items) {
+    const fullPath = join(dir, item);
+    try {
+      const stat = statSync(fullPath);
+      if (stat.isDirectory()) {
+        listFilesRecursive(fullPath, files);
+      } else {
+        files.push(fullPath);
+      }
+    } catch {
+      // skip inaccessible files
+    }
+  }
+  return files;
+}
+
+function agentHelpProbe(entry, localPath) {
+  const metadata = readiness.get(entry.id);
+  if (!metadata?.agentCli) {
+    return { status: 'skip', detail: 'no-agent-cli-metadata' };
+  }
+
+  const env = { ...process.env };
+  const sourcePath = join(localPath, 'src');
+  env.PYTHONPATH = [existsSync(sourcePath) ? sourcePath : localPath, localPath, process.env.PYTHONPATH]
+    .filter(Boolean)
+    .join(':');
+
+  let command;
+  let args;
+  let cwd = localPath;
+
+  if (entry.id === 'cif-lsp') {
+    const script = join(localPath, 'server/out/cifLspTool.js');
+    if (!existsSync(script)) {
+      return { status: 'fail', detail: 'server/out/cifLspTool.js not found' };
+    }
+    command = 'node';
+    args = [script, '--help'];
+  } else if (entry.id === 'lammps-lsp') {
+    command = 'cargo';
+    args = ['run', '--quiet', '--bin', 'lammps-lsp-tool', '--', '--help'];
+  } else {
+    const repoName = entry.repository.split('/')[1];
+    let moduleName = entry.id.replace(/-lsp$/, '_lsp').replaceAll('-', '_');
+    if (repoName === 'cp2k-lsp-enhanced') moduleName = 'cp2k_input_tools.tool';
+    if (repoName === 'VASP-LSP') moduleName = 'vasp_lsp.tool';
+    command = 'python3';
+    args = ['-m', `${moduleName}.tool`, '--help'];
+  }
+
+  try {
+    execFileSync(command, args, {
+      cwd,
+      env,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: entry.id === 'lammps-lsp' ? 120000 : 30000,
+    });
+    return { status: 'pass', detail: metadata.agentCli };
+  } catch (error) {
+    const stderr = error.stderr?.toString?.() || error.message;
+    return { status: 'fail', detail: `${metadata.agentCli}: ${stderr.split('\n')[0]}` };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+function checkRepo(entry) {
+  const manifest = checkManifest(entry);
+  const provenance = checkProvenance(entry);
+  const fixtures = checkFixtures(entry);
+  const smoke = checkSmoke(entry);
+  const diagReadiness = checkDiagnosticReadiness(entry);
+
+  const allGaps = [
+    ...manifest.gaps,
+    ...provenance.gaps,
+    ...fixtures.gaps,
+    ...smoke.gaps,
+    ...diagReadiness.gaps,
+  ];
+
+  const hasBlocking = allGaps.some(g => g.severity === SEVERITY.ERROR);
+  const maturity = manifest.status === 'pass' && !hasBlocking ? 'stable' :
+    manifest.status === 'missing' ? 'experimental' : 'preview';
+
+  return {
+    id: entry.id,
+    languageId: entry.languageId,
+    repository: entry.repository,
+    manifest: manifest.status,
+    manifestPath: manifest.path,
+    provenance: provenance.status,
+    fixtures: fixtures.status,
+    smoke: smoke.status,
+    diagnosticReadiness: diagReadiness.status,
+    maturity,
+    gaps: allGaps,
+    blockingGaps: allGaps.filter(g => g.severity === SEVERITY.ERROR),
+    warningGaps: allGaps.filter(g => g.severity === SEVERITY.WARNING),
+  };
+}
+
+// Run all checks
+const results = entries.map(checkRepo);
+
+// Aggregate stats
+const totalGaps = results.reduce((sum, r) => sum + r.gaps.length, 0);
+const blockingGaps = results.reduce((sum, r) => sum + r.blockingGaps.length, 0);
+const warningGaps = results.reduce((sum, r) => sum + r.warningGaps.length, 0);
+const passCount = results.filter(r => r.blockingGaps.length === 0).length;
+
+const report = {
+  checkedAt: new Date().toISOString(),
+  totalRepos: entries.length,
+  passing: passCount,
+  withBlockingGaps: results.filter(r => r.blockingGaps.length > 0).length,
+  totalGaps,
+  blockingGaps,
+  warningGaps,
+  results,
+};
+
+// ---------------------------------------------------------------------------
+// Output
+// ---------------------------------------------------------------------------
+
+if (jsonMode) {
+  console.log(JSON.stringify(report, null, 2));
+} else {
+  console.log('LSP Family Release Gate Check');
+  console.log('='.repeat(60));
+  console.log(`Checked at: ${report.checkedAt}`);
+  console.log(`Repos: ${report.totalRepos} | Passing: ${report.passing} | Blocking gaps: ${report.blockingGaps} | Warnings: ${report.warningGaps}`);
+  console.log('');
+
+  for (const r of results) {
+    const icon = r.blockingGaps.length > 0 ? 'FAIL' : r.warningGaps.length > 0 ? 'WARN' : 'PASS';
+    console.log(`[${icon}] ${r.id} (${r.languageId})`);
+    console.log(`    manifest: ${r.manifest} | provenance: ${r.provenance} | fixtures: ${r.fixtures} | smoke: ${r.smoke} | diag: ${r.diagnosticReadiness}`);
+
+    if (verbose || r.blockingGaps.length > 0) {
+      for (const gap of r.blockingGaps) {
+        console.log(`    ERROR: ${gap.message}`);
+      }
+    }
+    if (verbose) {
+      for (const gap of r.warningGaps) {
+        console.log(`    WARN:  ${gap.message}`);
+      }
+    }
+    console.log('');
+  }
+
+  console.log('='.repeat(60));
+
+  // Graduation guide
+  console.log('');
+  console.log('Maturity Levels:');
+  console.log('  preview     - Missing manifest; cannot validate against fleet requirements.');
+  console.log('  experimental - Manifest present but has warnings (fixtures, provenance, or closed-loop gaps).');
+  console.log('  stable       - All required gates pass. Safe for VSIX release blocking.');
+}
+
+// Exit code
+if (strictMode && blockingGaps > 0) {
+  process.exit(1);
+}

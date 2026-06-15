@@ -558,6 +558,36 @@ export class LSPManager {
   }
 
   /**
+   * Check whether a running LSP client exists for the given language ID.
+   *
+   * @param languageId - VS Code language ID (e.g. "vasp", "gaussian").
+   * @returns True if a client is currently started for this language.
+   */
+  isClientRunning(languageId: string): boolean {
+    for (const record of this.clients.values()) {
+      if (record.languageId === languageId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the running LanguageClient for a given language ID, or undefined.
+   *
+   * @param languageId - VS Code language ID (e.g. "vasp", "gaussian").
+   * @returns The LanguageClient instance, or undefined if not running.
+   */
+  getClientForLanguage(languageId: string): LanguageClient | undefined {
+    for (const record of this.clients.values()) {
+      if (record.languageId === languageId) {
+        return record.client;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Stop all managed LSP clients and clear their records.
    */
   async dispose(): Promise<void> {

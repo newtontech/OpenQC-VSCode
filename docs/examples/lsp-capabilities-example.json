@@ -1,0 +1,38 @@
+{
+  "languageId": "vasp",
+  "version": "0.4.4",
+  "repository": "newtontech/VASP-LSP",
+  "commit": "abc123def456",
+  "capabilities": {
+    "diagnostics": true,
+    "completion": true,
+    "hover": true,
+    "documentSymbol": true,
+    "semanticTokens": false,
+    "formatting": true,
+    "codeAction": true,
+    "references": false,
+    "rename": false,
+    "definition": false,
+    "inlayHint": false
+  },
+  "domainCapabilities": {
+    "languageDescription": true,
+    "sectionKeywordLookup": true,
+    "minimalExamples": true,
+    "nextTokenGuidance": true
+  },
+  "agentCli": {
+    "command": "vasp-lsp-tool",
+    "operations": ["check", "context", "complete", "hover", "symbols", "fix"]
+  },
+  "smokeFixtures": {
+    "valid": "tests/fixtures/valid/INCAR",
+    "invalid": "tests/fixtures/invalid/INCAR_bad_keyword"
+  },
+  "provenance": {
+    "buildCommand": "pip install -e .",
+    "testCommand": "python -m pytest tests/ -v",
+    "diagnosticEngine": "v1"
+  }
+}
