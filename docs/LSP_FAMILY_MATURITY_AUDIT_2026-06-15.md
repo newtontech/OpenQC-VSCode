@@ -54,7 +54,7 @@ The OpenQC family gate has no blocking errors, but it still reports these maturi
 
 | Repo | Remaining warnings |
 |------|--------------------|
-| `abacus-lsp` | Missing canonical capabilities section; no git tags; no `CHANGELOG.md` or `VERSION`; closed-loop support still planned. |
+| `abacus-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`. INPUT/STRU/KPT runtime diagnostics and fix-preview/refusal envelopes are now wired, but exhaustive ABACUS version/rule coverage is still open. |
 | `abinit-lsp` | No git tags; no `CHANGELOG.md` or `VERSION`. Runtime/log diagnostics and fix-hint envelopes are now wired, but exhaustive ABINIT version/rule coverage is still open. |
 | `cif-lsp` | Closed-loop support still planned. |
 | `cp2k-lsp-enhanced` | No current family-gate warnings. |

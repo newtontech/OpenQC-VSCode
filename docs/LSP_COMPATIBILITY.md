@@ -32,7 +32,7 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 
 | LSP Server | Diagnostic Engine | Agent CLI | Agent Operations | Help Smoke | Closed Loop |
 |------------|-------------------|-----------|------------------|------------|-------------|
-| `abacus-lsp` | v1 | `abacus-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `abacus-lsp` | v1 | `abacus-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `abinit-lsp` | v1 | `abinit-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `cif-lsp` | v1 | `cif-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `cp2k-lsp-enhanced` | v1 | `cp2k-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
