@@ -14,7 +14,7 @@ Last updated: 2026-06-15. Latest support is tracked against each repository defa
 | [newtontech/cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | `cp2k` | `develop` | v0.9.1 | CP2K | `.inp` | Experimental | Syntax, file detection, direct LSP startup |
 | [newtontech/VASP-LSP](https://github.com/newtontech/VASP-LSP) | `vasp` | `main` | 0.4.4 | VASP | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR`, `CONTCAR`, `OSZICAR`, `OUTCAR`, `vasprun.xml` | Stable | Syntax, file detection, direct LSP startup |
 | [newtontech/gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | `gaussian` | `main` | 0.2.11 | Gaussian | `.gjf`, `.com` | Stable | Syntax, file detection, direct LSP startup |
-| [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `main` | 0.5.4 | ORCA | `.inp` | Stable | Syntax, file detection, direct LSP startup |
+| [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `main` | 0.5.5 | ORCA | `.inp` | Stable | Syntax, file detection, direct LSP startup |
 | [newtontech/qe-lsp](https://github.com/newtontech/qe-lsp) | `qe` | `main` | 0.1.0 | Quantum ESPRESSO | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | Stable | Syntax, file detection, direct LSP startup |
 | [newtontech/gamess-lsp](https://github.com/newtontech/gamess-lsp) | `gamess` | `main` | 0.1.0 | GAMESS | `.inp` | Stable | Syntax, file detection, direct LSP startup |
 | [newtontech/nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | `nwchem` | `main` | v0.3.0 / local 0.5.0 | NWChem | `.nw`, `.nwinp` | Experimental | Syntax, file detection, direct LSP startup |
@@ -43,7 +43,7 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 | `lammps-lsp` | v1 | `lammps-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Partial |
 | `mlip-lsp` | v1 | `mlip-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `nwchem-lsp` | v1 | `nwchem-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
-| `orca-lsp` | v1 | `orca-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
+| `orca-lsp` | v1 | `orca-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Passing | Partial |
 | `pyatb-lsp` | v1 | `pyatb-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `pyscf-lsp` | v1 | `pyscf-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
 | `dpgen-lsp` | v1 | `dpgen-lsp-tool` | `check`, `context`, `complete`, `hover`, `symbols`, `fix` | Pending | Planned |
