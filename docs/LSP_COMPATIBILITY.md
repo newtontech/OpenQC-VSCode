@@ -10,8 +10,8 @@ Regenerate it with `npm run lsp:generate-compatibility-doc` after registry, back
 | Backends | 17 |
 | Passing | 17 |
 | Blocking gaps | 0 |
-| Warnings | 18 |
-| Graduation score | 78/100 |
+| Warnings | 16 |
+| Graduation score | 80/100 |
 
 ## Backend Matrix
 
@@ -33,7 +33,7 @@ Regenerate it with `npm run lsp:generate-compatibility-doc` after registry, back
 | [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `main` | `.mlip.json`, `.mlip.yaml`, `.mlip.yml`, `mlip.json`, `mlip.yaml`, `mlip.yml` | experimental | stable | `v0.2.0`<br>VERSION `0.2.0`<br>HEAD `74599859d2da` | pass | pass | pass | pass | pass | missing |
 | [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | `.pyatb.py`, `run_pyatb.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `beacd3141616` | pass | pass | pass | pass | pass | missing |
 | [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | `.pyscf.py`, `run_pyscf.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `766cf71b9e20` | pass | pass | pass | pass | pass | missing |
-| [newtontech/dpgen-lsp](https://github.com/newtontech/dpgen-lsp) | `dpgen` | `main` | `param.json`, `machine.json` | experimental | stable | `v0.1.0` local-only<br>VERSION `0.1.0`<br>HEAD `89daa8c2d125` | pass | partial | pass | pass | pass | missing |
+| [newtontech/dpgen-lsp](https://github.com/newtontech/dpgen-lsp) | `dpgen` | `main` | `param.json`, `machine.json` | experimental | stable | `v0.0.1`<br>VERSION `0.1.0`<br>HEAD `91380c94419b` | pass | pass | pass | pass | pass | pass |
 
 ## Agent CLI Readiness
 
@@ -106,11 +106,6 @@ Regenerate it with `npm run lsp:generate-compatibility-doc` after registry, back
 
 ### pyscf-lsp
 - WARN: No docstring/wiki/raw traceability report found
-
-### dpgen-lsp
-- WARN: Latest local tag v0.1.0 is not present on origin
-- WARN: No docstring/wiki/raw traceability report found
-- Action: Push tag v0.1.0 to origin or retag the verified remote commit.
 
 
 ## OpenQC Integration Guarantees
