@@ -60,9 +60,26 @@ describe('OpenQC ↔ Bohrium registry alignment', () => {
   );
 
   it('exposes a local alignment script with JSON output', () => {
+    const tempDir = fs.mkdtempSync(path.join(REPO_ROOT, '.tmp-bohrium-registry-'));
+    const tempRegistry = path.join(tempDir, 'lsp_backends.yaml');
+    const readinessById = new Map(
+      openqcServers.map(server => [server.id, getLspDiagnosticReadiness(server.id)])
+    );
+    fs.writeFileSync(
+      tempRegistry,
+      JSON.stringify({
+        backends: openqcServers.map(server => ({
+          id: server.id,
+          software: server.languageId,
+          agent_cli: readinessById.get(server.id)?.agentCli,
+        })),
+      }),
+      'utf8'
+    );
+
     const output = execFileSync(
       process.execPath,
-      [ALIGNMENT_SCRIPT, '--json', '--bohrium-registry', registryPath],
+      [ALIGNMENT_SCRIPT, '--json', '--bohrium-registry', tempRegistry],
       {
         cwd: REPO_ROOT,
         encoding: 'utf8',
@@ -77,11 +94,11 @@ describe('OpenQC ↔ Bohrium registry alignment', () => {
     };
 
     expect(report.surfaces.openqc.backendCount).toBe(17);
-    if (registryExists) {
-      expect(report.surfaces.bohrium.backendCount).toBe(17);
-      expect(report.summary.missingInBohrium).toEqual([]);
-      expect(report.summary.excessInBohrium).toEqual([]);
-      expect(report.ok).toBe(true);
-    }
+    expect(report.surfaces.bohrium.backendCount).toBe(17);
+    expect(report.summary.missingInBohrium).toEqual([]);
+    expect(report.summary.excessInBohrium).toEqual([]);
+    expect(report.ok).toBe(true);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 });

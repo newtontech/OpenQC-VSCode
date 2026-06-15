@@ -37,22 +37,24 @@ const bohriumRegistryPath =
 const openqcRegistryPath = join(repoRoot, 'src/lsp/registry.ts');
 const openqcRegistry = readFileSync(openqcRegistryPath, 'utf8');
 
-const openqcEntries = [...openqcRegistry.matchAll(
-  /id: '([^']+)'[\s\S]*?languageId: '([^']+)'/g
-)].map(match => ({
+const openqcEntries = [
+  ...openqcRegistry.matchAll(/id: '([^']+)'[\s\S]*?languageId: '([^']+)'/g),
+].map(match => ({
   id: match[1],
   languageId: match[2],
 }));
 
-const openqcReadiness = new Map([...openqcRegistry.matchAll(
-  /'([^']+)': diagnosticReadiness\('([^']+)', '([^']+)'/g
-)].map(match => [
-  match[1],
-  {
-    agentCli: match[2],
-    closedLoop: match[3],
-  },
-]));
+const openqcReadiness = new Map(
+  [...openqcRegistry.matchAll(/'([^']+)': diagnosticReadiness\('([^']+)', '([^']+)'/g)].map(
+    match => [
+      match[1],
+      {
+        agentCli: match[2],
+        closedLoop: match[3],
+      },
+    ]
+  )
+);
 
 if (!existsSync(bohriumRegistryPath)) {
   const message = `Bohrium registry not found: ${bohriumRegistryPath}`;
@@ -95,7 +97,8 @@ for (const entry of openqcEntries) {
   }
 }
 
-const aligned = missingInBohrium.length === 0 && excessInBohrium.length === 0 && agentCliMismatches.length === 0;
+const aligned =
+  missingInBohrium.length === 0 && excessInBohrium.length === 0 && agentCliMismatches.length === 0;
 
 const report = {
   ok: aligned,
@@ -111,7 +114,8 @@ const report = {
       role: 'skill-router',
       source: bohriumRegistryPath,
       backendCount: bohriumBackends.length,
-      description: 'Bohrium LSP skill backend registry used by lsp_agent_router.py and lsp_skill_probe.py.',
+      description:
+        'Bohrium LSP skill backend registry used by lsp_agent_router.py and lsp_skill_probe.py.',
     },
   },
   summary: {
@@ -121,8 +125,7 @@ const report = {
     excessInBohrium,
     agentCliMismatches,
   },
-  note:
-    'OpenQC editor integration and Bohrium skill routing share backend ids and agent CLI names, but maturity/blocking in Bohrium may differ from OpenQC stability until fleet closeout.',
+  note: 'OpenQC editor integration and Bohrium skill routing share backend ids and agent CLI names, but maturity/blocking in Bohrium may differ from OpenQC stability until fleet closeout.',
   backends: openqcEntries.map(entry => {
     const readiness = openqcReadiness.get(entry.id);
     const backend = bohriumBackends.find(item => item.id === entry.id);
@@ -144,8 +147,12 @@ if (jsonMode) {
 } else {
   console.log('# OpenQC ↔ Bohrium LSP Registry Alignment');
   console.log('');
-  console.log(`OpenQC editor registry: ${report.surfaces.openqc.backendCount} backends (${openqcRegistryPath})`);
-  console.log(`Bohrium skill registry: ${report.surfaces.bohrium.backendCount} backends (${bohriumRegistryPath})`);
+  console.log(
+    `OpenQC editor registry: ${report.surfaces.openqc.backendCount} backends (${openqcRegistryPath})`
+  );
+  console.log(
+    `Bohrium skill registry: ${report.surfaces.bohrium.backendCount} backends (${bohriumRegistryPath})`
+  );
   console.log('');
   if (aligned) {
     console.log('Status: aligned');
