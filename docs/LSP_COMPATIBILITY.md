@@ -60,6 +60,7 @@ Every standalone LSP exposes the same agent CLI operation set: `check`, `context
 | Startup | OpenQC starts the configured command over stdio and can prefer sibling local repositories when no user override is set. |
 | Latest tracking | Every registry entry records the upstream default branch used for latest-version checks. |
 | Agent CLI probe | `npm run lsp:check-latest -- --fail-on-drift` verifies remote HEAD, local worktree cleanliness, and source-backed `*-lsp-tool --help`. |
+| Bohrium registry alignment | `npm run lsp:check-bohrium-registry` compares OpenQC bundled ids/agent CLIs with `bohrium_skills/.../lsp_backends.yaml` and fails on drift. OpenQC editor integration and Bohrium skill routing are reported separately. |
 
 ## Release Verification
 
@@ -68,9 +69,10 @@ Before publishing a VSIX or Marketplace release:
 1. Run `npm run typecheck`.
 2. Run `npm run test:unit -- --runTestsByPath tests/unit/lsp/registry.test.ts`.
 3. Run `npm run lsp:check-latest -- --fail-on-drift` to compare sibling LSP checkouts with each configured remote default-branch HEAD and verify source-backed `*-lsp-tool --help`.
-4. Run `OpenQC LSP: Generate Compatibility Report` from VS Code and save the report with the release notes.
-5. For each LSP, smoke test one valid file and one intentionally invalid file on the latest configured executable or sibling repository checkout.
-6. Record the exact LSP version, release tag, or commit SHA used for the release smoke test.
+4. Run `npm run lsp:check-bohrium-registry` to compare OpenQC bundled registry ids with the Bohrium skill backend registry.
+5. Run `OpenQC LSP: Generate Compatibility Report` from VS Code and save the report with the release notes.
+6. For each LSP, smoke test one valid file and one intentionally invalid file on the latest configured executable or sibling repository checkout.
+7. Record the exact LSP version, release tag, or commit SHA used for the release smoke test.
 
 ## Known Limits
 
