@@ -70,7 +70,14 @@
     "onCommand:openqc.validate",
     "onView:openqc-sidebar",
     "onCommand:openqc.previewInput",
-    "onCommand:openqc.convertFormat"
+    "onCommand:openqc.convertFormat",
+    "onCommand:openqc.aiOptimizeInput",
+    "onCommand:openqc.aiGenerateInput",
+    "onCommand:openqc.aiExplainParameters",
+    "onCommand:openqc.aiDebugCalculation",
+    "onCommand:openqc.aiSettings",
+    "onCommand:openqc.aiSetApiKey",
+    "onCommand:openqc.aiClearApiKey"
   ],
   "main": "./out/extension.js",
   "extensionKind": [
@@ -607,6 +614,18 @@
         "title": "OpenQC: AI Settings",
         "category": "AI",
         "icon": "$(gear)"
+      },
+      {
+        "command": "openqc.aiSetApiKey",
+        "title": "OpenQC: Set OpenAI API Key",
+        "category": "AI",
+        "icon": "$(key)"
+      },
+      {
+        "command": "openqc.aiClearApiKey",
+        "title": "OpenQC: Clear OpenAI API Key",
+        "category": "AI",
+        "icon": "$(trash)"
       },
       {
         "command": "openqc.showConverterPanel",
@@ -1377,15 +1396,15 @@
           "default": "ollama",
           "description": "AI provider (OpenAI or Ollama)"
         },
-        "openqc.ai.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "OpenAI API key (only used with OpenAI provider)"
-        },
         "openqc.ai.model": {
           "type": "string",
           "default": "llama2",
-          "description": "AI model name (gpt-4 for OpenAI, llama2 for Ollama)"
+          "description": "AI model name for the selected provider"
+        },
+        "openqc.ai.openaiBaseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "OpenAI-compatible API base URL"
         },
         "openqc.ai.ollamaUrl": {
           "type": "string",
@@ -1395,7 +1414,23 @@
         "openqc.ai.maxTokens": {
           "type": "number",
           "default": 2048,
+          "minimum": 1,
+          "maximum": 131072,
           "description": "Maximum tokens in AI response"
+        },
+        "openqc.ai.maxOutputChars": {
+          "type": "number",
+          "default": 100000,
+          "minimum": 256,
+          "maximum": 1000000,
+          "description": "Maximum AI response characters accepted by the extension"
+        },
+        "openqc.ai.timeoutSeconds": {
+          "type": "number",
+          "default": 120,
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "description": "Timeout for AI provider and bridge requests"
         },
         "openqc.ai.temperature": {
           "type": "number",
