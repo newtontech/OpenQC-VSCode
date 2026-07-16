@@ -401,13 +401,32 @@ const screenshots = [
 async function captureAndInspect(browser, screenshot) {
   const [width, height] = screenshot.viewport.split(',').map(Number);
   const page = await browser.newPage({ viewport: { width, height } });
+  const diagnostics = [];
+  page.on('console', message => diagnostics.push(`console.${message.type()}: ${message.text()}`));
+  page.on('pageerror', error => diagnostics.push(`pageerror: ${error.message}`));
+  page.on('requestfailed', request => {
+    diagnostics.push(
+      `requestfailed: ${request.url()} (${request.failure()?.errorText || 'unknown error'})`
+    );
+  });
   page.setDefaultTimeout(20_000);
   try {
     await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'load', timeout: 20_000 });
-    await page.waitForFunction(() => {
-      const state = document.getElementById('visual-smoke-ready')?.dataset.state;
-      return state === 'ready' || state === 'error';
-    });
+    try {
+      await page.waitForFunction(() => {
+        const state = document.getElementById('visual-smoke-ready')?.dataset.state;
+        return state === 'ready' || state === 'error';
+      });
+    } catch (error) {
+      const state = await page.locator('#visual-smoke-ready').evaluate(element => ({
+        state: element.dataset.state,
+        text: element.textContent,
+      }));
+      throw new Error(
+        `Viewer smoke timed out in state ${state.state || 'missing'} (${state.text || 'no status'}). ${diagnostics.join(' | ') || 'No browser diagnostics were emitted.'}`,
+        { cause: error }
+      );
+    }
     const marker = await page.locator('#visual-smoke-ready').evaluate(element => ({
       state: element.dataset.state,
       text: element.textContent,

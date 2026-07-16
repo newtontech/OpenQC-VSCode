@@ -59,6 +59,10 @@ describe('release pipeline contract', () => {
     expect(guard).toContain("['rev-parse', 'refs/remotes/origin/master']");
     expect(guard).toContain('tagCommit !== head');
     expect(verifier).toContain('VSIX contains forbidden files');
+    expect(verifier).toContain('extension/media/vendor/3dmol/3Dmol-min.js');
+    expect(verifier).toContain('extension/media/vendor/ngl/ngl.js');
+    expect(verifier).toContain('extension/media/vendor/plotly.js-dist-min/plotly.min.js');
+    expect(verifier).not.toContain('extension/node_modules/3dmol');
     expect(vscodeignore).toContain('core/**');
     expect(vscodeignore).toContain('tests/**');
     expect(vscodeignore).not.toMatch(/^!node_modules\/(?:3dmol|ngl|plotly\.js-dist-min)\/\*\*$/m);
