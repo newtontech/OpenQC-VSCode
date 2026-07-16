@@ -119,6 +119,39 @@ describe('WorkerManager', () => {
       expect(completed.result).toBeDefined();
     }, 10000);
 
+    it('should return real ComputeWorker parse results instead of fixed mock data', async () => {
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: '3\nwater\nO 0 0 0\nH 0.96 0 0\nH -0.24 0.93 0\n',
+        format: 'xyz',
+      });
+
+      const completed = await manager.waitForTask(task.id, 5000);
+
+      expect(completed.status).toBe('completed');
+      expect(completed.result.chemical_symbols).toEqual(['O', 'H', 'H']);
+      expect(completed.result.positions[1]).toEqual([0.96, 0, 0]);
+      expect(completed.result.info).toMatchObject({
+        parser: 'compute-worker-native',
+      });
+    });
+
+    it('should surface ComputeWorker errors and update failed task stats', async () => {
+      const task = await manager.submitTask(WorkerMessageType.PARSE_STRUCTURE, {
+        content: 'not a supported structure',
+        format: 'unknown-format',
+      });
+
+      await expect(manager.waitForTask(task.id, 5000)).rejects.toThrow(
+        'Unsupported structure format'
+      );
+
+      const failedTask = manager.getTask(task.id);
+      const stats = manager.getStats();
+      expect(failedTask?.status).toBe('failed');
+      expect(failedTask?.error).toContain('Unsupported structure format');
+      expect(stats.failedTasks).toBeGreaterThan(0);
+    });
+
     it('should timeout if task takes too long', async () => {
       // This test is timing-dependent and may be flaky
       // The task may complete faster than the timeout on fast machines

@@ -25,6 +25,8 @@ export class MoleculeViewerPanel {
     // If we already have a panel, show it
     if (MoleculeViewerPanel.currentPanel) {
       MoleculeViewerPanel.currentPanel._panel.reveal(column);
+      MoleculeViewerPanel.currentPanel._xyzContent = xyzContent;
+      MoleculeViewerPanel.currentPanel._filename = filename;
       MoleculeViewerPanel.currentPanel._sendInitializeMessage({ xyz: xyzContent });
       return;
     }
@@ -65,8 +67,8 @@ export class MoleculeViewerPanel {
   private constructor(
     panel: vscode.WebviewPanel,
     private readonly _extensionUri: vscode.Uri,
-    xyzContent: string,
-    private readonly _filename: string
+    private _xyzContent: string,
+    private _filename: string
   ) {
     this._panel = panel;
 
@@ -83,7 +85,7 @@ export class MoleculeViewerPanel {
     this._panel.onDidChangeViewState(
       () => {
         if (this._panel.visible) {
-          this._sendInitializeMessage({ xyz: xyzContent });
+          this._sendInitializeMessage({ xyz: this._xyzContent });
         }
       },
       null,
@@ -98,7 +100,7 @@ export class MoleculeViewerPanel {
     );
 
     // Send initial structure data
-    this._sendInitializeMessage({ xyz: xyzContent });
+    this._sendInitializeMessage({ xyz: this._xyzContent });
   }
 
   private _sendInitializeMessage(structure: { xyz?: string; json?: string }): void {
@@ -150,6 +152,7 @@ export class MoleculeViewerPanel {
   public serialize(): MoleculeViewerState {
     return {
       filename: this._filename,
+      xyz: this._xyzContent,
     };
   }
 
@@ -157,8 +160,6 @@ export class MoleculeViewerPanel {
    * Deserialize and restore panel state
    */
   public static deserialize(state: MoleculeViewerState, extensionUri: vscode.Uri): void {
-    // Note: In a real implementation, we'd need to store the XYZ content
-    // This is a simplified version that shows the pattern
     MoleculeViewerPanel.createOrShow(extensionUri, state.xyz || '', state.filename);
   }
 }

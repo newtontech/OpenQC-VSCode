@@ -9,6 +9,7 @@
  */
 
 import * as vscode from 'vscode';
+import { generateNonce } from '../utils/nonce';
 
 export class OpenQCViewerWebview {
   /**
@@ -25,7 +26,7 @@ export class OpenQCViewerWebview {
       vscode.Uri.joinPath(extensionUri, 'media', 'openqc-viewer.css')
     );
     const threeDmolUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(extensionUri, 'node_modules', '3dmol', 'build', '3Dmol-min.js')
+      vscode.Uri.joinPath(extensionUri, 'media', 'vendor', '3dmol', '3Dmol-min.js')
     );
 
     const csp = [
@@ -61,12 +62,64 @@ export class OpenQCViewerWebview {
       <div class="toolbar-group">
         <button id="btn-reset" class="btn" title="Reset Camera">Reset</button>
         <button id="btn-rotate" class="btn secondary" title="Auto Rotate">Rotate</button>
+        <button id="btn-labels" class="btn secondary" title="Toggle Atom Labels">Labels</button>
+        <button id="btn-measure" class="btn secondary" title="Measure Distance, Angle, or Dihedral">Measure</button>
         <button id="btn-export" class="btn secondary" title="Export PNG">Export</button>
       </div>
       <div class="toolbar-separator"></div>
       <div class="toolbar-group">
         <button id="btn-toggle-cell" class="btn secondary" title="Toggle Unit Cell">Cell</button>
       </div>
+    </div>
+
+    <!-- Editing controls -->
+    <div id="editing-controls">
+      <label for="edit-element">Atom</label>
+      <input type="text" id="edit-element" value="C" maxlength="2" title="Element symbol">
+      <input type="number" id="edit-x" value="0" step="0.1" title="Add X coordinate">
+      <input type="number" id="edit-y" value="0" step="0.1" title="Add Y coordinate">
+      <input type="number" id="edit-z" value="0" step="0.1" title="Add Z coordinate">
+      <button id="btn-add-atom" class="btn secondary" title="Add Atom">Add</button>
+      <button id="btn-delete-atom" class="btn secondary" title="Delete Selected Atom">Delete</button>
+      <span class="editing-separator"></span>
+      <label for="move-dx">Move</label>
+      <input type="number" id="move-dx" value="0" step="0.1" title="Delta X">
+      <input type="number" id="move-dy" value="0" step="0.1" title="Delta Y">
+      <input type="number" id="move-dz" value="0" step="0.1" title="Delta Z">
+      <button id="btn-move-atom" class="btn secondary" title="Move Selected Atom">Move</button>
+      <span class="editing-separator"></span>
+      <label for="bond-from">Bond</label>
+      <input type="number" id="bond-from" value="1" min="1" step="1" title="First atom index">
+      <input type="number" id="bond-to" value="2" min="1" step="1" title="Second atom index">
+      <select id="bond-order" class="select" title="Bond order">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+      <button id="btn-add-bond" class="btn secondary" title="Add or Update Bond">Bond</button>
+      <button id="btn-delete-bond" class="btn secondary" title="Delete Bond">Unbond</button>
+      <span id="bond-count">0 bonds</span>
+      <span class="editing-separator"></span>
+      <label>Free</label>
+      <label class="constraint-toggle" title="Free selected atom along X">
+        <input type="checkbox" id="constraint-x" checked>
+        X
+      </label>
+      <label class="constraint-toggle" title="Free selected atom along Y">
+        <input type="checkbox" id="constraint-y" checked>
+        Y
+      </label>
+      <label class="constraint-toggle" title="Free selected atom along Z">
+        <input type="checkbox" id="constraint-z" checked>
+        Z
+      </label>
+      <button id="btn-set-constraints" class="btn secondary" title="Apply Selected Atom Constraints">Apply</button>
+      <span class="editing-separator"></span>
+      <button id="btn-undo-edit" class="btn secondary" title="Undo Edit">Undo</button>
+      <button id="btn-redo-edit" class="btn secondary" title="Redo Edit">Redo</button>
+      <button id="btn-save-source" class="btn secondary" title="Save Edited Structure to Source File">Save Source</button>
+      <button id="btn-export-structure" class="btn secondary" title="Export Edited Structure">Export Structure</button>
+      <span id="dirty-indicator">Clean</span>
     </div>
 
     <!-- Periodic controls (hidden unless periodic structure) -->
@@ -129,19 +182,9 @@ export class OpenQCViewerWebview {
   static getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
     return {
       enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.joinPath(extensionUri, 'media'),
-        vscode.Uri.joinPath(extensionUri, 'node_modules', '3dmol'),
-      ],
+      localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')],
     };
   }
 }
 
-function getNonce(): string {
-  let text = '';
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;

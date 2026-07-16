@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Molecule3D } from '../visualizers/Molecule3D';
+import { OpenQCViewerPanel } from '../visualizers/OpenQCViewerPanel';
 import { FileTypeDetector, QuantumChemistrySoftware } from '../managers/FileTypeDetector';
+import { poscarToOpenQCStructure } from '../structures/converters';
+import type { OpenQCStructure } from '../structures/OpenQCStructure';
+import { generateNonce } from '../utils/nonce';
 
 export class StructureViewer {
   private panel: vscode.WebviewPanel | undefined;
@@ -38,9 +42,7 @@ export class StructureViewer {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [
-            vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build'),
-          ],
+          localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, 'media')],
           retainContextWhenHidden: true,
         }
       );
@@ -65,6 +67,12 @@ export class StructureViewer {
       return;
     }
 
+    const structure = this.tryCreatePreviewStructure(editor.document, software);
+    if (structure) {
+      OpenQCViewerPanel.createOrShow(this.extensionUri, structure, editor.document.fileName);
+      return;
+    }
+
     const column = vscode.ViewColumn.Two;
 
     if (this.panel) {
@@ -76,9 +84,7 @@ export class StructureViewer {
         column,
         {
           enableScripts: true,
-          localResourceRoots: [
-            vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build'),
-          ],
+          localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, 'media')],
           retainContextWhenHidden: true,
         }
       );
@@ -89,6 +95,26 @@ export class StructureViewer {
     }
 
     this.updatePreviewContent(editor.document, software);
+  }
+
+  private tryCreatePreviewStructure(
+    document: vscode.TextDocument,
+    software: QuantumChemistrySoftware
+  ): OpenQCStructure | undefined {
+    const content = document.getText();
+    const fileName = document.fileName;
+    const basename = path.basename(fileName).toUpperCase();
+
+    if (software === 'VASP' && (basename === 'POSCAR' || basename === 'CONTCAR')) {
+      try {
+        const structure = poscarToOpenQCStructure(content, fileName);
+        return structure.atoms.length > 0 ? structure : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    return undefined;
   }
 
   private updateContent(document: vscode.TextDocument, software: QuantumChemistrySoftware): void {
@@ -241,7 +267,7 @@ export class StructureViewer {
   ): string {
     const nonce = getNonce();
     const threeDmolUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', '3dmol', 'build', '3Dmol-min.js')
+      vscode.Uri.joinPath(this.extensionUri, 'media', 'vendor', '3dmol', '3Dmol-min.js')
     );
     const csp = getWebviewCsp(webview.cspSource, nonce);
     const atomsJson = escapeScriptJson(atoms);
@@ -578,11 +604,4 @@ function escapeScriptJson(value: unknown): string {
     .replace(/\u2029/g, '\\u2029');
 }
 
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;

@@ -10,6 +10,7 @@
 import * as vscode from 'vscode';
 import { ThreeJsRenderer } from './ThreeJsRenderer';
 import { Atom, RepresentationMode } from './types';
+import { generateNonce } from '../utils/nonce';
 
 export interface ThreeJsWebviewOptions {
   title: string;
@@ -501,14 +502,4 @@ export class ThreeJsWebview {
   }
 }
 
-/**
- * Generate a random nonce for CSP
- */
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;

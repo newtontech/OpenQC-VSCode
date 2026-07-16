@@ -125,8 +125,8 @@ describe('MoleculeViewerPanel', () => {
       MoleculeViewerPanel.createOrShow(mockExtensionUri, 'new-xyz', 'new.xyz');
 
       expect(createSpy).not.toHaveBeenCalled();
-      // Note: reveal is called on the internal panel reference
-      // We verify by checking that createWebviewPanel wasn't called again
+      const panel = (MoleculeViewerPanel as any).currentPanel;
+      expect(panel.serialize()).toEqual({ filename: 'new.xyz', xyz: 'new-xyz' });
     });
   });
 
@@ -253,13 +253,13 @@ describe('MoleculeViewerPanel', () => {
   });
 
   describe('serialize', () => {
-    it('returns state with filename', () => {
+    it('returns state with filename and XYZ content', () => {
       MoleculeViewerPanel.createOrShow(mockExtensionUri, 'xyz-content', 'test.xyz');
 
       const panel = (MoleculeViewerPanel as any).currentPanel;
       const state = panel.serialize();
 
-      expect(state).toEqual({ filename: 'test.xyz' });
+      expect(state).toEqual({ filename: 'test.xyz', xyz: 'xyz-content' });
     });
   });
 

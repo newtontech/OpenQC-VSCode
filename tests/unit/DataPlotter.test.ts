@@ -9,6 +9,7 @@ jest.mock('../../src/managers/FileTypeDetector', () => ({
       if (doc.fileName.includes('cp2k.out')) return 'CP2K';
       if (doc.fileName.includes('KPOINTS')) return 'VASP';
       if (doc.fileName.includes('OUTCAR')) return 'VASP';
+      if (doc.fileName.includes('OSZICAR')) return 'VASP';
       if (doc.fileName.includes('gaussian.log')) return 'Gaussian';
       if (doc.fileName.includes('orca.out')) return 'ORCA';
       if (doc.fileName.includes('qe.pwo')) return 'Quantum ESPRESSO';
@@ -144,7 +145,7 @@ describe('DataPlotter', () => {
           enableScripts: true,
           localResourceRoots: expect.arrayContaining([
             expect.objectContaining({
-              fsPath: expect.stringContaining('node_modules/plotly.js-dist-min'),
+              fsPath: expect.stringContaining('media/vendor/plotly.js-dist-min'),
             }),
           ]),
           retainContextWhenHidden: true,
@@ -188,6 +189,53 @@ Monkhorst
 
       // Panel created
       expect(vscode.window.createWebviewPanel).toHaveBeenCalled();
+    });
+
+    it('should extract SCF and ionic energies from OSZICAR output', () => {
+      const oszicarOutput = `
+ DAV:   1    -0.134008904263E+04   -0.13401E+04
+ DAV:   2    -0.134015700000E+04   -0.67957E-01
+    1 F= -.13401571E+04 E0= -.13401571E+04  d E =-.134016E+04
+ RMM:   1    -0.134115900000E+04   -0.10019E+01
+ RMM:   2    -0.134125000000E+04   -0.91000E-01
+    2 F= -.13412500E+04 E0= -.13412500E+04  d E =-.10929E+01
+`;
+
+      const mockEditor = {
+        document: {
+          fileName: '/test/OSZICAR',
+          getText: () => oszicarOutput,
+        },
+      } as unknown as vscode.TextEditor;
+
+      plotter.show(mockEditor);
+
+      const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
+      expect(panel.webview.html).toContain('VASP SCF Energy Convergence');
+      expect(panel.webview.html).toContain('VASP Ionic Free Energy');
+      expect(panel.webview.html).toContain('-1340.08904263');
+      expect(panel.webview.html).toContain('-1341.25');
+    });
+
+    it('should extract TOTEN convergence from OUTCAR output', () => {
+      const outcarOutput = `
+ free  energy   TOTEN  =       -10.12567890 eV
+ free  energy   TOTEN  =       -10.22567890 eV
+`;
+
+      const mockEditor = {
+        document: {
+          fileName: '/test/OUTCAR',
+          getText: () => outcarOutput,
+        },
+      } as unknown as vscode.TextEditor;
+
+      plotter.show(mockEditor);
+
+      const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
+      expect(panel.webview.html).toContain('VASP OUTCAR Total Energy');
+      expect(panel.webview.html).toContain('-10.1256789');
+      expect(panel.webview.html).toContain('-10.2256789');
     });
   });
 
@@ -328,7 +376,7 @@ FINAL SINGLE POINT ENERGY      -76.38462354
       plotter.show(mockEditor);
 
       const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
-      expect(panel.webview.html).toContain('node_modules/plotly.js-dist-min/plotly.min.js');
+      expect(panel.webview.html).toContain('media/vendor/plotly.js-dist-min/plotly.min.js');
       expect(panel.webview.html).toContain('Content-Security-Policy');
       expect(panel.webview.html).not.toContain('https://cdn.plot.ly');
       expect(panel.webview.html).not.toContain("'unsafe-inline'");

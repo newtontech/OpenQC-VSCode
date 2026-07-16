@@ -152,6 +152,12 @@ describe('JobTreeProvider Full Coverage', () => {
   });
 
   describe('JobTreeProvider methods', () => {
+    it('should start empty when no jobs are stored', async () => {
+      const children = await provider.getChildren();
+      expect(children).toEqual([]);
+      expect(mockContext.workspaceState.update).not.toHaveBeenCalled();
+    });
+
     it('should get tree item', () => {
       const job = new JobItem('job-1', 'Test', 'running', 50, 'NWChem');
       const result = provider.getTreeItem(job);
@@ -179,11 +185,19 @@ describe('JobTreeProvider Full Coverage', () => {
           software: 'Gaussian',
           startTime: new Date().toISOString(),
           endTime: new Date().toISOString(),
+          workingDirectory: '/tmp/calc',
+          result: {
+            success: true,
+            energy: -10.5,
+            outputFiles: ['OUTCAR'],
+          },
         },
       ];
       mockContext.workspaceState.get = jest.fn(() => savedJobs);
       const newProvider = new JobTreeProvider(mockContext);
       expect(mockContext.workspaceState.get).toHaveBeenCalledWith('openqc.jobs', []);
+      expect(newProvider.getJob('saved-1')?.workingDirectory).toBe('/tmp/calc');
+      expect(newProvider.getJob('saved-1')?.result?.energy).toBe(-10.5);
       newProvider.dispose();
     });
 
@@ -220,6 +234,7 @@ describe('JobTreeProvider Full Coverage', () => {
         throw new Error('Load error');
       });
       const newProvider = new JobTreeProvider(mockContext);
+      expect(newProvider.getJob('job-1')).toBeUndefined();
       newProvider.dispose();
     });
 
@@ -269,6 +284,45 @@ describe('JobTreeProvider Full Coverage', () => {
       expect(mockContext.workspaceState.update).toHaveBeenCalled();
     });
 
+    it('should store real calculation results on completion', () => {
+      const job = new JobItem(
+        'job-result',
+        'Real result',
+        'running',
+        50,
+        'VASP',
+        new Date(),
+        undefined,
+        '/tmp/vasp'
+      );
+      provider.addJob(job);
+
+      provider.updateJobResult('job-result', 'completed', {
+        success: true,
+        energy: -10.5,
+        forces: [[0.1, 0.2, 0.3]],
+        outputFiles: ['OUTCAR'],
+      });
+
+      const updated = provider.getJob('job-result');
+      expect(updated?.status).toBe('completed');
+      expect(updated?.progress).toBe(100);
+      expect(updated?.result?.energy).toBe(-10.5);
+      expect(updated?.result?.outputFiles).toEqual(['OUTCAR']);
+      expect(updated?.workingDirectory).toBe('/tmp/vasp');
+      expect(mockContext.workspaceState.update).toHaveBeenCalledWith(
+        'openqc.jobs',
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'job-result',
+            status: 'completed',
+            workingDirectory: '/tmp/vasp',
+            result: expect.objectContaining({ energy: -10.5 }),
+          }),
+        ])
+      );
+    });
+
     it('should do nothing when updating non-existent job', () => {
       provider.updateJobStatus('non-existent', 'running', 50);
       // Should not throw
@@ -277,30 +331,45 @@ describe('JobTreeProvider Full Coverage', () => {
     it('should cancel running job', () => {
       const job = new JobItem('job-cancel', 'Test', 'running', 50, 'ORCA');
       provider.addJob(job);
-      provider.cancelJob('job-cancel');
+      const cancelled = provider.cancelJob('job-cancel');
+      expect(cancelled).toBe(true);
       expect(mockContext.workspaceState.update).toHaveBeenCalled();
     });
 
     it('should cancel non-running job without error', () => {
       const job = new JobItem('job-no-cancel', 'Test', 'completed', 100, 'ORCA');
       provider.addJob(job);
-      provider.cancelJob('job-no-cancel'); // Should not throw
+      expect(provider.cancelJob('job-no-cancel')).toBe(false);
     });
 
     it('should cancel non-existent job without error', () => {
-      provider.cancelJob('non-existent'); // Should not throw
+      expect(provider.cancelJob('non-existent')).toBe(false);
     });
 
-    it('should restart job', () => {
-      const job = new JobItem('job-restart', 'Test', 'completed', 100, 'VASP');
+    it('should create a running restart job that preserves the working directory', () => {
+      const job = new JobItem(
+        'job-restart',
+        'Test',
+        'completed',
+        100,
+        'VASP',
+        undefined,
+        undefined,
+        '/tmp/vasp'
+      );
       provider.addJob(job);
-      provider.restartJob('job-restart');
+      const restarted = provider.restartJob('job-restart');
+      expect(restarted).toMatchObject({
+        label: 'Test (restart)',
+        status: 'running',
+        progress: 5,
+        workingDirectory: '/tmp/vasp',
+      });
       expect(mockContext.workspaceState.update).toHaveBeenCalled();
     });
 
     it('should do nothing when restarting non-existent job', () => {
-      provider.restartJob('non-existent');
-      // Should not throw
+      expect(provider.restartJob('non-existent')).toBeUndefined();
     });
 
     it('should clear completed jobs', () => {
@@ -336,37 +405,16 @@ describe('JobTreeProvider Full Coverage', () => {
     });
   });
 
-  describe('updateRunningJobs simulation', () => {
-    it('should complete job when progress reaches 100', () => {
-      // Add a running job with high progress
-      const job = new JobItem('job-sim', 'Sim', 'running', 99, 'Gaussian');
+  describe('refresh behavior', () => {
+    it('should not simulate progress or complete running jobs', () => {
+      const job = new JobItem('job-no-sim', 'No Sim', 'running', 99, 'Gaussian');
       provider.addJob(job);
-
-      // Mock Math.random to return high value
-      const originalRandom = Math.random;
-      Math.random = jest.fn(() => 0.9); // Will make progress >= 100
 
       provider.refresh();
 
-      Math.random = originalRandom;
-
-      // Job should be completed now
-      const updated = provider.getJob('job-sim');
-      // Due to timing, this might not be completed yet, but the code path is exercised
-    });
-
-    it('should update progress for running job', () => {
-      // Add a running job with low progress
-      const job = new JobItem('job-sim2', 'Sim2', 'running', 50, 'VASP');
-      provider.addJob(job);
-
-      // Mock Math.random to return low value
-      const originalRandom = Math.random;
-      Math.random = jest.fn(() => 0.1); // Will make progress < 100
-
-      provider.refresh();
-
-      Math.random = originalRandom;
+      const updated = provider.getJob('job-no-sim');
+      expect(updated?.status).toBe('running');
+      expect(updated?.progress).toBe(99);
     });
   });
 

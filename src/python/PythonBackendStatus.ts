@@ -24,12 +24,26 @@ export interface ExternalToolStatus {
   path: string | null;
 }
 
+export type BackendHealthStatus = 'installed' | 'degraded' | 'missing';
+export type BackendCapabilityStatus = 'available' | 'degraded' | 'missing';
+
+export interface BackendCapability {
+  label?: string;
+  status: BackendCapabilityStatus;
+  detail: string;
+  requires?: string[];
+}
+
 /** Full backend check result. */
 export interface BackendCheckResult {
   success: boolean;
+  status?: BackendHealthStatus;
+  statusDetail?: string;
   python: PythonInfo;
   packages: Record<string, PackageStatus>;
   externalTools: Record<string, ExternalToolStatus>;
+  capabilities?: Record<string, BackendCapability>;
+  missingPackages?: string[];
 }
 
 /** Bridge error from Python subprocess. */

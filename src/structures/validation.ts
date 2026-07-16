@@ -199,6 +199,7 @@ export function validateOpenQCStructure(
     if (!Array.isArray(s.bonds)) {
       errors.push('bonds must be an array when provided');
     } else {
+      const atomCount = Array.isArray(s.atoms) ? s.atoms.length : 0;
       (s.bonds as unknown[]).forEach((bond, i) => {
         if (typeof bond !== 'object' || bond === null) {
           errors.push(`Bond ${i}: must be an object`);
@@ -207,9 +208,27 @@ export function validateOpenQCStructure(
         const b = bond as Record<string, unknown>;
         if (typeof b.from !== 'number' || typeof b.to !== 'number') {
           errors.push(`Bond ${i}: "from" and "to" must be numbers`);
+        } else {
+          if (!Number.isInteger(b.from) || !Number.isInteger(b.to)) {
+            errors.push(`Bond ${i}: "from" and "to" must be integer atom indices`);
+          }
+          if (b.from === b.to) {
+            errors.push(`Bond ${i}: "from" and "to" must reference different atoms`);
+          }
+          if (
+            atomCount > 0 &&
+            (b.from < 0 || b.to < 0 || b.from >= atomCount || b.to >= atomCount)
+          ) {
+            errors.push(`Bond ${i}: atom index out of range`);
+          }
         }
         if (b.order !== undefined && typeof b.order !== 'number') {
           errors.push(`Bond ${i}: "order" must be a number when provided`);
+        } else if (
+          typeof b.order === 'number' &&
+          (!Number.isInteger(b.order) || b.order < 1 || b.order > 3)
+        ) {
+          errors.push(`Bond ${i}: "order" must be 1, 2, or 3`);
         }
       });
     }

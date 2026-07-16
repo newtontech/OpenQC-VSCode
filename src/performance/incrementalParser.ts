@@ -51,6 +51,12 @@ export interface DocumentVersion {
   lineCount: number;
 }
 
+interface DocumentSnapshot<T> {
+  version: number;
+  content: string;
+  result: ParseResult<T>;
+}
+
 /**
  * Incremental parser configuration
  */
@@ -74,6 +80,7 @@ export class IncrementalParser<T> {
   private config: IncrementalParserConfig;
   private parseFunction: (content: string) => T;
   private diffFunction?: (oldAst: T, newAst: T) => ChangeSet;
+  private snapshots: Map<string, DocumentSnapshot<T>> = new Map();
 
   constructor(
     parseFunction: (content: string) => T,
@@ -91,11 +98,12 @@ export class IncrementalParser<T> {
    */
   async parse(document: vscode.TextDocument): Promise<ParseResult<T>> {
     const uri = document.uri.toString();
+    const filePath = document.uri.fsPath || uri;
     const version = document.version;
     const content = document.getText();
 
     // Check cache
-    const cacheKey = CacheKeyGenerator.forFile(document.uri.fsPath, `parse:${version}`);
+    const cacheKey = CacheKeyGenerator.forFile(filePath, `parse:${version}`);
     const cached = this.cache.get(cacheKey);
 
     if (cached && cached.version === version) {
@@ -104,11 +112,11 @@ export class IncrementalParser<T> {
 
     // Check if incremental parsing is beneficial
     if (this.shouldUseIncremental(document)) {
-      return this.parseIncremental(document, content);
+      return this.parseIncremental(document, uri, filePath, content);
     }
 
     // Full parse
-    return this.parseFull(uri, version, content);
+    return this.parseFull(uri, filePath, version, content);
   }
 
   /**
@@ -116,29 +124,32 @@ export class IncrementalParser<T> {
    */
   private async parseIncremental(
     document: vscode.TextDocument,
+    uri: string,
+    filePath: string,
     content: string
   ): Promise<ParseResult<T>> {
-    const uri = document.uri.toString();
     const version = document.version;
 
     // Find previous version
-    const previousKey = this.findPreviousVersion(uri, version);
-    const previous = previousKey ? this.cache.get(previousKey) : undefined;
+    const previous = this.findPreviousVersion(uri, version);
 
     if (!previous) {
-      return this.parseFull(uri, version, content);
+      return this.parseFull(uri, filePath, version, content);
     }
 
     // Get content changes
-    const changes = this.detectChanges(document, previous);
+    const lineChanges = this.detectChanges(content, previous.content);
 
     // If changes are too large, do full parse
-    if (this.changesTooLarge(changes, document.lineCount)) {
-      return this.parseFull(uri, version, content);
+    if (this.changesTooLarge(lineChanges, document.lineCount)) {
+      return this.parseFull(uri, filePath, version, content);
     }
 
     // Parse only changed regions
-    const partialAst = await this.parsePartial(content, changes, previous.ast);
+    const partialAst = await this.parsePartial(content);
+    const changes = this.diffFunction
+      ? this.diffFunction(previous.result.ast, partialAst)
+      : lineChanges;
 
     const result: ParseResult<T> = {
       ast: partialAst,
@@ -149,8 +160,9 @@ export class IncrementalParser<T> {
     };
 
     // Cache result
-    const cacheKey = CacheKeyGenerator.forFile(document.uri.fsPath, `parse:${version}`);
+    const cacheKey = CacheKeyGenerator.forFile(filePath, `parse:${version}`);
     this.cache.set(cacheKey, result);
+    this.snapshots.set(uri, { version, content, result });
 
     return result;
   }
@@ -158,7 +170,12 @@ export class IncrementalParser<T> {
   /**
    * Full parse
    */
-  private async parseFull(uri: string, version: number, content: string): Promise<ParseResult<T>> {
+  private async parseFull(
+    uri: string,
+    filePath: string,
+    version: number,
+    content: string
+  ): Promise<ParseResult<T>> {
     const ast = this.parseFunction(content);
 
     const result: ParseResult<T> = {
@@ -170,8 +187,9 @@ export class IncrementalParser<T> {
     };
 
     // Cache result
-    const cacheKey = CacheKeyGenerator.forFile(uri, `parse:${version}`);
+    const cacheKey = CacheKeyGenerator.forFile(filePath, `parse:${version}`);
     this.cache.set(cacheKey, result);
+    this.snapshots.set(uri, { version, content, result });
 
     return result;
   }
@@ -179,26 +197,70 @@ export class IncrementalParser<T> {
   /**
    * Parse partial content
    */
-  private async parsePartial(content: string, changes: ChangeSet, previousAst: T): Promise<T> {
-    // This is a simplified implementation
-    // In a real implementation, this would:
-    // 1. Extract affected regions from previous AST
-    // 2. Parse only changed regions
-    // 3. Merge results with previous AST
-
-    // For now, do a full parse but mark it as partial
+  private async parsePartial(content: string): Promise<T> {
+    // Generic AST merging is parser-specific, so the shared fallback reparses
+    // the document while preserving exact line-level change metadata.
     return this.parseFunction(content);
   }
 
   /**
    * Detect changes between document versions
    */
-  private detectChanges(document: vscode.TextDocument, previous: ParseResult<T>): ChangeSet {
+  private detectChanges(currentContent: string, previousContent: string): ChangeSet {
+    const currentLines = currentContent.split(/\r?\n/);
+    const previousLines = previousContent.split(/\r?\n/);
     const changes: ChangeSet = { added: [], removed: [], modified: [] };
 
-    // Get document changes from VSCode
-    // This would use vscode.workspace.onDidChangeTextDocument in a real implementation
-    // For now, return empty changes
+    let prefix = 0;
+    while (
+      prefix < previousLines.length &&
+      prefix < currentLines.length &&
+      previousLines[prefix] === currentLines[prefix]
+    ) {
+      prefix++;
+    }
+
+    let previousSuffix = previousLines.length - 1;
+    let currentSuffix = currentLines.length - 1;
+    while (
+      previousSuffix >= prefix &&
+      currentSuffix >= prefix &&
+      previousLines[previousSuffix] === currentLines[currentSuffix]
+    ) {
+      previousSuffix--;
+      currentSuffix--;
+    }
+
+    const removedCount = previousSuffix - prefix + 1;
+    const addedCount = currentSuffix - prefix + 1;
+    if (removedCount <= 0 && addedCount <= 0) {
+      return changes;
+    }
+
+    if (removedCount <= 0) {
+      changes.added.push({
+        startLine: prefix,
+        endLine: prefix + addedCount,
+        startColumn: 0,
+        endColumn: 0,
+      });
+    } else if (addedCount <= 0) {
+      changes.removed.push({
+        startLine: prefix,
+        endLine: prefix + removedCount,
+        startColumn: 0,
+        endColumn: 0,
+      });
+    } else {
+      const lastLine = currentLines[Math.max(prefix, prefix + addedCount - 1)] ?? '';
+      changes.modified.push({
+        startLine: prefix,
+        endLine: prefix + addedCount,
+        startColumn: 0,
+        endColumn: lastLine.length,
+      });
+    }
+
     return changes;
   }
 
@@ -225,10 +287,15 @@ export class IncrementalParser<T> {
   /**
    * Find previous cached version
    */
-  private findPreviousVersion(uri: string, currentVersion: number): string | undefined {
-    // This would search the cache for the most recent version before currentVersion
-    // For now, return undefined
-    return undefined;
+  private findPreviousVersion(
+    uri: string,
+    currentVersion: number
+  ): DocumentSnapshot<T> | undefined {
+    const snapshot = this.snapshots.get(uri);
+    if (!snapshot || snapshot.version >= currentVersion) {
+      return undefined;
+    }
+    return snapshot;
   }
 
   /**
@@ -236,6 +303,7 @@ export class IncrementalParser<T> {
    */
   clearCache(): void {
     this.cache.clear();
+    this.snapshots.clear();
   }
 
   /**
@@ -254,12 +322,15 @@ export class ASTDiffer {
    * Diff two ASTs
    */
   static diff(oldAst: any, newAst: any): ChangeSet {
-    const changes: ChangeSet = { added: [], removed: [], modified: [] };
+    if (ASTDiffer.nodesEqual(oldAst, newAst)) {
+      return { added: [], removed: [], modified: [] };
+    }
 
-    // This is a simplified implementation
-    // Real implementation would traverse ASTs and compute minimal diff
-
-    return changes;
+    return {
+      added: [],
+      removed: [],
+      modified: [{ startLine: 0, endLine: 1, startColumn: 0, endColumn: 0 }],
+    };
   }
 
   /**

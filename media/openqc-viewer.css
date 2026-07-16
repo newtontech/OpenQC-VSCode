@@ -88,10 +88,87 @@ body {
   border-radius: 2px;
 }
 
+#editing-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 5px 8px;
+  background-color: var(--vscode-editorHoverWidget-background, #2a2a2a);
+  border-bottom: 1px solid var(--vscode-panel-border, #3c3c3c);
+  flex-shrink: 0;
+}
+
+#editing-controls label,
+#dirty-indicator,
+#bond-count {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground, #999999);
+}
+
+#editing-controls input {
+  background-color: var(--vscode-input-background, #3c3c3c);
+  color: var(--vscode-input-foreground, #cccccc);
+  border: 1px solid var(--vscode-input-border, #3c3c3c);
+  padding: 2px 4px;
+  font-size: 11px;
+  border-radius: 2px;
+}
+
+#edit-element {
+  width: 42px;
+  text-align: center;
+}
+
+#editing-controls input[type="number"] {
+  width: 58px;
+}
+
+#editing-controls input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+}
+
+.constraint-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+#editing-controls .select {
+  height: 22px;
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.editing-separator {
+  width: 1px;
+  height: 18px;
+  background-color: var(--vscode-panel-border, #3c3c3c);
+  margin: 0 2px;
+}
+
+#dirty-indicator {
+  min-width: 44px;
+  text-align: center;
+}
+
+#bond-count {
+  min-width: 48px;
+  text-align: center;
+}
+
+#dirty-indicator.dirty {
+  color: var(--vscode-gitDecoration-modifiedResourceForeground, #e2c08d);
+}
+
 #viewer-canvas {
+  position: relative;
   flex: 1;
   width: 100%;
   min-height: 200px;
+  overflow: hidden;
 }
 
 #status-bar {

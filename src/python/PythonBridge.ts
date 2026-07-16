@@ -11,6 +11,7 @@
  */
 
 import { execFile } from 'child_process';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import type { BackendCheckResult, BridgeError } from './PythonBackendStatus';
 import { Logger } from '../utils/Logger';
@@ -31,6 +32,19 @@ function getPythonPath(): string {
 function getTimeoutMs(): number {
   const config = vscode.workspace.getConfiguration('openqc');
   return config.get<number>('python.timeoutMs', DEFAULT_TIMEOUT_MS);
+}
+
+function getBundledPythonPath(): string {
+  return path.resolve(__dirname, '..', '..', 'python');
+}
+
+function getPythonEnv(): NodeJS.ProcessEnv {
+  const bundledPythonPath = getBundledPythonPath();
+  const existing = process.env.PYTHONPATH;
+  return {
+    ...process.env,
+    PYTHONPATH: existing ? `${bundledPythonPath}${path.delimiter}${existing}` : bundledPythonPath,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +96,7 @@ export function execPythonJson<T = unknown>(
       {
         timeout: timeoutMs,
         maxBuffer: 10 * 1024 * 1024, // 10 MB
-        env: { ...process.env },
+        env: getPythonEnv(),
       },
       (error, stdout, stderr) => {
         if (options?.cancelToken?.isCancellationRequested) {

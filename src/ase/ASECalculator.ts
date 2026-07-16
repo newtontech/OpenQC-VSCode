@@ -97,52 +97,43 @@ export class ASECalculator {
    * Generate input files for a calculation
    */
   public async generateInput(atoms: ASEAtoms, outputDir: string): Promise<InputGenerationResult> {
-    const args = [
+    const inputData = this.buildCalculatorInput(atoms, outputDir);
+    const result = await this.executeCalculator<Record<string, any>>([
       'generate',
-      this.config.type,
-      JSON.stringify(atoms),
-      outputDir,
-      JSON.stringify(this.config.parameters),
-    ];
+      JSON.stringify(inputData),
+    ]);
 
-    if (this.config.pseudopotentials) {
-      args.push('--pseudos', JSON.stringify(this.config.pseudopotentials));
-    }
-
-    if (this.config.basisSets) {
-      args.push('--basis', JSON.stringify(this.config.basisSets));
-    }
-
-    return this.executeCalculator<InputGenerationResult>(args);
+    return this.normalizeInputGenerationResult(result, outputDir);
   }
 
   /**
    * Run a calculation
    */
-  public async runCalculation(inputDir: string, outputDir?: string): Promise<CalculationResult> {
-    const args = ['run', this.config.type, inputDir];
+  public async runCalculation(
+    inputDir: string,
+    outputDir?: string,
+    signal?: AbortSignal
+  ): Promise<CalculationResult> {
+    const workDir = outputDir || inputDir;
+    const config = this.buildExecutionConfig();
+    const result = await this.executeCalculator<Record<string, any>>(
+      ['run-existing', this.config.type, workDir, JSON.stringify(config)],
+      signal
+    );
 
-    if (outputDir) {
-      args.push('--output-dir', outputDir);
-    }
-
-    if (this.config.command) {
-      args.push('--command', this.config.command);
-    }
-
-    if (this.config.environment) {
-      args.push('--env', JSON.stringify(this.config.environment));
-    }
-
-    return this.executeCalculator<CalculationResult>(args);
+    return this.normalizeCalculationResult(result);
   }
 
   /**
    * Read calculation results
    */
   public async readResults(outputDir: string): Promise<CalculationResult> {
-    const args = ['read', this.config.type, outputDir];
-    return this.executeCalculator<CalculationResult>(args);
+    const result = await this.executeCalculator<Record<string, any>>([
+      'read',
+      outputDir,
+      this.config.type,
+    ]);
+    return this.normalizeCalculationResult(result);
   }
 
   /**
@@ -179,12 +170,46 @@ export class ASECalculator {
   /**
    * Execute Python calculator script
    */
-  private async executeCalculator<T>(args: string[]): Promise<T> {
+  private async executeCalculator<T>(args: string[], signal?: AbortSignal): Promise<T> {
     return new Promise(resolve => {
       const process = spawn(this.pythonPath, [this.calculatorScript, ...args]);
+      let settled = false;
 
       let stdout = '';
       let stderr = '';
+
+      const finish = (result: T): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(result);
+      };
+
+      const cancelledResult = (): T =>
+        ({
+          success: false,
+          error: 'Calculation cancelled by user',
+          warnings: ['Calculation cancelled by user'],
+          outputFiles: [],
+          metadata: { cancelled: true },
+        }) as unknown as T;
+
+      if (signal?.aborted) {
+        if (typeof process.kill === 'function') {
+          process.kill('SIGTERM');
+        }
+        finish(cancelledResult());
+        return;
+      }
+
+      const abortHandler = (): void => {
+        if (typeof process.kill === 'function') {
+          process.kill('SIGTERM');
+        }
+        finish(cancelledResult());
+      };
+      signal?.addEventListener('abort', abortHandler, { once: true });
 
       process.stdout.on('data', data => {
         stdout += data.toString();
@@ -195,8 +220,13 @@ export class ASECalculator {
       });
 
       process.on('close', code => {
+        signal?.removeEventListener('abort', abortHandler);
+        if (signal?.aborted) {
+          finish(cancelledResult());
+          return;
+        }
         if (code !== 0) {
-          resolve({
+          finish({
             success: false,
             error: `Calculator failed with code ${code}: ${stderr}`,
             warnings: [],
@@ -208,9 +238,9 @@ export class ASECalculator {
 
         try {
           const result = JSON.parse(stdout) as T;
-          resolve(result);
+          finish(result);
         } catch (error) {
-          resolve({
+          finish({
             success: false,
             error: `Failed to parse calculator output: ${error}`,
             warnings: [],
@@ -221,7 +251,12 @@ export class ASECalculator {
       });
 
       process.on('error', error => {
-        resolve({
+        signal?.removeEventListener('abort', abortHandler);
+        if (signal?.aborted) {
+          finish(cancelledResult());
+          return;
+        }
+        finish({
           success: false,
           error: `Failed to execute calculator: ${error.message}`,
           warnings: [],
@@ -325,6 +360,100 @@ export class ASECalculator {
    */
   public getConfig(): CalculatorConfig {
     return { ...this.config };
+  }
+
+  private buildCalculatorInput(atoms: ASEAtoms, workDir: string): Record<string, any> {
+    const input: Record<string, any> = {
+      atoms,
+      calculator: this.config.type,
+      parameters: this.config.parameters,
+      work_dir: workDir,
+    };
+
+    if (this.config.pseudopotentials) {
+      input.pseudopotentials = this.config.pseudopotentials;
+    }
+
+    return input;
+  }
+
+  private buildExecutionConfig(): Record<string, any> {
+    const executable = this.config.command?.split(/\s+/)[0] || this.getDefaultCommand();
+    const config: Record<string, any> = {
+      executable,
+    };
+
+    if (this.config.command) {
+      config.command = this.config.command;
+    }
+
+    if (this.config.environment) {
+      config.environment = this.config.environment;
+    }
+
+    return config;
+  }
+
+  private getDefaultCommand(): string {
+    switch (this.config.type) {
+      case CalculatorType.VASP:
+        return 'vasp';
+      case CalculatorType.CP2K:
+        return 'cp2k.popt';
+      case CalculatorType.QE:
+        return 'pw.x';
+      default:
+        return this.config.type;
+    }
+  }
+
+  private normalizeInputGenerationResult(
+    result: Record<string, any>,
+    outputDir: string
+  ): InputGenerationResult {
+    if (!result.success) {
+      return {
+        success: false,
+        files: {},
+        error: result.error,
+        warnings: result.warnings ?? [],
+      };
+    }
+
+    const rawFiles = result.files ?? result.input_files ?? [];
+    const files: Record<string, string> = {};
+    if (Array.isArray(rawFiles)) {
+      for (const file of rawFiles) {
+        const filePath = path.isAbsolute(file) ? file : path.join(outputDir, file);
+        files[path.basename(file)] = filePath;
+      }
+    } else if (rawFiles && typeof rawFiles === 'object') {
+      for (const [name, file] of Object.entries(rawFiles)) {
+        if (typeof file === 'string') {
+          files[name] = path.isAbsolute(file) ? file : path.join(outputDir, file);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      files,
+      warnings: result.warnings ?? [],
+    };
+  }
+
+  private normalizeCalculationResult(result: Record<string, any>): CalculationResult {
+    return {
+      success: !!result.success,
+      energy: result.energy,
+      forces: result.forces,
+      stress: result.stress,
+      atoms: result.atoms,
+      error: result.error,
+      warnings: result.warnings ?? [],
+      metadata: result.metadata ?? {},
+      outputFiles: result.outputFiles ?? result.output_files ?? [],
+    };
   }
 }
 

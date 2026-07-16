@@ -13,6 +13,7 @@ pip-delete-this-directory.txt
 # Build outputs
 dist/
 out/
+output/
 build/
 *.vsix
 *.egg-info/

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { generateNonce } from '../utils/nonce';
 
 export class MoleculeViewerWebview {
   /**
@@ -6,9 +7,9 @@ export class MoleculeViewerWebview {
    * @returns HTML string with embedded JavaScript
    */
   static generateWebviewHTML(webview: vscode.Webview, extensionUri: vscode.Uri): string {
-    const nonce = this.getNonce();
+    const nonce = generateNonce();
     const nglScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(extensionUri, 'node_modules', 'ngl', 'dist', 'ngl.js')
+      vscode.Uri.joinPath(extensionUri, 'media', 'vendor', 'ngl', 'ngl.js')
     );
     const csp = this.getCSP(webview.cspSource, nonce);
 
@@ -346,7 +347,7 @@ export class MoleculeViewerWebview {
     return {
       enableScripts: true,
       localResourceRoots: extensionUri
-        ? [vscode.Uri.joinPath(extensionUri, 'node_modules', 'ngl', 'dist')]
+        ? [vscode.Uri.joinPath(extensionUri, 'media', 'vendor', 'ngl')]
         : undefined,
     };
   }
@@ -363,17 +364,5 @@ export class MoleculeViewerWebview {
       `font-src ${cspSource};`,
       `media-src ${cspSource};`,
     ].join(' ');
-  }
-
-  /**
-   * Generate a random nonce for CSP
-   */
-  private static getNonce(): string {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
   }
 }
