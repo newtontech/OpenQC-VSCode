@@ -2,25 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'src/**'
-      - 'tests/**'
-      - 'syntaxes/**'
-      - 'language-configurations/**'
-      - '.github/workflows/ci.yml'
+    branches: [master]
   pull_request:
-    branches: [main, master]
-    paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'src/**'
-      - 'tests/**'
-      - 'syntaxes/**'
-      - 'language-configurations/**'
-      - '.github/workflows/ci.yml'
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -31,85 +15,72 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Run Tests
+  release-candidate:
+    name: Quality gate and release candidate
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-
-    strategy:
-      matrix:
-        node-version: ['18.x', '20.x']
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          node-version: 22
+          cache: npm
 
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: npm ci
 
-      - name: Compile TypeScript
-        run: npm run compile
+      - name: Run the canonical release gate
+        run: npm run check:release
 
-      - name: Run linter
-        run: npm run lint
-
-      - name: Run unit tests
-        run: npm run test:unit
-
-      - name: Run integration tests
-        run: npm run test:integration
-
-      - name: Run format check
-        run: npm run format:check
-
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v7
-        if: matrix.node-version == '18.x'
+      - name: Upload verified release candidate
+        uses: actions/upload-artifact@v7
         with:
-          file: ./coverage/lcov.info
-          fail_ci_if_error: false
+          name: openqc-${{ github.sha }}-release-candidate
+          path: |
+            vsix/*.vsix
+            vsix/*.vsix.sha256
+            vsix/*.sbom.json
+          if-no-files-found: error
+          retention-days: 14
 
-  lsp-integration-test:
-    name: LSP Integration Test
+  lsp-integration:
+    name: LSP integration
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       - name: Checkout OpenQC-VSCode
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: openqc-vscode
 
       - name: Checkout CP2K LSP
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: newtontech/cp2k-lsp-enhanced
           path: cp2k-lsp-enhanced
 
       - name: Checkout Gaussian LSP
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: newtontech/gaussian-lsp
           path: gaussian-lsp
 
       - name: Checkout VASP LSP
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: newtontech/vasp-lsp
           path: vasp-lsp
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
           cache-dependency-path: openqc-vscode/package-lock.json
 
       - name: Setup Python
@@ -117,64 +88,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python LSP servers
+      - name: Install LSP servers
         run: |
           python -m pip install --upgrade pip
           pip install "./cp2k-lsp-enhanced[lsp]"
           pip install -e ./gaussian-lsp
           pip install -e ./vasp-lsp
 
-      - name: Add Python console scripts to PATH
-        run: |
-          mkdir -p ~/.local/bin
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install OpenQC-VSCode dependencies
-        working-directory: ./openqc-vscode
+      - name: Install OpenQC dependencies
+        working-directory: openqc-vscode
         run: npm ci
 
-      - name: Compile OpenQC-VSCode
-        working-directory: ./openqc-vscode
-        run: npm run compile
-
-      - name: Verify LSP servers are available
+      - name: Verify representative LSP integration
+        working-directory: openqc-vscode
         run: |
-          which cp2k-language-server
-          which gaussian-lsp
-          which vasp-lsp
-
-      - name: Run LSP-specific tests
-        working-directory: ./openqc-vscode
-        run: npx jest tests/unit/LSPManager.test.ts --runInBand --coverage=false
-
-  build-and-package:
-    name: Build and Package
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [test, lsp-integration-test]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Compile
-        run: npm run compile
-
-      - name: Package extension
-        run: npx @vscode/vsce package
-
-      - name: Upload VSIX artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: extension-vsix
-          path: '*.vsix'
+          command -v cp2k-language-server
+          command -v gaussian-lsp
+          command -v vasp-lsp
+          npm run compile
+          npx --no-install jest tests/unit/LSPManager.test.ts --runInBand --coverage=false

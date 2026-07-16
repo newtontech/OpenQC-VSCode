@@ -39,9 +39,10 @@ A: Search for "OpenQC-VSCode" in the VSCode Marketplace, or install from source:
 ```bash
 git clone https://github.com/newtontech/OpenQC-VSCode.git
 cd OpenQC-VSCode
-npm install
-npx vsce package
-code --install-extension openqc-vscode-*.vsix
+nvm use
+npm ci
+npm run check:release
+code --install-extension vsix/openqc-0.0.1.vsix
 ```
 
 ### Q: Do I need to configure anything after installation?

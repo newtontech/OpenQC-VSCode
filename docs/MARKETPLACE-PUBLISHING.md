@@ -1,225 +1,63 @@
 # Marketplace Publishing Guide
 
-This guide walks through publishing OpenQC-VSCode to the Visual Studio Code Marketplace.
+OpenQC's release identity is `newtontech.openqc@0.0.1`, displayed as **OpenQC - DFT/MD/Quantum Chemistry Suite**. The supported release path publishes one verified VSIX to the VS Code Marketplace and then attaches the same bytes, checksum, and SBOM to the GitHub Release.
 
-## Prerequisites
+## Repository setup
 
-1. **Azure DevOps Account**: You need a Personal Access Token (PAT) for publishing
-2. **vsce Tool**: The Visual Studio Code Extension Manager
+- Node is fixed to major 22 through `.nvmrc`, `package.json`, and GitHub Actions.
+- npm is declared as `npm@10.9.8` and dependencies are installed with `npm ci`.
+- `@vscode/vsce` is a dev dependency pinned exactly to `3.9.2`; do not use a global or floating `vsce` for release work.
+- Configure a protected GitHub environment named `marketplace-production` and store a publisher-scoped `VSCE_PAT` secret in that environment. The token needs **Marketplace > Manage** permission for publisher `newtontech`.
 
-### Setting up Azure DevOps PAT
+## Build and verify locally
 
-1. Go to [Azure DevOps](https://dev.azure.com/)
-2. Sign in or create an account
-3. Click on "User Settings" (top right) > "Personal Access Tokens"
-4. Create a new token with:
-   - **Organization**: All accessible organizations
-   - **Scopes**: Marketplace > Manage
-5. Copy the token (you won't see it again!)
-
-### Installing vsce
+From a clean checkout:
 
 ```bash
-npm install -g @vscode/vsce
+nvm use
+npm ci
+make format lint typecheck test check
+npm run check:release
 ```
 
-Or install locally:
+The release gate produces ignored local artifacts:
+
+- `vsix/openqc-0.0.1.vsix`
+- `vsix/openqc-0.0.1.vsix.sha256`
+- `vsix/openqc-0.0.1.sbom.json`
+
+`verify:vsix` reads the packaged archive, confirms `newtontech.openqc@0.0.1`, enforces size/file-count limits, and rejects development files, nested VSIX files, credentials, caches, tests, scripts, docs, and the retired `core/` package.
+
+## Create a release tag
+
+Tagging is an explicit release action. Do it only after the release PR is merged and `origin/master` is green:
 
 ```bash
-npm install --save-dev @vscode/vsce
+git checkout master
+git pull --ff-only origin master
+npm ci
+npm run check:release
+npm run release:tag
+git push origin v0.0.1
 ```
 
-## Pre-Publication Checklist
+`release:tag` fetches `origin/master`, refuses a dirty tree, refuses a commit that is not exactly the current remote master, rejects an existing tag, and derives `v0.0.1` from `package.json`. `release:tag:push` combines the final two commands, but the separate push is easier to review.
 
-### 1. Verify package.json
+## Automated release stages
 
-Run this checklist:
+1. **Build and verify** checks out full tag history, confirms the tag points to the clean current `origin/master`, installs the lockfile on Node 22, and runs `npm run check:release`.
+2. **Publish Marketplace** downloads those exact artifacts, verifies SHA-256, waits for the protected `marketplace-production` environment, and publishes with the pinned local `vsce` plus `VSCE_PAT`.
+3. **Finalize GitHub Release** runs only after Marketplace publication succeeds, re-verifies SHA-256, and creates the GitHub Release with the VSIX, checksum, and CycloneDX SBOM.
 
-```bash
-# Verify all required fields
-cat package.json | grep -E "(name|displayName|description|version|publisher|repository|bugs|homepage|license|icon)"
-```
+The workflow does not publish Open VSX and does not rewrite `CHANGELOG.md` after tagging.
 
-Required fields:
-- ✅ `name`: openqc-vscode
-- ✅ `displayName`: OpenQC-VSCode
-- ✅ `description`: Clear and concise
-- ✅ `version`: Follows semver (current: 2.0.0)
-- ✅ `publisher`: newtontech
-- ✅ `repository`: Git repository URL
-- ✅ `bugs`: Issue tracker URL
-- ✅ `homepage`: Project homepage
-- ✅ `license`: MIT
-- ✅ `icon`: icon.png (128x128 pixels)
+## Failure boundaries
 
-### 2. Verify Icon
+| Failure | Result |
+|---------|--------|
+| Dirty tree, stale master, or mismatched tag | Release stops before building |
+| Quality, package, identity, hygiene, checksum, or SBOM failure | No external publication |
+| Missing/unauthorized `VSCE_PAT` or environment rejection | Marketplace is unchanged and no GitHub Release is created |
+| GitHub Release finalization failure | Marketplace may already contain the version; rerun only the failed job after checking attached artifact hashes |
 
-```bash
-file icon.png
-# Should show: PNG image data, 128 x 128
-```
-
-If you need to resize:
-
-```bash
-# Using ImageMagick
-convert icon.svg -resize 128x128 icon.png
-```
-
-### 3. Build and Test
-
-```bash
-# Compile TypeScript
-npm run compile
-
-# Run tests
-npm run test:unit
-
-# Check for linting errors
-npm run lint
-
-# Package the extension
-npx vsce package
-```
-
-### 4. Test the Extension Locally
-
-1. Install the packaged extension:
-   ```bash
-   code --install-extension openqc-vscode-2.0.0.vsix
-   ```
-
-2. Test core functionality:
-   - Open a quantum chemistry file (POSCAR, input.com, etc.)
-   - Verify syntax highlighting
-   - Test molecular visualization
-   - Test data plotting
-   - Test sidebar panels
-   - Test LSP management
-
-## Publishing Process
-
-### Step 1: Create Publisher (First Time Only)
-
-If you haven't created a publisher yet:
-
-```bash
-vsce create-publisher your-publisher-name
-```
-
-For OpenQC-VSCode, the publisher is `newtontech`.
-
-### Step 2: Login to vsce
-
-```bash
-vsce login your-publisher-name
-```
-
-When prompted, paste your Azure DevOps PAT.
-
-### Step 3: Publish
-
-```bash
-# Publish the extension
-vsce publish
-
-# Or publish a specific version
-vsce publish patch
-vsce publish minor
-vsce publish major
-```
-
-### Step 4: Verify
-
-1. Go to [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/)
-2. Search for "OpenQC-VSCode"
-3. Verify the extension appears correctly
-4. Check the extension page for proper display
-
-## Post-Publication
-
-### 1. Create a Release on GitHub
-
-```bash
-# Create a git tag
-git tag -a v2.0.0 -m "Release v2.0.0 - Universal Quantum Chemistry Platform"
-git push origin v2.0.0
-```
-
-Then create a GitHub release with:
-- Version number
-- Release notes from CHANGELOG.md
-- Screenshots
-- Installation instructions
-
-### 2. Update Documentation
-
-- Verify README.md is up to date
-- Check that all links work
-- Update any version-specific information
-
-### 3. Announce
-
-- Post on relevant forums (Computational Chemistry, VS Code extensions)
-- Update project website
-- Send to interested users
-
-## Troubleshooting
-
-### Authentication Failed
-
-```
-Error: Authentication failed. Please check your PAT.
-```
-
-Solution:
-1. Verify your PAT is correct
-2. Check that the PAT has "Marketplace > Manage" scope
-3. Try logging in again: `vsce logout` then `vsce login`
-
-### Package Validation Failed
-
-```
-Error: Validation failed
-```
-
-Solution:
-1. Run `vsce publish --dry-run` to check for issues
-2. Verify all required fields in package.json
-3. Check that icon.png exists and is 128x128 pixels
-4. Verify README.md doesn't have broken links
-
-### Version Conflict
-
-```
-Error: Version x.y.z already exists
-```
-
-Solution:
-1. Increment the version in package.json
-2. Run `npm run compile` to update compiled files
-3. Package again: `npx vsce package`
-
-## Maintenance
-
-### Updating the Extension
-
-1. Make changes
-2. Update version in package.json
-3. Update CHANGELOG.md
-4. Run tests: `npm run test:unit`
-5. Package: `npx vsce package`
-6. Test locally
-7. Publish: `vsce publish`
-
-### Versioning Strategy
-
-- **Major version (X.0.0)**: Breaking changes, major features
-- **Minor version (0.X.0)**: New features, backward compatible
-- **Patch version (0.0.X)**: Bug fixes, small improvements
-
-## Resources
-
-- [vsce Documentation](https://github.com/microsoft/vscode-vsce)
-- [VS Code Extension API](https://code.visualstudio.com/api)
-- [Marketplace Publishing Guidelines](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+Never print, commit, or place the PAT in `.env`; `.env` and common key formats are ignored by Git and rejected from the VSIX.

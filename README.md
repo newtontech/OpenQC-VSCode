@@ -6,6 +6,8 @@
 
 *Syntax, file detection, visualization entry points, and LSP startup for 17 computational chemistry and molecular-simulation formats*
 
+Release identity: `newtontech.openqc@0.0.1` (`OpenQC - DFT/MD/Quantum Chemistry Suite`)
+
 [![Install](https://img.shields.io/badge/VS%20Code-Install-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=newtontech.openqc)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -258,12 +260,13 @@ OpenQC works out of the box, but you can customize it:
 
 ## Marketplace Release Checklist
 
-- Confirm `package.json` version, publisher, display name, icon, and keywords.
-- Run the TypeScript build and extension packaging command from a clean checkout.
-- Run `npm run lsp:check-latest` and keep every bundled LSP at the configured remote branch head or an isolated latest worktree.
-- Smoke test each bundled LSP integration listed in `docs/LSP_COMPATIBILITY.md`.
-- Capture or refresh screenshots for syntax highlighting, diagnostics, 3D visualization, and validation.
-- Publish release notes that list supported formats, known parser gaps, VS Code version tested, and LSP versions or commit SHAs.
+- Use Node 22 and the locked dependencies: `nvm use && npm ci`.
+- Run `make format lint typecheck test check`; `npm run check:release` additionally creates and verifies `vsix/openqc-0.0.1.vsix`, its SHA-256 file, and CycloneDX SBOM.
+- Create `v0.0.1` only from a clean commit exactly synchronized with `origin/master`; `npm run release:tag` enforces that boundary.
+- A pushed `v*` tag runs build-and-verify first, pauses at the protected `marketplace-production` environment, publishes the already verified VSIX, and creates the GitHub Release only after Marketplace publication succeeds.
+- Never publish with a global `vsce`; the repository pins `@vscode/vsce` and the workflow invokes that local binary.
+
+See [Marketplace Publishing](docs/MARKETPLACE-PUBLISHING.md) for the operator runbook. Creating or pushing a tag is a release action and is not part of ordinary PR verification.
 
 ## Issue Triage Policy
 
