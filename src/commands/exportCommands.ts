@@ -8,19 +8,24 @@
  */
 
 import * as vscode from 'vscode';
-import { StructureExporter, ExportFormat, ExportOptions } from '../utils/structureExporter';
+import { StructureExporter, ExportFormat } from '../utils/structureExporter';
 import { Atom } from '../visualizers/types';
+import type { OpenQCBond } from '../structures/OpenQCStructure';
 
 /**
  * Register export commands
  */
 export function registerExportCommands(
   context: vscode.ExtensionContext,
-  getStructureData?: () => {
-    atoms: Atom[];
-    cell?: { a: number; b: number; c: number; alpha: number; beta: number; gamma: number };
-    pbc?: [boolean, boolean, boolean];
-  }
+  getStructureData?: () =>
+    | {
+        atoms: Atom[];
+        bonds?: OpenQCBond[];
+        cell?: any;
+        pbc?: [boolean, boolean, boolean];
+      }
+    | undefined,
+  saveStructureToSource?: () => Promise<boolean>
 ): void {
   const exporter = new StructureExporter(context);
 
@@ -40,7 +45,7 @@ export function registerExportCommands(
       }
 
       // Show format picker
-      const formats = StructureExporter.getSupportedFormats();
+      const formats = StructureExporter.getNativeFormats();
       const formatItems = formats.map(format => ({
         label: StructureExporter.getFormatDisplayName(format),
         description: format,
@@ -61,7 +66,9 @@ export function registerExportCommands(
 
       if (!result.success) {
         vscode.window.showErrorMessage(`Export failed: ${result.error}`);
+        return;
       }
+      showExportWarnings(result.warnings);
     }
   );
 
@@ -81,7 +88,7 @@ export function registerExportCommands(
       }
 
       // Show format picker with recent formats
-      const formats = StructureExporter.getSupportedFormats();
+      const formats = StructureExporter.getNativeFormats();
       const formatItems = formats.map(format => ({
         label: StructureExporter.getFormatDisplayName(format),
         description: format,
@@ -119,18 +126,36 @@ export function registerExportCommands(
 
       if (!result.success) {
         vscode.window.showErrorMessage(`Export failed: ${result.error}`);
+        return;
       }
+      showExportWarnings(result.warnings);
     }
   );
 
-  context.subscriptions.push(exportStructureCommand, exportWithPickerCommand);
+  const saveEditedStructureCommand = vscode.commands.registerCommand(
+    'openqc.saveEditedStructureToSource',
+    async () => {
+      if (!saveStructureToSource) {
+        vscode.window.showErrorMessage('No editable OpenQC viewer source is available');
+        return;
+      }
+
+      await saveStructureToSource();
+    }
+  );
+
+  context.subscriptions.push(
+    exportStructureCommand,
+    exportWithPickerCommand,
+    saveEditedStructureCommand
+  );
 }
 
-/**
- * Capitalize first letter
- */
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function showExportWarnings(warnings: string[] | undefined): void {
+  if (!warnings || warnings.length === 0) {
+    return;
+  }
+  vscode.window.showWarningMessage(`Export completed with warnings: ${warnings.join(' ')}`);
 }
 
 /**

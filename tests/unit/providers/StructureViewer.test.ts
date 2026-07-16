@@ -1,5 +1,6 @@
 import { StructureViewer } from '../../../src/providers/StructureViewer';
 import { FileTypeDetector } from '../../../src/managers/FileTypeDetector';
+import { OpenQCViewerPanel } from '../../../src/visualizers/OpenQCViewerPanel';
 import * as vscode from 'vscode';
 
 // Mock FileTypeDetector
@@ -12,6 +13,12 @@ jest.mock('../../../src/managers/FileTypeDetector', () => ({
       return null;
     }),
   })),
+}));
+
+jest.mock('../../../src/visualizers/OpenQCViewerPanel', () => ({
+  OpenQCViewerPanel: {
+    createOrShow: jest.fn(),
+  },
 }));
 
 // Mock vscode module
@@ -121,7 +128,7 @@ Direct
           enableScripts: true,
           localResourceRoots: expect.arrayContaining([
             expect.objectContaining({
-              fsPath: expect.stringContaining('node_modules/3dmol/build'),
+              fsPath: expect.stringContaining('media'),
             }),
           ]),
           retainContextWhenHidden: true,
@@ -179,7 +186,7 @@ Direct
           enableScripts: true,
           localResourceRoots: expect.arrayContaining([
             expect.objectContaining({
-              fsPath: expect.stringContaining('node_modules/3dmol/build'),
+              fsPath: expect.stringContaining('media'),
             }),
           ]),
           retainContextWhenHidden: true,
@@ -192,6 +199,54 @@ Direct
     it('should show warning when no editor is provided', () => {
       viewer.showPreview(undefined);
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith('No active editor found');
+    });
+
+    it('routes POSCAR previews through the canonical DTO viewer instead of the legacy preview panel', () => {
+      const mockEditor = {
+        document: {
+          fileName: '/test/POSCAR',
+          getText: () =>
+            `Fe slab
+1.0
+2.0 0.0 0.0
+0.0 2.0 0.0
+0.0 0.0 8.0
+Fe O
+1 1
+Selective dynamics
+Direct
+0.0 0.0 0.0 F F T
+0.5 0.5 0.5 T T T`,
+        },
+      } as unknown as vscode.TextEditor;
+
+      viewer.showPreview(mockEditor);
+
+      expect(OpenQCViewerPanel.createOrShow).toHaveBeenCalledWith(
+        mockUri,
+        expect.objectContaining({
+          schemaVersion: 'openqc.structure.v1',
+          kind: 'periodic',
+          atoms: expect.arrayContaining([
+            expect.objectContaining({
+              element: 'Fe',
+              selectiveDynamics: [false, false, true],
+            }),
+            expect.objectContaining({
+              element: 'O',
+              selectiveDynamics: [true, true, true],
+            }),
+          ]),
+          cell: expect.objectContaining({ coordinateMode: 'fractional' }),
+        }),
+        '/test/POSCAR'
+      );
+      expect(vscode.window.createWebviewPanel).not.toHaveBeenCalledWith(
+        'openqcInputPreview',
+        expect.any(String),
+        expect.any(Number),
+        expect.any(Object)
+      );
     });
 
     it('should create preview panel for Gaussian input', () => {
@@ -308,7 +363,7 @@ O 0.0 0.0 0.0`,
       viewer.show(mockEditor);
 
       const panel = (vscode.window.createWebviewPanel as jest.Mock).mock.results[0].value;
-      expect(panel.webview.html).toContain('node_modules/3dmol/build/3Dmol-min.js');
+      expect(panel.webview.html).toContain('media/vendor/3dmol/3Dmol-min.js');
       expect(panel.webview.html).toContain('Content-Security-Policy');
       expect(panel.webview.html).not.toContain('https://cdnjs.cloudflare.com');
       expect(panel.webview.html).not.toContain("'unsafe-inline'");

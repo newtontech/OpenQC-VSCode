@@ -10,6 +10,17 @@ import { Logger } from '../utils/Logger';
 
 const logger = Logger.getInstance();
 
+export interface OutputTrajectory {
+  sourceFile?: string;
+  software?: string;
+  supported: boolean;
+  frames: unknown[];
+  frameCount: number;
+  energies?: number[];
+  cclibAvailable?: boolean;
+  warnings?: string[];
+}
+
 /**
  * Parse a calculation output file.
  *
@@ -52,6 +63,22 @@ export async function summarizeOutput(
 ): Promise<BridgeResponse<Record<string, unknown>>> {
   return execPythonJson<Record<string, unknown>>('openqc.bridge.output_bridge', {
     command: 'summarize',
+    args: { path: filePath, software: software || 'auto' },
+  });
+}
+
+/**
+ * Extract an optimization trajectory from a calculation output file.
+ *
+ * Returns a structured unsupported response when the output format or parser
+ * does not expose coordinate frames.
+ */
+export async function extractTrajectory(
+  filePath: string,
+  software?: string
+): Promise<BridgeResponse<OutputTrajectory>> {
+  return execPythonJson<OutputTrajectory>('openqc.bridge.output_bridge', {
+    command: 'trajectory',
     args: { path: filePath, software: software || 'auto' },
   });
 }

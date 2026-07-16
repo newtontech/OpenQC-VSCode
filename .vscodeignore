@@ -47,10 +47,6 @@ vsc-extension-quickstart.md
 **/*.pem
 **/*.key
 node_modules/**
-!node_modules/3dmol/build/3Dmol-min.js
-!node_modules/3dmol/build/3Dmol-min.js.LICENSE.txt
-!node_modules/ngl/dist/ngl.js
-!node_modules/plotly.js-dist-min/plotly.min.js
 !node_modules/vscode-languageclient/**
 !node_modules/vscode-languageserver-protocol/**
 !node_modules/vscode-jsonrpc/**

@@ -46,9 +46,9 @@ if (forbiddenEntries.length > 0) {
 const requiredEntries = [
   'extension/out/extension.js',
   'extension/python/format_converter.py',
-  'extension/node_modules/3dmol/build/3Dmol-min.js',
-  'extension/node_modules/ngl/dist/ngl.js',
-  'extension/node_modules/plotly.js-dist-min/plotly.min.js',
+  'extension/media/vendor/3dmol/3Dmol-min.js',
+  'extension/media/vendor/ngl/ngl.js',
+  'extension/media/vendor/plotly.js-dist-min/plotly.min.js',
   'extension/node_modules/vscode-languageclient/lib/node/main.js',
 ];
 const missingEntries = requiredEntries.filter(entry => !entries.includes(entry));

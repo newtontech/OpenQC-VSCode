@@ -75,6 +75,22 @@ describe('PythonBridge', () => {
       expect(result.data).toEqual(mockData);
     });
 
+    it('adds the bundled Python package directory to PYTHONPATH', async () => {
+      const mockData = { success: true };
+      mockExecFile.mockImplementation((_cmd: any, _args: any, _opts: any, cb: any) => {
+        cb(null, JSON.stringify(mockData), '');
+        return {} as any;
+      });
+
+      await execPythonJson('openqc.bridge.check_backend', undefined, {
+        pythonPath: 'python3',
+        timeoutMs: 5000,
+      });
+
+      const options = mockExecFile.mock.calls[0][2];
+      expect(options.env.PYTHONPATH).toContain('/python');
+    });
+
     it('handles missing Python executable (ENOENT)', async () => {
       const error: any = new Error('spawn python3 ENOENT');
       error.code = 'ENOENT';

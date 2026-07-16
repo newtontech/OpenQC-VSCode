@@ -213,6 +213,96 @@ class ASECalculatorWrapper:
                 error=str(e),
                 execution_time=time.time() - start_time
             )
+
+    def run_existing_calculation(
+        self,
+        work_dir: str,
+        calculator: str,
+        config: CalculatorConfig,
+    ) -> CalculationResult:
+        """Run a calculation from an existing input directory."""
+        start_time = time.time()
+
+        try:
+            calc = calculator.lower()
+            work_path = Path(work_dir)
+            if not work_path.exists():
+                return CalculationResult(
+                    success=False,
+                    status="failed",
+                    work_dir=work_dir,
+                    input_files=[],
+                    output_files=[],
+                    error=f"Working directory not found: {work_dir}"
+                )
+
+            if config.command:
+                cmd = config.command.split()
+            else:
+                cmd = [config.executable]
+
+            if config.num_cores and config.num_cores > 1:
+                cmd = ["mpirun", "-np", str(config.num_cores)] + cmd
+
+            env = os.environ.copy()
+            if config.environment:
+                env.update(config.environment)
+            if config.max_memory:
+                env["MEMORY"] = str(config.max_memory)
+
+            process = subprocess.run(
+                cmd,
+                cwd=str(work_path),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=config.wall_time if config.wall_time else None
+            )
+
+            output_files = self._find_output_files(work_path, calc)
+            energy = None
+            forces = None
+            stress = None
+            if process.returncode == 0:
+                energy, forces, stress = self._parse_results(work_path, calc)
+
+            input_files = list(work_path.glob("*.in")) + list(work_path.glob("*.inp"))
+            input_files += list(work_path.glob("POSCAR")) + list(work_path.glob("INCAR"))
+
+            return CalculationResult(
+                success=process.returncode == 0,
+                status="completed" if process.returncode == 0 else "failed",
+                work_dir=str(work_path),
+                input_files=[str(f) for f in input_files],
+                output_files=output_files,
+                energy=energy,
+                forces=forces,
+                stress=stress,
+                error=process.stderr if process.returncode != 0 else None,
+                execution_time=time.time() - start_time,
+                metadata={"return_code": process.returncode}
+            )
+
+        except subprocess.TimeoutExpired:
+            return CalculationResult(
+                success=False,
+                status="failed",
+                work_dir=work_dir,
+                input_files=[],
+                output_files=[],
+                error=f"Calculation timed out after {config.wall_time} seconds",
+                execution_time=time.time() - start_time
+            )
+        except Exception as e:
+            return CalculationResult(
+                success=False,
+                status="failed",
+                work_dir=work_dir,
+                input_files=[],
+                output_files=[],
+                error=str(e),
+                execution_time=time.time() - start_time
+            )
     
     def read_results(self, work_dir: str, calculator: str) -> CalculationResult:
         """Read calculation results from working directory."""
@@ -338,9 +428,12 @@ Gamma
         run_type = params.get("run_type", "ENERGY")
         basis_file = params.get("basis_set_file", "BASIS_MOLOPT")
         pot_file = params.get("potential_file", "GTH_POTENTIALS")
-        xc_func = params.get("xc", "PBE")
+        xc_func = params.get("xc_functional", params.get("xc", "PBE"))
         max_scf = params.get("max_scf", 50)
         scf_eps = params.get("scf_eps", 1e-7)
+        cutoff = params.get("cutoff", 400)
+        rel_cutoff = params.get("rel_cutoff")
+        ngrids = params.get("ngrids")
         
         content = f"""&GLOBAL
   PROJECT {label}
@@ -353,6 +446,14 @@ Gamma
   &DFT
     BASIS_SET_FILE_NAME {basis_file}
     POTENTIAL_FILE_NAME {pot_file}
+    &MGRID
+      CUTOFF {cutoff}
+"""
+        if rel_cutoff is not None:
+            content += f"      REL_CUTOFF {rel_cutoff}\n"
+        if ngrids is not None:
+            content += f"      NGRIDS {ngrids}\n"
+        content += f"""    &END MGRID
     &XC
       &XC_FUNCTIONAL {xc_func}
       &END XC_FUNCTIONAL
@@ -372,7 +473,7 @@ Gamma
             content += f"      B {atoms.cell[1, 0]:.6f} {atoms.cell[1, 1]:.6f} {atoms.cell[1, 2]:.6f}\n"
             content += f"      C {atoms.cell[2, 0]:.6f} {atoms.cell[2, 1]:.6f} {atoms.cell[2, 2]:.6f}\n"
         
-        pbc_str = " ".join(["XYZ"[i] if p else "NONE" for i, p in enumerate(atoms.pbc)])
+        pbc_str = "".join("XYZ"[i] for i, p in enumerate(atoms.pbc) if p) or "NONE"
         content += f"      PERIODIC {pbc_str}\n"
         content += "    &END CELL\n"
         content += "    &COORD\n"
@@ -572,22 +673,22 @@ ATOMIC_SPECIES
             elif calculator == "cp2k":
                 for out_file in work_dir.glob("*.out"):
                     energy = self._parse_cp2k_output(out_file)
-                    if energy:
+                    if energy is not None:
                         break
             elif calculator == "qe":
                 for out_file in work_dir.glob("*.out"):
                     energy = self._parse_qe_output(out_file)
-                    if energy:
+                    if energy is not None:
                         break
             elif calculator == "gaussian":
                 for log_file in work_dir.glob("*.log"):
                     energy = self._parse_gaussian_output(log_file)
-                    if energy:
+                    if energy is not None:
                         break
             elif calculator == "orca":
                 for out_file in work_dir.glob("*.out"):
                     energy = self._parse_orca_output(out_file)
-                    if energy:
+                    if energy is not None:
                         break
         except Exception:
             pass
@@ -672,6 +773,7 @@ def main():
         print("Commands:")
         print("  generate <input_json>")
         print("  run <input_json> <config_json>")
+        print("  run-existing <calculator> <work_dir> <config_json>")
         print("  read <work_dir> <calculator>")
         sys.exit(1)
     
@@ -695,6 +797,15 @@ def main():
         input_data = CalculatorInput(**json.loads(sys.argv[2]))
         config = CalculatorConfig(**json.loads(sys.argv[3]))
         result = calculator.run_calculation(input_data, config)
+        print(json.dumps(result.to_dict(), indent=2))
+
+    elif command == "run-existing":
+        if len(sys.argv) < 5:
+            print("Error: calculator, work_dir, and config JSON required")
+            sys.exit(1)
+
+        config = CalculatorConfig(**json.loads(sys.argv[4]))
+        result = calculator.run_existing_calculation(sys.argv[3], sys.argv[2], config)
         print(json.dumps(result.to_dict(), indent=2))
     
     elif command == "read":

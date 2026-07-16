@@ -139,8 +139,10 @@ describe('MoleculeTreeProvider', () => {
     provider.dispose();
   });
 
-  it('should initialize with sample molecules if no saved data', () => {
+  it('should initialize empty if no saved data', async () => {
     expect(mockContext.workspaceState.get).toHaveBeenCalledWith('openqc.molecules', []);
+    await expect(provider.getChildren()).resolves.toEqual([]);
+    expect(mockContext.workspaceState.update).not.toHaveBeenCalled();
   });
 
   it('should add a molecule', () => {
@@ -150,6 +152,8 @@ describe('MoleculeTreeProvider', () => {
   });
 
   it('should remove a molecule', () => {
+    const molecule = new MoleculeItem('mol-1', 'Test', 'H2', 2);
+    provider.addMolecule(molecule);
     provider.removeMolecule('mol-1');
     expect(mockContext.workspaceState.update).toHaveBeenCalled();
   });
@@ -190,8 +194,10 @@ describe('JobTreeProvider', () => {
     provider.dispose();
   });
 
-  it('should initialize with sample jobs if no saved data', () => {
+  it('should initialize empty if no saved data', async () => {
     expect(mockContext.workspaceState.get).toHaveBeenCalledWith('openqc.jobs', []);
+    await expect(provider.getChildren()).resolves.toEqual([]);
+    expect(mockContext.workspaceState.update).not.toHaveBeenCalled();
   });
 
   it('should add a job', () => {
@@ -201,18 +207,33 @@ describe('JobTreeProvider', () => {
   });
 
   it('should update job status', () => {
+    provider.addJob(new JobItem('job-1', 'Test Job', 'running', 50, 'Gaussian'));
     provider.updateJobStatus('job-1', 'completed', 100);
     expect(mockContext.workspaceState.update).toHaveBeenCalled();
   });
 
   it('should cancel a running job', () => {
+    provider.addJob(new JobItem('job-1', 'Test Job', 'running', 50, 'Gaussian'));
     provider.cancelJob('job-1');
-    // Should not throw error
+    expect(provider.getJob('job-1')?.status).toBe('cancelled');
   });
 
   it('should restart a job', () => {
-    provider.restartJob('job-1');
-    // Should create a new job
+    provider.addJob(
+      new JobItem(
+        'job-1',
+        'Test Job',
+        'completed',
+        100,
+        'Gaussian',
+        undefined,
+        undefined,
+        '/tmp/gaussian'
+      )
+    );
+    const restarted = provider.restartJob('job-1');
+    expect(restarted?.status).toBe('running');
+    expect(restarted?.workingDirectory).toBe('/tmp/gaussian');
     expect(mockContext.workspaceState.update).toHaveBeenCalled();
   });
 

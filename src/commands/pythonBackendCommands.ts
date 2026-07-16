@@ -77,8 +77,20 @@ function displayBackendResult(result: BridgeResponse<BackendCheckResult>): void 
   }
 
   const data = result.data;
+  const backendStatus = data.status ?? 'degraded';
+  const capabilitySummary = summarizeCapabilities(data.capabilities);
   channel.appendLine('✅ Scientific Python Backend Check');
   channel.appendLine('═'.repeat(40));
+  channel.appendLine(`Status: ${backendStatus.toUpperCase()}`);
+  if (data.statusDetail) {
+    channel.appendLine(`Detail: ${data.statusDetail}`);
+  }
+  if (capabilitySummary) {
+    channel.appendLine(`Capabilities: ${capabilitySummary}`);
+  }
+  if (data.missingPackages && data.missingPackages.length > 0) {
+    channel.appendLine(`Missing core packages: ${data.missingPackages.join(', ')}`);
+  }
   channel.appendLine('');
 
   // Python
@@ -108,6 +120,21 @@ function displayBackendResult(result: BridgeResponse<BackendCheckResult>): void 
   channel.appendLine(`\n   ${availableCount}/${pkgEntries.length} packages available`);
   channel.appendLine('');
 
+  // Capabilities
+  if (data.capabilities && Object.keys(data.capabilities).length > 0) {
+    channel.appendLine('🧭 Feature Readiness:');
+    for (const [name, capability] of Object.entries(data.capabilities)) {
+      const icon = getCapabilityIcon(capability.status);
+      const label = capability.label ?? humanizeCapabilityName(name);
+      channel.appendLine(`   ${icon} ${label}: ${formatCapabilityStatus(capability.status)}`);
+      channel.appendLine(`      ${capability.detail}`);
+      if (capability.requires && capability.requires.length > 0) {
+        channel.appendLine(`      Install for full support: ${capability.requires.join(', ')}`);
+      }
+    }
+    channel.appendLine('');
+  }
+
   // External tools
   channel.appendLine('🔧 External Tools:');
   const tools = data.externalTools ?? {};
@@ -123,9 +150,14 @@ function displayBackendResult(result: BridgeResponse<BackendCheckResult>): void 
   logger.info(`Backend check: ${availableCount}/${pkgEntries.length} packages available`);
   channel.show(true);
 
-  vscode.window.showInformationMessage(
-    `Python backend: ${data.python.version} — ${availableCount}/${pkgEntries.length} scientific packages available`
-  );
+  const message = formatBackendNotification(data, availableCount, pkgEntries.length);
+  if (backendStatus === 'installed') {
+    vscode.window.showInformationMessage(message);
+  } else if (backendStatus === 'degraded') {
+    vscode.window.showWarningMessage(message);
+  } else {
+    vscode.window.showErrorMessage(message);
+  }
 }
 
 async function configurePythonPath(): Promise<void> {
@@ -153,4 +185,62 @@ async function configurePythonPath(): Promise<void> {
 
 async function showDiagnostics(): Promise<void> {
   await runBackendCheck();
+}
+
+function summarizeCapabilities(
+  capabilities: BackendCheckResult['capabilities']
+): string | undefined {
+  if (!capabilities || Object.keys(capabilities).length === 0) {
+    return undefined;
+  }
+
+  const counts = { available: 0, degraded: 0, missing: 0 };
+  for (const capability of Object.values(capabilities)) {
+    counts[capability.status] += 1;
+  }
+
+  return `${counts.available} available, ${counts.degraded} degraded, ${counts.missing} missing`;
+}
+
+function getCapabilityIcon(status: string): string {
+  if (status === 'available') {
+    return '✅';
+  }
+  if (status === 'degraded') {
+    return '⚠️';
+  }
+  return '❌';
+}
+
+function formatCapabilityStatus(status: string): string {
+  return status.toUpperCase();
+}
+
+function humanizeCapabilityName(name: string): string {
+  return name.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/^./, first => first.toUpperCase());
+}
+
+function formatBackendNotification(
+  data: BackendCheckResult,
+  availableCount: number,
+  totalCount: number
+): string {
+  const backendStatus = data.status ?? 'degraded';
+  const packageSummary = `${availableCount}/${totalCount} scientific packages available`;
+
+  if (backendStatus === 'installed') {
+    return `Python backend installed: ${data.python.version} — ${packageSummary}`;
+  }
+
+  if (data.missingPackages && data.missingPackages.length > 0) {
+    return `Python backend ${backendStatus}: missing ${data.missingPackages.join(
+      ', '
+    )}. ${packageSummary}`;
+  }
+
+  if (data.statusDetail) {
+    return `Python backend ${backendStatus}: ${data.statusDetail}`;
+  }
+
+  return `Python backend ${backendStatus}: ${packageSummary}`;
 }

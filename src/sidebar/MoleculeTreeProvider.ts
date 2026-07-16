@@ -134,16 +134,9 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
       this.molecules = saved
         .filter(m => m && m.id)
         .map(m => new MoleculeItem(m.id, m.label, m.formula, m.atomCount, m.filePath));
-
-      // If no saved molecules, add some sample data for demonstration
-      if (this.molecules.length === 0) {
-        this.addSampleMolecules();
-      }
     } catch (error) {
       console.error('Failed to load molecules:', error);
       this.molecules = [];
-      // Add sample molecules as fallback
-      this.addSampleMolecules();
     }
   }
 
@@ -164,21 +157,6 @@ export class MoleculeTreeProvider implements vscode.TreeDataProvider<MoleculeIte
     } catch (error) {
       console.error('Failed to save molecules:', error);
     }
-  }
-
-  /**
-   * Add sample molecules for demonstration
-   */
-  private addSampleMolecules(): void {
-    const samples = [
-      new MoleculeItem('mol-1', 'Water', 'H2O', 3, undefined),
-      new MoleculeItem('mol-2', 'Benzene', 'C6H6', 12, undefined),
-      new MoleculeItem('mol-3', 'Caffeine', 'C8H10N4O2', 24, undefined),
-      new MoleculeItem('mol-4', 'Aspirin', 'C9H8O4', 21, undefined),
-      new MoleculeItem('mol-5', 'Buckminsterfullerene', 'C60', 60, undefined),
-    ];
-    this.molecules = samples;
-    this.saveMolecules();
   }
 
   /**

@@ -6,6 +6,13 @@
 import { execPythonJson, type BridgeResponse } from './PythonBridge';
 import type { OpenQCStructure } from '../structures/OpenQCStructure';
 
+export interface StructureConversionResult {
+  format: string;
+  content?: string;
+  atomCount: number;
+  structure?: OpenQCStructure;
+}
+
 export async function parseStructure(
   filePath: string,
   formatHint?: string,
@@ -33,8 +40,8 @@ export async function convertStructure(
   filePath: string,
   targetFormat: string,
   formatHint?: string
-): Promise<BridgeResponse<OpenQCStructure>> {
-  return execPythonJson<OpenQCStructure>('openqc.bridge.structure_bridge', {
+): Promise<BridgeResponse<StructureConversionResult>> {
+  return execPythonJson<StructureConversionResult>('openqc.bridge.structure_bridge', {
     command: 'convert',
     args: { path: filePath, to: targetFormat, format: formatHint || 'auto' },
   });

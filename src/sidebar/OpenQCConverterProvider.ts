@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { generateNonce } from '../utils/nonce';
 
 /**
  * OpenQC Sidebar Provider
@@ -267,11 +268,4 @@ export class OpenQCConverterProvider implements vscode.WebviewViewProvider {
   }
 }
 
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;
