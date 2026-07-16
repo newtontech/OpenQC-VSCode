@@ -184,9 +184,9 @@ npm run test:e2e
 
 1. Update version in `package.json`
 2. Update `CHANGELOG.md`
-3. Run tests: `npm test`
-4. Package: `npx vsce package`
-5. Publish: `npx vsce publish`
+3. Run `nvm use && npm ci`
+4. Run `make format lint typecheck test check` and `npm run check:release`
+5. After merge, create a guarded release tag as documented in `docs/MARKETPLACE-PUBLISHING.md`; the protected workflow publishes the verified VSIX
 
 ## Resources
 
