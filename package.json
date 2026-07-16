@@ -1607,7 +1607,7 @@
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^8.56.0",
     "glob": "^13.0.6",
-    "husky": "^8.0.3",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^30.2.0",
     "jsdom": "^29.1.1",
