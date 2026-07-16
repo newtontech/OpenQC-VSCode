@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "openqc.lsp.release-matrix.v1",
+  "entries": {
+    "abacus-lsp": { "package": "abacus-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "abinit-lsp": { "package": "abinit-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "cif-lsp": {
+      "package": "newtontech.cif-lsp",
+      "targetVersion": "1.0.3",
+      "channel": "marketplace"
+    },
+    "cp2k-lsp-enhanced": {
+      "package": "cp2k-lsp-enhanced",
+      "targetVersion": "0.1.1",
+      "channel": "pypi"
+    },
+    "vasp-lsp": { "package": "vasp-lsp", "targetVersion": "0.4.5", "channel": "pypi" },
+    "gaussian-lsp": { "package": "gaussian-lsp", "targetVersion": "0.2.12", "channel": "pypi" },
+    "orca-lsp": { "package": "orca-lsp", "targetVersion": "0.5.6", "channel": "pypi" },
+    "qe-lsp": { "package": "qe-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "gamess-lsp": { "package": "gamess-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "nwchem-lsp": { "package": "nwchem-lsp", "targetVersion": "0.5.0", "channel": "pypi" },
+    "gpumd-lsp": { "package": "gpumd-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "gromacs-lsp": { "package": "gromacs-lsp", "targetVersion": "0.0.4", "channel": "pypi" },
+    "lammps-lsp": {
+      "package": "lammps-lsp",
+      "targetVersion": "0.1.0-pre.4",
+      "channel": "github-release"
+    },
+    "mlip-lsp": { "package": "mlip-lsp", "targetVersion": "0.2.1", "channel": "pypi" },
+    "pyatb-lsp": { "package": "pyatb-lsp", "targetVersion": "0.1.2", "channel": "pypi" },
+    "pyscf-lsp": { "package": "pyscf-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "dpgen-lsp": { "package": "dpgen-lsp", "targetVersion": "0.1.2", "channel": "pypi" }
+  }
+}

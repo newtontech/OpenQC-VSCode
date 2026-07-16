@@ -615,7 +615,11 @@ function git(args, options = {}) {
 
 function resolveCodeRoot(root) {
   const parent = resolve(root, '..');
-  return basename(parent) === '.worktrees' ? resolve(parent, '..') : parent;
+  if (basename(parent) !== '.worktrees') return parent;
+  const worktreeContainer = resolve(parent, '..');
+  return existsSync(join(worktreeContainer, '.git'))
+    ? resolve(worktreeContainer, '..')
+    : worktreeContainer;
 }
 
 function findLocalCheckout(entry) {

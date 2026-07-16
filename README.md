@@ -35,7 +35,7 @@ OpenQC currently wires **17 bundled LSP integrations** for computational chemist
 
 ### Latest LSP Status
 
-OpenQC tracks latest LSP support by the upstream default branch recorded in `src/lsp/registry.ts`. Run `npm run lsp:check-latest` before release or PR handoff to compare local sibling checkouts with the configured remote branch heads. If the main `cp2k-lsp-enhanced` checkout has unrelated local work, OpenQC can use `.worktrees-lsp-latest/cp2k-lsp-enhanced` for the latest CP2K LSP without overwriting that checkout.
+OpenQC tracks latest LSP support by the upstream default branch recorded in `src/lsp/registry.ts`. Run `npm run lsp:check-latest` before release or PR handoff to compare isolated source checkouts with configured remote branch heads. Run `npm run lsp:check-installed -- --strict` on a release host to additionally require the managed `.lsp-latest` runtime, server executable, agent CLI, source commit, manifest version, release-matrix version, and installed commit to agree. The installed-fleet check can emit the machine-readable `openqc.lsp.runtime-ledger.v1` report with `--json` or `--report-path <path>`.
 
 ### LSP Alignment Matrix
 
@@ -286,6 +286,13 @@ missing package return a structured JSON-RPC error without terminating the serve
 
 ## Marketplace Release Checklist
 
+- Confirm `package.json` version, publisher, display name, icon, and keywords.
+- Run the TypeScript build and extension packaging command from a clean checkout.
+- Run `npm run lsp:check-latest` and keep every bundled LSP at the configured remote branch head or an isolated latest worktree.
+- Run `npm run lsp:check-installed -- --strict` after rebuilding `.lsp-latest`; a latest source checkout does not prove the executable on `PATH` came from that commit.
+- Smoke test each bundled LSP integration listed in `docs/LSP_COMPATIBILITY.md`.
+- Capture or refresh screenshots for syntax highlighting, diagnostics, 3D visualization, and validation.
+- Publish release notes that list supported formats, known parser gaps, VS Code version tested, and LSP versions or commit SHAs.
 - Use Node 22 and the locked dependencies: `nvm use && npm ci`.
 - Run `make format lint typecheck test check`; `npm run check:release` additionally creates and verifies `vsix/openqc-0.0.1.vsix`, its SHA-256 file, and CycloneDX SBOM.
 - Create `v0.0.1` only from a clean commit exactly synchronized with `origin/master`; `npm run release:tag` enforces that boundary.

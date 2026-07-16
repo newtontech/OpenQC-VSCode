@@ -17,12 +17,21 @@
  */
 
 import { existsSync, readFileSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { basename, dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const codeRoot = resolve(repoRoot, '..');
+const codeRoot = resolveCodeRoot(repoRoot);
+
+function resolveCodeRoot(root) {
+  const parent = resolve(root, '..');
+  if (basename(parent) !== '.worktrees') return parent;
+  const worktreeContainer = resolve(parent, '..');
+  return existsSync(join(worktreeContainer, '.git'))
+    ? resolve(worktreeContainer, '..')
+    : worktreeContainer;
+}
 
 const jsonMode = process.argv.includes('--json');
 const strictMode = process.argv.includes('--strict');
