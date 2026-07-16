@@ -14,6 +14,15 @@ export interface VisualSmokePaths {
   reportPath: string;
 }
 
+export interface VisualSmokeMarker {
+  state?: string;
+  text?: string | null;
+}
+
+export function isVisualSmokeReadyMarker(marker: VisualSmokeMarker): boolean {
+  return marker.state === 'ready';
+}
+
 function readOptionValue(args: string[], index: number, flag: string): string {
   const value = args[index + 1];
   if (!value || value.startsWith('--')) {

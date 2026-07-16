@@ -9,7 +9,7 @@ import sharp from 'sharp';
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(new URL('..', import.meta.url).pathname);
-const { buildVisualSmokePaths, parseVisualSmokeArgs } = require(
+const { buildVisualSmokePaths, isVisualSmokeReadyMarker, parseVisualSmokeArgs } = require(
   path.join(root, 'out', 'smoke', 'visualSmokePaths.js')
 );
 const options = parseVisualSmokeArgs(process.argv.slice(2), root);
@@ -422,10 +422,12 @@ async function captureAndInspect(browser, screenshot) {
         state: element.dataset.state,
         text: element.textContent,
       }));
-      throw new Error(
-        `Viewer smoke timed out in state ${state.state || 'missing'} (${state.text || 'no status'}). ${diagnostics.join(' | ') || 'No browser diagnostics were emitted.'}`,
-        { cause: error }
-      );
+      if (!isVisualSmokeReadyMarker(state)) {
+        throw new Error(
+          `Viewer smoke timed out in state ${state.state || 'missing'} (${state.text || 'no status'}). ${diagnostics.join(' | ') || 'No browser diagnostics were emitted.'}`,
+          { cause: error }
+        );
+      }
     }
     const marker = await page.locator('#visual-smoke-ready').evaluate(element => ({
       state: element.dataset.state,

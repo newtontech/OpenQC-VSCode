@@ -1,5 +1,9 @@
 import * as path from 'path';
-import { buildVisualSmokePaths, parseVisualSmokeArgs } from '../../../src/smoke/visualSmokePaths';
+import {
+  buildVisualSmokePaths,
+  isVisualSmokeReadyMarker,
+  parseVisualSmokeArgs,
+} from '../../../src/smoke/visualSmokePaths';
 
 describe('visual smoke path options', () => {
   const workspaceRoot = path.resolve('/repo/openqc');
@@ -40,5 +44,12 @@ describe('visual smoke path options', () => {
     expect(() => parseVisualSmokeArgs(['--unknown'], workspaceRoot)).toThrow(
       'Unknown visual smoke option: --unknown'
     );
+  });
+
+  it('accepts only a verified ready marker after a browser polling timeout', () => {
+    expect(isVisualSmokeReadyMarker({ state: 'ready', text: 'ready' })).toBe(true);
+    expect(isVisualSmokeReadyMarker({ state: 'error', text: 'viewer failed' })).toBe(false);
+    expect(isVisualSmokeReadyMarker({ state: 'booting', text: 'booting' })).toBe(false);
+    expect(isVisualSmokeReadyMarker({ state: undefined, text: null })).toBe(false);
   });
 });

@@ -9,3 +9,4 @@
 - The release verifier must require the `media/vendor` bundle paths. Packaged visual smoke extracts `vsix/openqc-0.0.1.vsix` and uses those exact runtime files.
 - Final local gates use `make format`, `make lint`, `make typecheck`, `make test`, and `make check`, plus source and packaged visual smoke. The only lint output is the existing non-error curly warning in `src/agent/OpenQCToolRegistry.ts`.
 - The installed Node 22 binary was killed by the host before startup, so local commands ran on Node 26 with an engine warning; CI and release workflows enforce Node 22.
+- Ubuntu CI must install Playwright Chromium after `npm ci`. On software WebGL, `waitForFunction` can time out after the viewer marker is already `ready`; accept only a directly re-read `ready` marker, then retain screenshot pixel validation so genuine boot/error states still fail.
