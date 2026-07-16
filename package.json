@@ -1597,7 +1597,7 @@
     "@vscode/vsce": "3.9.2",
     "@types/glob": "^8.1.0",
     "@types/jest": "^30.0.0",
-    "@types/jsdom": "^28.0.0",
+    "@types/jsdom": "^28.0.3",
     "@types/mocha": "^10.0.10",
     "@types/node": "18.x",
     "@types/three": "^0.183.1",
