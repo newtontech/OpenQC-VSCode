@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { AICore, AICoreFactory, AIResponse } from './AICore';
+import { AICore, AICoreFactory, AIProvider, AIResponse } from './AICore';
 
 /**
  * Register AI commands
@@ -46,6 +46,29 @@ export function registerAICommands(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('openqc.aiSetApiKey', async () => {
+      const apiKey = await vscode.window.showInputBox({
+        prompt: 'Enter an OpenAI API key',
+        password: true,
+        ignoreFocusOut: true,
+        validateInput: value => (value.trim() ? null : 'API key cannot be empty'),
+      });
+      if (apiKey === undefined) {
+        return;
+      }
+      await aiCore.setOpenAIApiKey(apiKey);
+      vscode.window.showInformationMessage('OpenAI API key stored securely');
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('openqc.aiClearApiKey', async () => {
+      await aiCore.clearOpenAIApiKey();
+      vscode.window.showInformationMessage('OpenAI API key cleared');
+    })
+  );
+
+  context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration('openqc.ai')) {
         aiCore.refreshConfig();
@@ -79,12 +102,12 @@ async function aiOptimizeInput(aiCore: AICore): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: 'AI optimizing input file...',
-      cancellable: false,
+      cancellable: true,
     },
-    async progress => {
+    async (progress, token) => {
       progress.report({ message: 'Analyzing input file...' });
 
-      const response = await aiCore.optimizeInput(inputContent, software);
+      const response = await aiCore.optimizeInput(inputContent, software, token);
 
       if (!response.success) {
         vscode.window.showErrorMessage(`AI optimization failed: ${response.error}`);
@@ -147,12 +170,12 @@ async function aiGenerateInput(aiCore: AICore): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: 'AI generating input file...',
-      cancellable: false,
+      cancellable: true,
     },
-    async progress => {
+    async (progress, token) => {
       progress.report({ message: 'Generating input...' });
 
-      const response = await aiCore.generateInput(description, software, ctx);
+      const response = await aiCore.generateInput(description, software, ctx, token);
 
       if (!response.success) {
         vscode.window.showErrorMessage(`AI generation failed: ${response.error}`);
@@ -197,12 +220,12 @@ async function aiExplainParameters(aiCore: AICore): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: 'AI analyzing parameters...',
-      cancellable: false,
+      cancellable: true,
     },
-    async progress => {
+    async (progress, token) => {
       progress.report({ message: 'Analyzing parameters...' });
 
-      const response = await aiCore.explainParameters(inputContent, software);
+      const response = await aiCore.explainParameters(inputContent, software, token);
 
       if (!response.success) {
         vscode.window.showErrorMessage(`AI explanation failed: ${response.error}`);
@@ -271,12 +294,12 @@ async function aiDebugCalculation(aiCore: AICore): Promise<void> {
     {
       location: vscode.ProgressLocation.Notification,
       title: 'AI debugging calculation...',
-      cancellable: false,
+      cancellable: true,
     },
-    async progress => {
+    async (progress, token) => {
       progress.report({ message: 'Analyzing input and output...' });
 
-      const response = await aiCore.debugCalculation(inputContent, outputContent, software);
+      const response = await aiCore.debugCalculation(inputContent, outputContent, software, token);
 
       if (!response.success) {
         vscode.window.showErrorMessage(`AI debugging failed: ${response.error}`);
@@ -306,6 +329,14 @@ async function aiSettings(aiCore: AICore): Promise<void> {
       label: '$(symbol-event) Test AI Connection',
       description: 'Test connection to AI backend',
     },
+    {
+      label: '$(key) Set OpenAI API Key',
+      description: 'Store the key in VS Code SecretStorage',
+    },
+    {
+      label: '$(trash) Clear OpenAI API Key',
+      description: 'Delete the key from VS Code SecretStorage',
+    },
   ];
 
   const selected = await vscode.window.showQuickPick(items, {
@@ -318,13 +349,21 @@ async function aiSettings(aiCore: AICore): Promise<void> {
 
   if (selected.label.includes('Configure')) {
     vscode.commands.executeCommand('workbench.action.openSettings', 'openqc.ai');
+  } else if (selected.label.includes('Set OpenAI')) {
+    vscode.commands.executeCommand('openqc.aiSetApiKey');
+  } else if (selected.label.includes('Clear OpenAI')) {
+    vscode.commands.executeCommand('openqc.aiClearApiKey');
   } else if (selected.label.includes('Test')) {
     const available = await aiCore.isAvailable();
     if (available) {
       vscode.window.showInformationMessage('AI backend is available and ready');
     } else {
+      const errors = [...validation.errors];
+      if (config.provider === AIProvider.OpenAI && !(await aiCore.hasOpenAIApiKey())) {
+        errors.push('OpenAI API key is not configured');
+      }
       vscode.window.showErrorMessage(
-        `AI backend is not available. ${validation.errors.join(', ')}`
+        `AI backend is not available${errors.length ? `: ${errors.join(', ')}` : ''}`
       );
     }
   }
