@@ -30,6 +30,7 @@ describe('release pipeline contract', () => {
     expect(makefile).toContain('check: ## Run the canonical pull-request quality gate');
     expect(makefile).toContain('npm run ci:pr');
     expect(makefile).not.toContain('cd core');
+    expect(ci).toContain('npx playwright install --with-deps chromium');
     expect(ci).toContain('run: npm run check:release');
     expect(release).toContain('run: npm run check:release');
     expect(ci).toContain('node-version: 22');
