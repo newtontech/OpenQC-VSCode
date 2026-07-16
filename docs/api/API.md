@@ -141,7 +141,8 @@ vscode.commands.executeCommand('openqc.restartLSP');
 ```bash
 git clone https://github.com/newtontech/OpenQC-VSCode.git
 cd OpenQC-VSCode
-npm install
+nvm use
+npm ci
 npm run compile
 ```
 
@@ -154,7 +155,7 @@ npm test
 ### Packaging
 
 ```bash
-npx vsce package
+npm run check:release
 ```
 
 ---
