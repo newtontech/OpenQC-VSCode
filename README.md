@@ -216,6 +216,21 @@ OpenQC works out of the box, but you can customize it:
 
 The production viewer is the bundled 3Dmol runtime. Previous renderer, plot-library, and auto-open settings were removed because they were not consumed by runtime code. External analyzers remain disabled by default and require a local executable plus an explicit confirmation.
 
+### Secure AI providers
+
+OpenQC can use the OpenAI Responses API or a local Ollama server for input optimization,
+generation, explanation, and debugging. Enable `openqc.ai.enabled`, select the provider and
+model, then run **OpenQC: Set OpenAI API Key** when using OpenAI. The credential is stored in
+VS Code SecretStorage and is never written to user or workspace settings; use **OpenQC: Clear
+OpenAI API Key** to remove it. Provider calls are cancellable and bounded by the configured
+timeout, token limit, and output-character limit.
+
+From a source checkout, the dependency-free MCP entry point is
+`PYTHONPATH=python python -m openqc.mcp_server`. It exposes five tools for
+structure parsing, output parsing, backend checks, supercell generation, and dataset summaries.
+Native paths continue to work when optional scientific packages are absent; tools that require a
+missing package return a structured JSON-RPC error without terminating the server.
+
 ---
 
 ## 💡 Use Cases
@@ -264,8 +279,8 @@ The production viewer is the bundled 3Dmol runtime. Previous renderer, plot-libr
 
 ### Long Term (v3.0)
 
-- [ ] AI-powered parameter optimization
-- [ ] Natural language input generation
+- [x] AI-powered parameter optimization with OpenAI and Ollama
+- [x] Natural language input generation
 - [ ] Workflow automation
 - [ ] Demand-proven ecosystem integrations from the [roadmap](docs/project/PLAN.md)
 

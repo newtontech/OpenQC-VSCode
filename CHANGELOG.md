@@ -18,6 +18,16 @@
 - Added clean-tree, `origin/master`, tag/version, artifact identity, size, and payload-hygiene checks.
 - Retired the unused duplicate Python `core/` package; its maintained workflow-migration behavior already lives in `src/utils/migration/mdWorkflow.ts` with Jest coverage.
 
+### Secure AI providers and MCP
+
+- Switched the Python AI bridge to a module entry point with the OpenAI Responses API and
+  Ollama generate API, using fake-HTTP coverage rather than live provider requests.
+- Moved OpenAI credentials out of configuration and into VS Code SecretStorage with explicit set
+  and clear commands.
+- Added cancellation, provider and subprocess timeouts, bounded output, and secret-safe errors.
+- Routed and validated all five tools declared by the dependency-free MCP server while preserving
+  JSON-RPC request IDs and normalizing missing optional dependencies and tool failures.
+
 ## [3.0.6] - 2026-03-05
 
 ## [3.0.7] - 2026-03-05
@@ -493,7 +503,7 @@ Phase 5 remaining tasks:
 - VSCode settings for AI:
   - `openqc.ai.enabled` - Enable/disable AI features
   - `openqc.ai.provider` - Select provider (openai/ollama)
-  - `openqc.ai.apiKey` - OpenAI API key
+  - OpenAI API key setting (historical; removed above in favor of SecretStorage)
   - `openqc.ai.model` - Model name
   - `openqc.ai.ollamaUrl` - Ollama server URL
   - `openqc.ai.maxTokens` - Maximum response tokens

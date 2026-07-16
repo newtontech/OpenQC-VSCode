@@ -1,38 +1,29 @@
-/**
- * AI Core Module - TypeScript Interface
- *
- * Provides TypeScript interface to the Python AI backend for
- * AI-powered input file optimization, generation, and debugging.
- */
+/** Secure TypeScript bridge to the Python AI module. */
 
-import * as vscode from 'vscode';
 import * as path from 'path';
 import { spawn } from 'child_process';
+import * as vscode from 'vscode';
 
-/**
- * Supported AI providers
- */
+export const OPENAI_API_KEY_SECRET = 'openqc.ai.openaiApiKey';
+const STDERR_LIMIT = 8_192;
+
 export enum AIProvider {
   OpenAI = 'openai',
   Ollama = 'ollama',
 }
 
-/**
- * AI Configuration interface
- */
 export interface AIConfig {
   enabled: boolean;
   provider: AIProvider;
-  apiKey?: string;
   model: string;
+  openaiBaseUrl: string;
   ollamaUrl: string;
   maxTokens: number;
+  maxOutputChars: number;
+  timeoutSeconds: number;
   temperature: number;
 }
 
-/**
- * AI Request types
- */
 export enum AIRequestType {
   OptimizeInput = 'optimize_input',
   GenerateInput = 'generate_input',
@@ -40,19 +31,13 @@ export enum AIRequestType {
   DebugCalculation = 'debug_calculation',
 }
 
-/**
- * AI Request interface
- */
 export interface AIRequest {
   type: AIRequestType;
   content: string;
   software?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
-/**
- * AI Response interface
- */
 export interface AIResponse {
   success: boolean;
   content?: string;
@@ -66,266 +51,321 @@ export interface AIResponse {
   }>;
   generatedInput?: string;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-/**
- * AI Core class
- *
- * Interfaces with Python AI backend for LLM operations
- */
 export class AICore {
   private config: AIConfig;
   private pythonPath: string;
-  private aiScript: string;
-  private context: vscode.ExtensionContext;
+  private readonly pythonRoot: string;
 
-  constructor(context: vscode.ExtensionContext) {
-    this.context = context;
+  constructor(private readonly context: vscode.ExtensionContext) {
     this.pythonPath = this.getPythonPath();
-    this.aiScript = path.join(context.extensionPath, 'python', 'openqc', 'ai', 'client.py');
+    this.pythonRoot = path.join(context.extensionPath, 'python');
     this.config = this.loadConfig();
   }
 
-  /**
-   * Get Python executable path from configuration
-   */
   private getPythonPath(): string {
-    const config = vscode.workspace.getConfiguration('openqc');
-    return config.get<string>('pythonPath', 'python3');
+    return vscode.workspace.getConfiguration('openqc').get<string>('pythonPath', 'python3');
   }
 
-  /**
-   * Load AI configuration from VSCode settings
-   */
   private loadConfig(): AIConfig {
     const config = vscode.workspace.getConfiguration('openqc.ai');
     return {
       enabled: config.get<boolean>('enabled', false),
       provider: config.get<AIProvider>('provider', AIProvider.Ollama),
-      apiKey: config.get<string>('apiKey'),
       model: config.get<string>('model', 'llama2'),
+      openaiBaseUrl: config.get<string>('openaiBaseUrl', 'https://api.openai.com/v1'),
       ollamaUrl: config.get<string>('ollamaUrl', 'http://localhost:11434'),
       maxTokens: config.get<number>('maxTokens', 2048),
+      maxOutputChars: config.get<number>('maxOutputChars', 100_000),
+      timeoutSeconds: config.get<number>('timeoutSeconds', 120),
       temperature: config.get<number>('temperature', 0.7),
     };
   }
 
-  /**
-   * Refresh configuration (call when settings change)
-   */
   public refreshConfig(): void {
+    this.pythonPath = this.getPythonPath();
     this.config = this.loadConfig();
   }
 
-  /**
-   * Check if AI features are enabled and available
-   */
   public isEnabled(): boolean {
     return this.config.enabled;
   }
 
-  /**
-   * Check if AI backend is available
-   */
-  public async isAvailable(): Promise<boolean> {
+  public async setOpenAIApiKey(apiKey: string): Promise<void> {
+    const value = apiKey.trim();
+    if (!value) {
+      throw new Error('OpenAI API key cannot be empty');
+    }
+    await this.context.secrets.store(OPENAI_API_KEY_SECRET, value);
+  }
+
+  public async clearOpenAIApiKey(): Promise<void> {
+    await this.context.secrets.delete(OPENAI_API_KEY_SECRET);
+  }
+
+  public async hasOpenAIApiKey(): Promise<boolean> {
+    return Boolean(await this.context.secrets.get(OPENAI_API_KEY_SECRET));
+  }
+
+  public async isAvailable(token?: vscode.CancellationToken): Promise<boolean> {
     if (!this.config.enabled) {
       return false;
     }
-
-    try {
-      const result = await this.executeAI(['check'], '');
-      return result.success;
-    } catch {
-      return false;
-    }
+    const result = await this.executeAI(['check'], '', token);
+    return result.success;
   }
 
-  /**
-   * Get current configuration
-   */
   public getConfig(): AIConfig {
     return { ...this.config };
   }
 
-  /**
-   * Optimize input file parameters
-   */
-  public async optimizeInput(inputContent: string, software: string): Promise<AIResponse> {
-    const request: AIRequest = {
-      type: AIRequestType.OptimizeInput,
-      content: inputContent,
-      software,
-    };
-
-    return this.executeAI(['optimize'], JSON.stringify(request));
+  public optimizeInput(
+    inputContent: string,
+    software: string,
+    token?: vscode.CancellationToken
+  ): Promise<AIResponse> {
+    return this.executeAI(
+      ['optimize'],
+      JSON.stringify({
+        type: AIRequestType.OptimizeInput,
+        content: inputContent,
+        software,
+      } satisfies AIRequest),
+      token
+    );
   }
 
-  /**
-   * Generate input file from natural language description
-   */
-  public async generateInput(
+  public generateInput(
     description: string,
     software: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>,
+    token?: vscode.CancellationToken
   ): Promise<AIResponse> {
-    const request: AIRequest = {
-      type: AIRequestType.GenerateInput,
-      content: description,
-      software,
-      context,
-    };
-
-    return this.executeAI(['generate'], JSON.stringify(request));
+    return this.executeAI(
+      ['generate'],
+      JSON.stringify({
+        type: AIRequestType.GenerateInput,
+        content: description,
+        software,
+        context,
+      } satisfies AIRequest),
+      token
+    );
   }
 
-  /**
-   * Explain input file parameters
-   */
-  public async explainParameters(inputContent: string, software: string): Promise<AIResponse> {
-    const request: AIRequest = {
-      type: AIRequestType.ExplainParameters,
-      content: inputContent,
-      software,
-    };
-
-    return this.executeAI(['explain'], JSON.stringify(request));
+  public explainParameters(
+    inputContent: string,
+    software: string,
+    token?: vscode.CancellationToken
+  ): Promise<AIResponse> {
+    return this.executeAI(
+      ['explain'],
+      JSON.stringify({
+        type: AIRequestType.ExplainParameters,
+        content: inputContent,
+        software,
+      } satisfies AIRequest),
+      token
+    );
   }
 
-  /**
-   * Debug failed calculation
-   */
-  public async debugCalculation(
+  public debugCalculation(
     inputContent: string,
     outputContent: string,
-    software: string
+    software: string,
+    token?: vscode.CancellationToken
   ): Promise<AIResponse> {
-    const request: AIRequest = {
-      type: AIRequestType.DebugCalculation,
-      content: inputContent,
-      software,
-      context: { output: outputContent },
-    };
-
-    return this.executeAI(['debug'], JSON.stringify(request));
+    return this.executeAI(
+      ['debug'],
+      JSON.stringify({
+        type: AIRequestType.DebugCalculation,
+        content: inputContent,
+        software,
+        context: { output: outputContent },
+      } satisfies AIRequest),
+      token
+    );
   }
 
-  /**
-   * Execute AI Python script
-   */
-  private async executeAI(args: string[], input: string): Promise<AIResponse> {
-    return new Promise((resolve, reject) => {
-      const env = {
-        ...process.env,
-        OPENQC_AI_PROVIDER: this.config.provider,
-        OPENQC_AI_MODEL: this.config.model,
-        OPENQC_AI_API_KEY: this.config.apiKey || '',
-        OPENQC_AI_OLLAMA_URL: this.config.ollamaUrl,
-        OPENQC_AI_MAX_TOKENS: this.config.maxTokens.toString(),
-        OPENQC_AI_TEMPERATURE: this.config.temperature.toString(),
-      };
+  private async executeAI(
+    args: string[],
+    input: string,
+    token?: vscode.CancellationToken
+  ): Promise<AIResponse> {
+    const apiKey =
+      this.config.provider === AIProvider.OpenAI
+        ? await this.context.secrets.get(OPENAI_API_KEY_SECRET)
+        : undefined;
+    if (this.config.provider === AIProvider.OpenAI && !apiKey) {
+      return { success: false, error: 'OpenAI API key is not configured' };
+    }
+    if (token?.isCancellationRequested) {
+      return { success: false, error: 'AI request was cancelled' };
+    }
 
-      const process_ = spawn(this.pythonPath, [this.aiScript, ...args], { env });
+    return new Promise(resolve => {
+      const pathSeparator = process.platform === 'win32' ? ';' : ':';
+      const currentPythonPath = process.env.PYTHONPATH;
+      const child = spawn(this.pythonPath, ['-m', 'openqc.ai.client', ...args], {
+        cwd: this.pythonRoot,
+        shell: false,
+        env: {
+          ...process.env,
+          PYTHONPATH: currentPythonPath
+            ? `${this.pythonRoot}${pathSeparator}${currentPythonPath}`
+            : this.pythonRoot,
+          OPENQC_AI_PROVIDER: this.config.provider,
+          OPENQC_AI_MODEL: this.config.model,
+          OPENQC_AI_API_KEY: apiKey ?? '',
+          OPENQC_AI_OPENAI_URL: this.config.openaiBaseUrl,
+          OPENQC_AI_OLLAMA_URL: this.config.ollamaUrl,
+          OPENQC_AI_MAX_TOKENS: String(this.config.maxTokens),
+          OPENQC_AI_MAX_OUTPUT_CHARS: String(this.config.maxOutputChars),
+          OPENQC_AI_TIMEOUT_SECONDS: String(this.config.timeoutSeconds),
+          OPENQC_AI_TEMPERATURE: String(this.config.temperature),
+        },
+      });
 
       let stdout = '';
       let stderr = '';
+      let settled = false;
+      let exceededOutputLimit = false;
+      const outputLimit = Math.max(4096, this.config.maxOutputChars * 4);
+
+      const finish = (response: AIResponse): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timeout);
+        cancellation.dispose();
+        resolve(response);
+      };
+
+      const terminate = (message: string): void => {
+        child.kill();
+        finish({ success: false, error: message });
+      };
+
+      const timeout = setTimeout(
+        () => terminate(`AI request timed out after ${this.config.timeoutSeconds} seconds`),
+        Math.max(100, this.config.timeoutSeconds * 1000)
+      );
+      const cancellation = token?.onCancellationRequested(() =>
+        terminate('AI request was cancelled')
+      ) ?? {
+        dispose: () => undefined,
+      };
 
       if (input) {
-        process_.stdin.write(input);
-        process_.stdin.end();
+        child.stdin.write(input);
       }
+      child.stdin.end();
 
-      process_.stdout.on('data', data => {
+      child.stdout.on('data', data => {
+        if (settled || exceededOutputLimit) {
+          return;
+        }
         stdout += data.toString();
+        if (Buffer.byteLength(stdout, 'utf8') > outputLimit) {
+          exceededOutputLimit = true;
+          terminate('AI backend output exceeded the configured safe limit');
+        }
       });
 
-      process_.stderr.on('data', data => {
-        stderr += data.toString();
+      child.stderr.on('data', data => {
+        if (stderr.length < STDERR_LIMIT) {
+          stderr += data.toString().slice(0, STDERR_LIMIT - stderr.length);
+        }
       });
 
-      process_.on('close', code => {
+      child.on('close', code => {
+        if (settled) {
+          return;
+        }
         if (code !== 0) {
-          resolve({
+          const detail = this.sanitizeError(stderr, apiKey);
+          finish({
             success: false,
-            error: `AI backend failed with code ${code}: ${stderr}`,
+            error: detail
+              ? `AI backend failed with code ${code}: ${detail}`
+              : `AI backend failed with code ${code}`,
           });
           return;
         }
-
         try {
-          const result = JSON.parse(stdout) as AIResponse;
-          resolve(result);
-        } catch (error) {
-          resolve({
-            success: false,
-            error: `Failed to parse AI response: ${error}`,
-            metadata: { raw_output: stdout },
-          });
+          finish(JSON.parse(stdout) as AIResponse);
+        } catch {
+          finish({ success: false, error: 'AI backend returned an invalid response' });
         }
       });
 
-      process_.on('error', error => {
-        reject({
+      child.on('error', error => {
+        finish({
           success: false,
-          error: `Failed to execute AI backend: ${error.message}`,
+          error: `Failed to execute AI backend: ${this.sanitizeError(error.message, apiKey)}`,
         });
       });
     });
   }
 
-  /**
-   * Get available models for current provider
-   */
-  public async getAvailableModels(): Promise<string[]> {
-    if (this.config.provider === AIProvider.OpenAI) {
-      return ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-    } else if (this.config.provider === AIProvider.Ollama) {
-      try {
-        const response = await fetch(`${this.config.ollamaUrl}/api/tags`);
-        if (!response.ok) {
-          return ['llama2', 'codellama', 'mistral'];
-        }
-        const data = await response.json();
-        return data.models?.map((m: any) => m.name) || ['llama2'];
-      } catch {
-        return ['llama2', 'codellama', 'mistral'];
-      }
+  private sanitizeError(message: string, apiKey?: string): string {
+    let safe = message;
+    if (apiKey) {
+      safe = safe.split(apiKey).join('[REDACTED]');
     }
-    return [];
+    return safe
+      .replace(/bearer\s+[^\s,;]+/gi, 'Bearer [REDACTED]')
+      .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[REDACTED]')
+      .trim()
+      .slice(0, 500);
   }
 
-  /**
-   * Validate AI configuration
-   */
+  public async getAvailableModels(): Promise<string[]> {
+    if (this.config.provider === AIProvider.OpenAI) {
+      return this.config.model ? [this.config.model] : [];
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.config.timeoutSeconds * 1000);
+    try {
+      const response = await fetch(`${this.config.ollamaUrl}/api/tags`, {
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        return [];
+      }
+      const data = (await response.json()) as { models?: Array<{ name?: string }> };
+      return data.models?.flatMap(model => (model.name ? [model.name] : [])) ?? [];
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
   public validateConfig(): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-
     if (!this.config.enabled) {
       errors.push('AI features are disabled');
     }
-
-    if (this.config.provider === AIProvider.OpenAI && !this.config.apiKey) {
-      errors.push('OpenAI API key is required');
-    }
-
     if (!this.config.model) {
       errors.push('Model name is required');
     }
-
     if (this.config.temperature < 0 || this.config.temperature > 2) {
       errors.push('Temperature must be between 0 and 2');
     }
-
-    return {
-      valid: errors.length === 0,
-      errors,
-    };
+    if (this.config.timeoutSeconds <= 0 || this.config.timeoutSeconds > 600) {
+      errors.push('Timeout must be between 0 and 600 seconds');
+    }
+    if (this.config.maxOutputChars < 256 || this.config.maxOutputChars > 1_000_000) {
+      errors.push('Maximum output characters must be between 256 and 1000000');
+    }
+    return { valid: errors.length === 0, errors };
   }
 }
 
-/**
- * AI Core factory for creating instances
- */
 export class AICoreFactory {
   private static instance: AICore | null = null;
 
