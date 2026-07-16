@@ -274,7 +274,7 @@ The production viewer is the bundled 3Dmol runtime. Previous renderer, plot-libr
 - Use Node 22 and the locked dependencies: `nvm use && npm ci`.
 - Run `make format lint typecheck test check`; `npm run check:release` additionally creates and verifies `vsix/openqc-0.0.1.vsix`, its SHA-256 file, and CycloneDX SBOM.
 - Create `v0.0.1` only from a clean commit exactly synchronized with `origin/master`; `npm run release:tag` enforces that boundary.
-- A pushed `v*` tag runs build-and-verify first, pauses at the protected `marketplace` environment, publishes the already verified VSIX, and creates the GitHub Release only after Marketplace publication succeeds.
+- A pushed `v*` tag runs build-and-verify first, pauses at the protected `marketplace-production` environment, publishes the already verified VSIX, and creates the GitHub Release only after Marketplace publication succeeds.
 - Never publish with a global `vsce`; the repository pins `@vscode/vsce` and the workflow invokes that local binary.
 
 See [Marketplace Publishing](docs/MARKETPLACE-PUBLISHING.md) for the operator runbook. Creating or pushing a tag is a release action and is not part of ordinary PR verification.

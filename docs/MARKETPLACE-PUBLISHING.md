@@ -7,7 +7,7 @@ OpenQC's release identity is `newtontech.openqc@0.0.1`, displayed as **OpenQC - 
 - Node is fixed to major 22 through `.nvmrc`, `package.json`, and GitHub Actions.
 - npm is declared as `npm@10.9.8` and dependencies are installed with `npm ci`.
 - `@vscode/vsce` is a dev dependency pinned exactly to `3.9.2`; do not use a global or floating `vsce` for release work.
-- Configure a protected GitHub environment named `marketplace` and store a publisher-scoped `VSCE_PAT` secret in that environment. The token needs **Marketplace > Manage** permission for publisher `newtontech`.
+- Configure a protected GitHub environment named `marketplace-production` and store a publisher-scoped `VSCE_PAT` secret in that environment. The token needs **Marketplace > Manage** permission for publisher `newtontech`.
 
 ## Build and verify locally
 
@@ -46,7 +46,7 @@ git push origin v0.0.1
 ## Automated release stages
 
 1. **Build and verify** checks out full tag history, confirms the tag points to the clean current `origin/master`, installs the lockfile on Node 22, and runs `npm run check:release`.
-2. **Publish Marketplace** downloads those exact artifacts, verifies SHA-256, waits for the protected `marketplace` environment, and publishes with the pinned local `vsce` plus `VSCE_PAT`.
+2. **Publish Marketplace** downloads those exact artifacts, verifies SHA-256, waits for the protected `marketplace-production` environment, and publishes with the pinned local `vsce` plus `VSCE_PAT`.
 3. **Finalize GitHub Release** runs only after Marketplace publication succeeds, re-verifies SHA-256, and creates the GitHub Release with the VSIX, checksum, and CycloneDX SBOM.
 
 The workflow does not publish Open VSX and does not rewrite `CHANGELOG.md` after tagging.
