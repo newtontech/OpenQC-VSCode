@@ -8,6 +8,8 @@
   Fake local HTTP servers cover provider behavior; tests must never send live provider requests.
 - The dependency-free MCP server declares five tools. Keep the tool schemas, handler routing,
   JSON-RPC validation, request IDs, and normalized optional-dependency errors in one module.
+- The PR contract recognizes test evidence only when the body contains `Tests`, `Test Plan`, or
+  `TDD Evidence`; a generic `Validation` heading does not satisfy the check.
 - `make lint` is currently blocked by 544 pre-existing Ruff errors under `core/`. `make test`
   reaches a missing `pytest` executable and a nonexistent `core/tests/unit` path after the Jest
   unit suite passes; use the maintained root Python tests plus npm/Jest gates for this slice.
