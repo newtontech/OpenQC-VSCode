@@ -41,7 +41,7 @@ describe('release pipeline contract', () => {
 
     expect(workflow).toContain('build-and-verify:');
     expect(workflow).toContain('publish-marketplace:');
-    expect(workflow).toContain('environment: marketplace');
+    expect(workflow).toContain('environment: marketplace-production');
     expect(workflow).toContain('needs: build-and-verify');
     expect(workflow).toContain('finalize-github-release:');
     expect(workflow).toContain('needs: publish-marketplace');
