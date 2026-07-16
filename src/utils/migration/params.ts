@@ -28,6 +28,9 @@ export interface ParameterMapping {
   defaultValue?: any;
 }
 
+export const RY_TO_EV = 13.605693122994;
+export const EV_TO_RY = 1 / RY_TO_EV;
+
 /**
  * Energy cutoff mappings
  */
@@ -37,8 +40,8 @@ export const ENERGY_CUTOFF_MAPPINGS: ParameterMapping[] = [
     target: 'cp2k',
     sourceParam: 'ENCUT',
     targetParam: 'CUTOFF',
-    unitFactor: 1.0,
-    description: 'Plane-wave cutoff energy (eV)',
+    unitFactor: EV_TO_RY,
+    description: 'Plane-wave cutoff energy (eV to Ry)',
     required: true,
   },
   {
@@ -46,8 +49,8 @@ export const ENERGY_CUTOFF_MAPPINGS: ParameterMapping[] = [
     target: 'qe',
     sourceParam: 'ENCUT',
     targetParam: 'ecutwfc',
-    unitFactor: 1.0,
-    description: 'Kinetic energy cutoff for wavefunctions (Ry)',
+    unitFactor: EV_TO_RY,
+    description: 'Kinetic energy cutoff for wavefunctions (eV to Ry)',
     required: true,
   },
   {
@@ -55,8 +58,8 @@ export const ENERGY_CUTOFF_MAPPINGS: ParameterMapping[] = [
     target: 'vasp',
     sourceParam: 'ecutwfc',
     targetParam: 'ENCUT',
-    unitFactor: 1.0,
-    description: 'Kinetic energy cutoff (eV)',
+    unitFactor: RY_TO_EV,
+    description: 'Kinetic energy cutoff (Ry to eV)',
     required: true,
   },
   {
@@ -64,8 +67,8 @@ export const ENERGY_CUTOFF_MAPPINGS: ParameterMapping[] = [
     target: 'vasp',
     sourceParam: 'CUTOFF',
     targetParam: 'ENCUT',
-    unitFactor: 1.0,
-    description: 'Plane-wave cutoff energy (eV)',
+    unitFactor: RY_TO_EV,
+    description: 'Plane-wave cutoff energy (Ry to eV)',
     required: true,
   },
 ];

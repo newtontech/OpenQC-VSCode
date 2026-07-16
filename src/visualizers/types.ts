@@ -12,6 +12,8 @@ export interface Atom {
   x: number;
   y: number;
   z: number;
+  /** VASP-style selective dynamics flags: true means free along that axis. */
+  selectiveDynamics?: [boolean, boolean, boolean];
 }
 
 /**

@@ -283,6 +283,20 @@ describe('validateOpenQCStructure', () => {
   // -----------------------------------------------------------------------
 
   describe('bond validation', () => {
+    it('rejects non-array bonds', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: { from: 0, to: 1 } as any,
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain('bonds must be an array when provided');
+    });
+
     it('rejects bond with non-number from/to', () => {
       const result = validateOpenQCStructure({
         schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
@@ -295,6 +309,75 @@ describe('validateOpenQCStructure', () => {
       });
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('"from" and "to"'))).toBe(true);
+    });
+
+    it('rejects bond with non-integer atom indices', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: [{ from: 0.5, to: 1 }],
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('integer atom indices'))).toBe(true);
+    });
+
+    it('rejects bond that references the same atom', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: [{ from: 1, to: 1 }],
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('different atoms'))).toBe(true);
+    });
+
+    it('rejects bond with atom index out of range', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: [{ from: 0, to: 2 }],
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('atom index out of range'))).toBe(true);
+    });
+
+    it('rejects bond with invalid order', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: [{ from: 0, to: 1, order: 4 }],
+      });
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('"order" must be 1, 2, or 3'))).toBe(true);
+    });
+
+    it('accepts valid bond indices and order', () => {
+      const result = validateOpenQCStructure({
+        schemaVersion: OPENQC_STRUCTURE_SCHEMA_VERSION,
+        kind: 'molecule',
+        atoms: [
+          { element: 'H', x: 0, y: 0, z: 0 },
+          { element: 'O', x: 1, y: 0, z: 0 },
+        ],
+        bonds: [{ from: 0, to: 1, order: 2 }],
+      });
+      expect(result.valid).toBe(true);
     });
   });
 

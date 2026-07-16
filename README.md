@@ -4,7 +4,7 @@
 
 **VS Code integration for computational chemistry LSPs**
 
-*Syntax, file detection, visualization entry points, and LSP startup for 17 computational chemistry and molecular-simulation formats*
+_Syntax, file detection, visualization entry points, and LSP startup for 17 computational chemistry and molecular-simulation formats_
 
 Release identity: `newtontech.openqc@0.0.1` (`OpenQC - DFT/MD/Quantum Chemistry Suite`)
 
@@ -41,47 +41,47 @@ OpenQC tracks latest LSP support by the upstream default branch recorded in `src
 
 > For per-server parser status, diagnostics, completion, hover, formatting, code actions, and build commands, see the **[LSP Compatibility Matrix](docs/LSP_COMPATIBILITY.md)**.
 
-| Format | Standalone LSP | OpenQC role |
-|--------|----------------|-------------|
-| ABACUS | `newtontech/abacus-lsp` | Language contribution, syntax, file detection, LSP startup |
-| ABINIT | `newtontech/abinit-lsp` | Language contribution, syntax, file detection, LSP startup |
-| CIF | `newtontech/cif-lsp` | Language contribution, syntax, file detection, LSP startup |
-| CP2K | `newtontech/cp2k-lsp-enhanced` | Language contribution, syntax, file detection, LSP startup |
-| VASP | `newtontech/VASP-LSP` | Language contribution, syntax, file detection, LSP startup |
-| Gaussian | `newtontech/gaussian-lsp` | Language contribution, syntax, file detection, LSP startup |
-| ORCA | `newtontech/orca-lsp` | Language contribution, syntax, file detection, LSP startup |
-| GAMESS (US) | `newtontech/gamess-lsp` | Language contribution, syntax, file detection, LSP startup |
-| Quantum ESPRESSO | `newtontech/qe-lsp` | Language contribution, syntax, file detection, LSP startup |
-| NWChem | `newtontech/nwchem-lsp` | Language contribution, syntax, file detection, LSP startup |
-| GPUMD | `newtontech/gpumd-lsp` | Language contribution, syntax, file detection, LSP startup |
-| GROMACS | `newtontech/gromacs-lsp` | Language contribution, syntax, file detection, LSP startup |
-| LAMMPS | `newtontech/lammps-lsp` | Language contribution, syntax, file detection, LSP startup |
-| MLIP | `newtontech/mlip-lsp` | Language contribution, syntax, file detection, LSP startup |
-| PyATB | `newtontech/pyatb-lsp` | Language contribution, syntax, file detection, LSP startup |
-| PySCF | `newtontech/pyscf-lsp` | Language contribution, syntax, file detection, LSP startup |
-| DP-GEN | `newtontech/dpgen-lsp` | Language contribution, syntax, file detection, LSP startup |
+| Format           | Standalone LSP                 | OpenQC role                                                |
+| ---------------- | ------------------------------ | ---------------------------------------------------------- |
+| ABACUS           | `newtontech/abacus-lsp`        | Language contribution, syntax, file detection, LSP startup |
+| ABINIT           | `newtontech/abinit-lsp`        | Language contribution, syntax, file detection, LSP startup |
+| CIF              | `newtontech/cif-lsp`           | Language contribution, syntax, file detection, LSP startup |
+| CP2K             | `newtontech/cp2k-lsp-enhanced` | Language contribution, syntax, file detection, LSP startup |
+| VASP             | `newtontech/VASP-LSP`          | Language contribution, syntax, file detection, LSP startup |
+| Gaussian         | `newtontech/gaussian-lsp`      | Language contribution, syntax, file detection, LSP startup |
+| ORCA             | `newtontech/orca-lsp`          | Language contribution, syntax, file detection, LSP startup |
+| GAMESS (US)      | `newtontech/gamess-lsp`        | Language contribution, syntax, file detection, LSP startup |
+| Quantum ESPRESSO | `newtontech/qe-lsp`            | Language contribution, syntax, file detection, LSP startup |
+| NWChem           | `newtontech/nwchem-lsp`        | Language contribution, syntax, file detection, LSP startup |
+| GPUMD            | `newtontech/gpumd-lsp`         | Language contribution, syntax, file detection, LSP startup |
+| GROMACS          | `newtontech/gromacs-lsp`       | Language contribution, syntax, file detection, LSP startup |
+| LAMMPS           | `newtontech/lammps-lsp`        | Language contribution, syntax, file detection, LSP startup |
+| MLIP             | `newtontech/mlip-lsp`          | Language contribution, syntax, file detection, LSP startup |
+| PyATB            | `newtontech/pyatb-lsp`         | Language contribution, syntax, file detection, LSP startup |
+| PySCF            | `newtontech/pyscf-lsp`         | Language contribution, syntax, file detection, LSP startup |
+| DP-GEN           | `newtontech/dpgen-lsp`         | Language contribution, syntax, file detection, LSP startup |
 
 ### Supported Integrations
 
-| Software | File Types | Features |
-|----------|-----------|----------|
-| **ABACUS** | `INPUT`, `STRU`, `KPT` | LSP startup + syntax + file detection |
-| **ABINIT** | `.abi`, `.abinit` | LSP startup + syntax + file detection |
-| **CIF** | `.cif` | LSP startup + syntax + file detection |
-| **CP2K** | `.inp` | LSP startup + syntax + file detection |
-| **VASP** | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR` | LSP startup + syntax + file detection |
-| **Gaussian** | `.com`, `.gjf` | LSP startup + syntax + file detection |
-| **ORCA** | `.inp` | LSP startup + syntax + file detection |
-| **Quantum ESPRESSO** | `.in`, `.pw.in`, `.relax.in` | LSP startup + syntax + file detection |
-| **GAMESS (US)** | `.inp` | LSP startup + syntax + file detection |
-| **NWChem** | `.nw`, `.nwinp` | LSP startup + syntax + file detection |
-| **GPUMD** | `run.in`, `nep.in` | LSP startup + syntax + file detection |
-| **GROMACS** | `.top`, `.itp`, `.mdp`, `.gro` | LSP startup + syntax + file detection |
-| **LAMMPS** | `.lmp`, `.lammps`, `.lmps` | LSP startup + syntax + file detection |
-| **MLIP** | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | LSP startup + syntax + file detection |
-| **PyATB** | `.pyatb.py`, `run_pyatb.py` | LSP startup + syntax + file detection |
-| **PySCF** | `.pyscf.py`, `run_pyscf.py` | LSP startup + syntax + file detection |
-| **DP-GEN** | `param.json`, `machine.json` | LSP startup + syntax + file detection |
+| Software             | File Types                              | Features                              |
+| -------------------- | --------------------------------------- | ------------------------------------- |
+| **ABACUS**           | `INPUT`, `STRU`, `KPT`                  | LSP startup + syntax + file detection |
+| **ABINIT**           | `.abi`, `.abinit`                       | LSP startup + syntax + file detection |
+| **CIF**              | `.cif`                                  | LSP startup + syntax + file detection |
+| **CP2K**             | `.inp`                                  | LSP startup + syntax + file detection |
+| **VASP**             | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR`  | LSP startup + syntax + file detection |
+| **Gaussian**         | `.com`, `.gjf`                          | LSP startup + syntax + file detection |
+| **ORCA**             | `.inp`                                  | LSP startup + syntax + file detection |
+| **Quantum ESPRESSO** | `.in`, `.pw.in`, `.relax.in`            | LSP startup + syntax + file detection |
+| **GAMESS (US)**      | `.inp`                                  | LSP startup + syntax + file detection |
+| **NWChem**           | `.nw`, `.nwinp`                         | LSP startup + syntax + file detection |
+| **GPUMD**            | `run.in`, `nep.in`                      | LSP startup + syntax + file detection |
+| **GROMACS**          | `.top`, `.itp`, `.mdp`, `.gro`          | LSP startup + syntax + file detection |
+| **LAMMPS**           | `.lmp`, `.lammps`, `.lmps`              | LSP startup + syntax + file detection |
+| **MLIP**             | `.mlip.json`, `.mlip.yaml`, `.mlip.yml` | LSP startup + syntax + file detection |
+| **PyATB**            | `.pyatb.py`, `run_pyatb.py`             | LSP startup + syntax + file detection |
+| **PySCF**            | `.pyscf.py`, `run_pyscf.py`             | LSP startup + syntax + file detection |
+| **DP-GEN**           | `param.json`, `machine.json`            | LSP startup + syntax + file detection |
 
 ### 🚧 Coming Soon
 
@@ -103,8 +103,10 @@ Open supported molecule or structure-bearing files and use the viewer entry poin
 
 - **Rotate, zoom, and pan** to explore your system
 - **Multiple rendering styles** — ball-and-stick, space-filling, wireframe
-- **Real-time preview** — see changes as you edit
-- Support for **molecules, crystals, and surfaces**
+- **Full editing through 10,000 atoms** — add/delete/move atoms, edit bond order, set VASP selective-dynamics constraints, undo/redo, build bounded supercells, and export or write supported native formats back to source
+- **Explicit large-structure mode** — structures above 10,000 atoms use a deterministic 10,000-atom read-only LOD; labels, measurements, trajectory playback, supercells, and editing are disabled in that mode
+- Support for coordinate/cell rendering of **molecules, crystals, and surface/slab structures**
+- Optimization trajectories can be routed from supported calculation outputs into the viewer; this is not a general trajectory-file analysis suite
 
 ### 📊 Analyze Your Calculations
 
@@ -125,7 +127,8 @@ Extract and visualize key data from your output files:
 ### 🗂️ Organize Your Work
 
 - Built-in **Molecules sidebar** to track your systems
-- **Job tracking** panel for monitoring calculations
+- **Job tracking** for real VASP, CP2K, and Quantum ESPRESSO calculator runs, including captured results, cancellation, restart, and JSON export
+- Guarded recovery flows for locally installed Multiwfn, c2x, and Open Babel analyzers
 - Quick access to recent files and projects
 
 ---
@@ -161,7 +164,8 @@ Use the 📊 icon to plot your calculation data.
 ## 🎨 Gallery
 
 ### Molecular Visualization
-*See your molecules come to life with interactive 3D rendering*
+
+_See your molecules come to life with interactive 3D rendering_
 
 ```
 ┌─────────────────────────────────────┐
@@ -176,7 +180,8 @@ Use the 📊 icon to plot your calculation data.
 ```
 
 ### Syntax Highlighting
-*Your input files, beautifully formatted*
+
+_Your input files, beautifully formatted_
 
 ```
 &FORCE_EVAL
@@ -201,37 +206,55 @@ OpenQC works out of the box, but you can customize it:
 
 ```json
 {
-  // Auto-open visualization when opening files
-  "openqc.visualization.autoOpen": true,
-
-  // Your preferred rendering engine
-  "openqc.visualization.moleculeRenderer": "3Dmol.js",
-
-  // Auto-refresh sidebar views
-  "openqc.sidebar.autoRefresh": true
+  "openqc.calculators.vasp.command": "vasp_std",
+  "openqc.calculators.cp2k.command": "cp2k.psmp",
+  "openqc.calculators.qe.command": "pw.x",
+  "openqc.external.allowExternalAnalyzers": false,
+  "openqc.external.timeoutMs": 60000
 }
 ```
+
+The production viewer is the bundled 3Dmol runtime. Previous renderer, plot-library, and auto-open settings were removed because they were not consumed by runtime code. External analyzers remain disabled by default and require a local executable plus an explicit confirmation.
+
+### Secure AI providers
+
+OpenQC can use the OpenAI Responses API or a local Ollama server for input optimization,
+generation, explanation, and debugging. Enable `openqc.ai.enabled`, select the provider and
+model, then run **OpenQC: Set OpenAI API Key** when using OpenAI. The credential is stored in
+VS Code SecretStorage and is never written to user or workspace settings; use **OpenQC: Clear
+OpenAI API Key** to remove it. Provider calls are cancellable and bounded by the configured
+timeout, token limit, and output-character limit.
+
+From a source checkout, the dependency-free MCP entry point is
+`PYTHONPATH=python python -m openqc.mcp_server`. It exposes five tools for
+structure parsing, output parsing, backend checks, supercell generation, and dataset summaries.
+Native paths continue to work when optional scientific packages are absent; tools that require a
+missing package return a structured JSON-RPC error without terminating the server.
 
 ---
 
 ## 💡 Use Cases
 
 ### For Computational Chemists
+
 - **Prepare inputs** faster with syntax highlighting and validation
 - **Visualize structures** before submitting jobs
 - **Debug convergence** issues with interactive plots
 
 ### For Experimentalists
+
 - **Inspect computational models** shared by collaborators
 - **Understand output** from quantum chemistry calculations
 - **Prepare structures** for computational studies
 
 ### For Students & Educators
+
 - **Learn quantum chemistry** with visual feedback
 - **Understand input formats** with syntax highlighting
 - **Explore molecular systems** interactively
 
 ### For Software Developers
+
 - **Build tools** on top of OpenQC's parsing capabilities
 - **Integrate** with your computational workflows
 - **Extend** support for additional software
@@ -241,20 +264,23 @@ OpenQC works out of the box, but you can customize it:
 ## 🌟 What's Coming?
 
 ### Near Term (v2.1)
+
 - [ ] Format conversion between different quantum chemistry formats
 - [ ] Batch processing — visualize multiple structures at once
 - [ ] Export high-resolution images for publications
 - [ ] Custom color schemes and rendering options
 
 ### Medium Term (v2.5)
+
 - [ ] Real-time calculation monitoring
 - [ ] Remote workflow documentation using existing VS Code capabilities
 - [ ] Parameter templates and wizards
 - [ ] Community examples for common calculation workflows
 
 ### Long Term (v3.0)
-- [ ] AI-powered parameter optimization
-- [ ] Natural language input generation
+
+- [x] AI-powered parameter optimization with OpenAI and Ollama
+- [x] Natural language input generation
 - [ ] Workflow automation
 - [ ] Demand-proven ecosystem integrations from the [roadmap](docs/project/PLAN.md)
 

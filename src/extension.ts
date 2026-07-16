@@ -9,28 +9,21 @@ import {
   DefinitionProvider,
 } from './providers/lsp';
 import { registerASECommands } from './ase/commands';
+import { registerCalculatorCommands } from './ase/calculatorCommands';
 import { registerMigrationCommands } from './commands/migrationCommands';
 import { registerPythonBackendCommands } from './commands/pythonBackendCommands';
 import { registerScientificBridgeCommands } from './commands/scientificBridgeCommands';
 import { registerAnalyzerCommands } from './commands/analyzerCommands';
+import { registerJobCommands } from './commands/jobCommands';
 import { registerAICommands } from './ai/aiCommands';
 import { registerExportCommands } from './commands/exportCommands';
 import { FileTypeDetector } from './managers/FileTypeDetector';
-import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem, JobItem } from './sidebar';
+import { MoleculeTreeProvider, JobTreeProvider, MoleculeItem } from './sidebar';
 import { OpenQCConverterProvider } from './sidebar/OpenQCConverterProvider';
 import { MoleculeViewerPanel } from './visualizers/MoleculeViewerPanel';
 import { OpenQCViewerPanel } from './visualizers/OpenQCViewerPanel';
-import { StructureConverter } from './visualizers/StructureConverter';
-import { Molecule3D } from './visualizers/Molecule3D';
-import {
-  createOpenQCStructure,
-  molecularStructureToOpenQCStructure,
-  poscarToOpenQCStructure,
-} from './structures/converters';
-import type { OpenQCStructure } from './structures/OpenQCStructure';
-import { createParser } from './parsers';
+import { ViewerStructurePipeline } from './visualizers/ViewerStructurePipeline';
 import { registerFormatConversionCommands } from './commands/formatConversionCommands';
-import { renderResultsWebviewHtml } from './webviews/resultsWebview';
 import { Logger, LogLevel } from './utils/Logger';
 import { getLanguageFeaturePolicy, readLanguageFeatureMode } from './languageFeatures';
 import { listBundledLspServers } from './lsp/registry';
@@ -47,6 +40,7 @@ let fileTypeDetector: FileTypeDetector;
 let moleculeProvider: MoleculeTreeProvider;
 let jobProvider: JobTreeProvider;
 let converterProvider: OpenQCConverterProvider;
+let viewerStructurePipeline: ViewerStructurePipeline;
 const logger = Logger.getInstance();
 
 export function activate(context: vscode.ExtensionContext) {
@@ -72,6 +66,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize visualization providers
   structureViewer = new StructureViewer(context.extensionUri);
   dataPlotter = new DataPlotter(context.extensionUri);
+  viewerStructurePipeline = new ViewerStructurePipeline(context);
 
   // Initialize sidebar providers
   moleculeProvider = new MoleculeTreeProvider(context);
@@ -155,49 +150,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       try {
-        const content = document.getText();
         const fileName = document.fileName;
-        let structure: OpenQCStructure | undefined;
-
-        // 1. Try format-specific DTO path for periodic formats
-        if (software === 'VASP') {
-          const basename = fileName.split(/[/\\]/).pop()?.toUpperCase() ?? '';
-          if (basename === 'POSCAR' || basename === 'CONTCAR') {
-            try {
-              structure = poscarToOpenQCStructure(content, fileName);
-            } catch {
-              logger.warn('POSCAR DTO parse failed, falling back to legacy path');
-            }
-          }
-        }
-
-        // 2. Try StructureConverter DTO path for other formats
-        if (!structure) {
-          try {
-            const converter = new StructureConverter();
-            const molecular = converter.autoConvert(content, fileName);
-            if (molecular.atoms.length > 0) {
-              structure = molecularStructureToOpenQCStructure(molecular, {
-                sourceSoftware: software,
-                sourceParser: 'native',
-              });
-            }
-          } catch {
-            logger.warn('StructureConverter DTO parse failed, falling back to legacy path');
-          }
-        }
-
-        // 3. Final legacy fallback: Molecule3D → atoms → createOpenQCStructure
-        if (!structure) {
-          const molecule3D = new Molecule3D();
-          const atoms = molecule3D.parseAtoms(content, software);
-          if (atoms.length > 0) {
-            structure = createOpenQCStructure(atoms, {
-              name: fileName,
-              sourceSoftware: software,
-            });
-          }
-        }
+        const structure = (await viewerStructurePipeline.parse(document, software)).structure;
 
         if (!structure || structure.atoms.length === 0) {
           vscode.window.showErrorMessage('No molecular structure found in file');
@@ -280,12 +234,6 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('Molecules refreshed');
     }),
 
-    // Sidebar: Refresh jobs view
-    vscode.commands.registerCommand('openqc.sidebar.refreshJobs', () => {
-      jobProvider.refresh();
-      vscode.window.showInformationMessage('Jobs refreshed');
-    }),
-
     // Sidebar: Open molecule
     vscode.commands.registerCommand('openqc.sidebar.openMolecule', async (item: MoleculeItem) => {
       if (item.filePath) {
@@ -304,115 +252,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('openqc.sidebar.deleteMolecule', (item: MoleculeItem) => {
       moleculeProvider.removeMolecule(item.id);
       vscode.window.showInformationMessage(`Removed molecule: ${item.label}`);
-    }),
-
-    // Sidebar: Run calculation
-    vscode.commands.registerCommand('openqc.sidebar.runCalculation', () => {
-      vscode.window
-        .showInputBox({
-          prompt: 'Enter calculation name',
-          placeHolder: 'e.g., Geometry Optimization',
-        })
-        .then(name => {
-          if (name) {
-            jobProvider.addJob(new JobItem(`job-${Date.now()}`, name, 'queued', 0, 'Gaussian'));
-            vscode.window.showInformationMessage(`Started calculation: ${name}`);
-          }
-        });
-    }),
-
-    // Sidebar: View results
-    vscode.commands.registerCommand('openqc.sidebar.viewResults', async (item: JobItem) => {
-      if (item.status !== 'completed' && item.status !== 'failed') {
-        vscode.window.showInformationMessage(`Results not available for ${item.status} jobs`);
-        return;
-      }
-
-      // Create a results panel
-      const panel = vscode.window.createWebviewPanel(
-        'openqc.results',
-        `Results: ${item.label}`,
-        vscode.ViewColumn.Two,
-        {
-          retainContextWhenHidden: true,
-          localResourceRoots: [],
-        }
-      );
-
-      // Generate results content
-      const resultsData = {
-        jobId: item.id,
-        jobName: item.label,
-        software: item.software,
-        status: item.status,
-        startTime: item.startTime?.toISOString(),
-        endTime: item.endTime?.toISOString(),
-        duration:
-          typeof item.tooltip === 'string' ? item.tooltip.split('Duration: ')[1] : undefined,
-        // In a real implementation, this would come from actual job output
-        output: `Results for ${item.label}\n\nSoftware: ${item.software}\nStatus: ${item.status}\n\nSample output data would appear here.\n\nFor completed jobs, this would include:\n- Final energies\n- Optimized geometries\n- Convergence data\n- Properties calculated\n\nFor failed jobs, this would include:\n- Error messages\n- Stack traces\n- Diagnostic information`,
-      };
-
-      panel.webview.html = renderResultsWebviewHtml(resultsData, panel.webview.cspSource);
-    }),
-
-    // Sidebar: Export data
-    vscode.commands.registerCommand('openqc.sidebar.exportData', async (item: JobItem) => {
-      if (item.status !== 'completed') {
-        vscode.window.showWarningMessage('Can only export data from completed jobs');
-        return;
-      }
-
-      const uri = await vscode.window.showSaveDialog({
-        filters: {
-          JSON: ['json'],
-          CSV: ['csv'],
-          'All Files': ['*'],
-        },
-        defaultUri: vscode.Uri.file(`${item.label.replace(/\s+/g, '_')}_results.json`),
-        saveLabel: 'Export Results',
-      });
-
-      if (uri) {
-        try {
-          const exportData = {
-            jobId: item.id,
-            jobName: item.label,
-            software: item.software,
-            status: item.status,
-            startTime: item.startTime?.toISOString(),
-            endTime: item.endTime?.toISOString(),
-            timestamp: new Date().toISOString(),
-            // In a real implementation, this would include actual job results
-            data: {
-              energies: [-76.0, -76.1, -76.2],
-              forces: [
-                [0.01, 0.02, 0.03],
-                [-0.01, -0.02, -0.03],
-              ],
-              converged: true,
-            },
-          };
-
-          const content = JSON.stringify(exportData, null, 2);
-          await vscode.workspace.fs.writeFile(uri, Buffer.from(content));
-          vscode.window.showInformationMessage(`Exported ${item.label} to ${uri.fsPath}`);
-        } catch (error) {
-          vscode.window.showErrorMessage(`Failed to export data: ${error}`);
-        }
-      }
-    }),
-
-    // Sidebar: Cancel job
-    vscode.commands.registerCommand('openqc.sidebar.cancelJob', (item: JobItem) => {
-      jobProvider.cancelJob(item.id);
-      vscode.window.showInformationMessage(`Cancelled job: ${item.label}`);
-    }),
-
-    // Sidebar: Restart job
-    vscode.commands.registerCommand('openqc.sidebar.restartJob', (item: JobItem) => {
-      jobProvider.restartJob(item.id);
-      vscode.window.showInformationMessage(`Restarted job: ${item.label}`);
     }),
 
     // Auto-start LSP on document open
@@ -449,12 +288,19 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // Register ASE commands
+  registerASECommands(context);
+  registerCalculatorCommands(context);
   registerPythonBackendCommands(context);
   registerScientificBridgeCommands(context);
   registerAnalyzerCommands(context);
+  registerJobCommands(context, jobProvider);
   registerMigrationCommands(context);
   registerAICommands(context);
-  registerExportCommands(context);
+  registerExportCommands(
+    context,
+    () => OpenQCViewerPanel.getCurrentStructureData(),
+    () => OpenQCViewerPanel.saveCurrentStructureToSource()
+  );
 
   // Register DSL authoring context command for agent workflows
   registerDslAuthoringContextCommand(context, () => lspManager);
@@ -472,6 +318,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export async function deactivate() {
+  viewerStructurePipeline?.clear();
   if (lspManager) {
     await lspManager.dispose();
   }

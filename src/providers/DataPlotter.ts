@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import { FileTypeDetector, QuantumChemistrySoftware } from '../managers/FileTypeDetector';
+import { generateNonce } from '../utils/nonce';
+
+const NUMBER_CAPTURE = '([+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[Ee][+-]?\\d+)?)';
 
 export class DataPlotter {
   private panel: vscode.WebviewPanel | undefined;
@@ -35,7 +38,7 @@ export class DataPlotter {
         {
           enableScripts: true,
           localResourceRoots: [
-            vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plotly.js-dist-min'),
+            vscode.Uri.joinPath(this.extensionUri, 'media', 'vendor', 'plotly.js-dist-min'),
           ],
           retainContextWhenHidden: true,
         }
@@ -98,12 +101,8 @@ export class DataPlotter {
   private extractCp2kData(content: string): any[] {
     // Extract energy convergence data
     const plots: any[] = [];
-    const energyPattern = /Total energy\s*:\s*([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = energyPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const energyPattern = new RegExp(`Total energy\\s*:\\s*${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, energyPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'Energy Convergence',
@@ -119,6 +118,48 @@ export class DataPlotter {
 
   private extractVaspData(content: string): any[] {
     const plots: any[] = [];
+    const scfEnergyPattern = new RegExp(`^\\s*(?:DAV|RMM|CG):\\s*\\d+\\s+${NUMBER_CAPTURE}`, 'gim');
+    const scfEnergies = collectNumbers(content, scfEnergyPattern);
+    if (scfEnergies.length > 0) {
+      plots.push({
+        title: 'VASP SCF Energy Convergence',
+        type: 'line',
+        x: scfEnergies.map((_, i) => i + 1),
+        y: scfEnergies,
+        xLabel: 'Electronic Step',
+        yLabel: 'Energy (eV)',
+      });
+    }
+
+    const ionicEnergyPattern = new RegExp(`^\\s*\\d+\\s+F=\\s*${NUMBER_CAPTURE}`, 'gim');
+    const ionicEnergies = collectNumbers(content, ionicEnergyPattern);
+    if (ionicEnergies.length > 0) {
+      plots.push({
+        title: 'VASP Ionic Free Energy',
+        type: 'line',
+        x: ionicEnergies.map((_, i) => i + 1),
+        y: ionicEnergies,
+        xLabel: 'Ionic Step',
+        yLabel: 'Free Energy (eV)',
+      });
+    }
+
+    const outcarEnergyPattern = new RegExp(
+      `free\\s+energy\\s+TOTEN\\s*=\\s*${NUMBER_CAPTURE}`,
+      'gi'
+    );
+    const outcarEnergies = collectNumbers(content, outcarEnergyPattern);
+    if (outcarEnergies.length > 0) {
+      plots.push({
+        title: 'VASP OUTCAR Total Energy',
+        type: 'line',
+        x: outcarEnergies.map((_, i) => i + 1),
+        y: outcarEnergies,
+        xLabel: 'Ionic Step',
+        yLabel: 'TOTEN (eV)',
+      });
+    }
+
     // Extract KPOINTS data
     const kpointsMatch = content.match(/KPOINTS[\s\S]*?^\s*$/m);
     if (kpointsMatch) {
@@ -141,12 +182,8 @@ export class DataPlotter {
   private extractGaussianData(content: string): any[] {
     const plots: any[] = [];
     // Extract SCF energies
-    const scfPattern = /SCF Done:\s*E\([^)]+\)\s*=\s*([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = scfPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const scfPattern = new RegExp(`SCF Done:\\s*E\\([^)]+\\)\\s*=\\s*${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, scfPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'SCF Energy Convergence',
@@ -163,12 +200,8 @@ export class DataPlotter {
   private extractOrcaData(content: string): any[] {
     const plots: any[] = [];
     // Extract energy data from output-like content
-    const energyPattern = /FINAL SINGLE POINT ENERGY\s+([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = energyPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const energyPattern = new RegExp(`FINAL SINGLE POINT ENERGY\\s+${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, energyPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'Energy',
@@ -185,12 +218,8 @@ export class DataPlotter {
   private extractQeData(content: string): any[] {
     const plots: any[] = [];
     // Extract SCF convergence
-    const energyPattern = /total energy\s*=\s*([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = energyPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const energyPattern = new RegExp(`total energy\\s*=\\s*${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, energyPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'Total Energy Convergence',
@@ -207,12 +236,8 @@ export class DataPlotter {
   private extractGamessData(content: string): any[] {
     const plots: any[] = [];
     // Extract SCF data
-    const energyPattern = /TOTAL ENERGY\s*=\s*([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = energyPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const energyPattern = new RegExp(`TOTAL ENERGY\\s*=\\s*${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, energyPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'Total Energy',
@@ -229,12 +254,8 @@ export class DataPlotter {
   private extractNwchemData(content: string): any[] {
     const plots: any[] = [];
     // Extract energy data
-    const energyPattern = /Total SCF energy\s*=\s*([-\d.]+)/gi;
-    const energies: number[] = [];
-    let match;
-    while ((match = energyPattern.exec(content)) !== null) {
-      energies.push(parseFloat(match[1]));
-    }
+    const energyPattern = new RegExp(`Total SCF energy\\s*=\\s*${NUMBER_CAPTURE}`, 'gi');
+    const energies = collectNumbers(content, energyPattern);
     if (energies.length > 0) {
       plots.push({
         title: 'SCF Energy',
@@ -255,7 +276,13 @@ export class DataPlotter {
   ): string {
     const nonce = getNonce();
     const plotlyUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, 'node_modules', 'plotly.js-dist-min', 'plotly.min.js')
+      vscode.Uri.joinPath(
+        this.extensionUri,
+        'media',
+        'vendor',
+        'plotly.js-dist-min',
+        'plotly.min.js'
+      )
     );
     const csp = getWebviewCsp(webview.cspSource, nonce);
     const plotsJson = escapeScriptJson(data.plots);
@@ -396,6 +423,15 @@ export class DataPlotter {
   }
 }
 
+function collectNumbers(content: string, pattern: RegExp): number[] {
+  const values: number[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(content)) !== null) {
+    values.push(Number.parseFloat(match[1]));
+  }
+  return values;
+}
+
 function getWebviewCsp(cspSource: string, nonce: string): string {
   return [
     `default-src 'none';`,
@@ -425,11 +461,4 @@ function escapeScriptJson(value: unknown): string {
     .replace(/\u2029/g, '\\u2029');
 }
 
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;

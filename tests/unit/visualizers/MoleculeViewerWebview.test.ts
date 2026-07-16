@@ -19,7 +19,7 @@ describe('MoleculeViewerWebview', () => {
       expect(html).toContain('ngl');
       expect(html).toContain('<script');
       expect(html).toContain('</script>');
-      expect(html).toContain('node_modules/ngl/dist/ngl.js');
+      expect(html).toContain('media/vendor/ngl/ngl.js');
       expect(html).not.toContain('https://unpkg.com');
       expect(html).not.toContain('https://cdn.jsdelivr.net');
     });
@@ -66,7 +66,7 @@ describe('MoleculeViewerWebview', () => {
 
       expect(options).toHaveProperty('enableScripts', true);
       expect(options.localResourceRoots).toHaveLength(1);
-      expect(options.localResourceRoots?.[0].toString()).toContain('node_modules/ngl/dist');
+      expect(options.localResourceRoots?.[0].toString()).toContain('media/vendor/ngl');
     });
   });
 

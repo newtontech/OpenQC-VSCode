@@ -72,7 +72,32 @@
     "onCommand:openqc.validate",
     "onView:openqc-sidebar",
     "onCommand:openqc.previewInput",
-    "onCommand:openqc.convertFormat"
+    "onCommand:openqc.exportStructureWithPicker",
+    "onCommand:openqc.exportStructure",
+    "onCommand:openqc.saveEditedStructureToSource",
+    "onCommand:openqc.convertFormat",
+    "onCommand:openqc.generateCalculatorInput",
+    "onCommand:openqc.runCalculation",
+    "onCommand:openqc.readResults",
+    "onCommand:openqc.quickVASP",
+    "onCommand:openqc.quickCP2K",
+    "onCommand:openqc.quickQE",
+    "onCommand:openqc.checkCalculators",
+    "onCommand:openqc.checkExternalAnalyzers",
+    "onCommand:openqc.generateMultiwfnScript",
+    "onCommand:openqc.runMultiwfnAnalysis",
+    "onCommand:openqc.convertDensityC2x",
+    "onCommand:openqc.convertStructureOpenBabel",
+    "onCommand:openqc.showOptimizationTrajectory",
+    "onCommand:openqc.migrateStructure",
+    "onCommand:openqc.migrateStructureAdvanced",
+    "onCommand:openqc.aiOptimizeInput",
+    "onCommand:openqc.aiGenerateInput",
+    "onCommand:openqc.aiExplainParameters",
+    "onCommand:openqc.aiDebugCalculation",
+    "onCommand:openqc.aiSettings",
+    "onCommand:openqc.aiSetApiKey",
+    "onCommand:openqc.aiClearApiKey"
   ],
   "main": "./out/extension.js",
   "extensionKind": [
@@ -555,6 +580,51 @@
         "category": "ASE Integration"
       },
       {
+        "command": "openqc.generateCalculatorInput",
+        "title": "OpenQC: Generate Calculator Input",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.runCalculation",
+        "title": "OpenQC: Run Calculator",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.readResults",
+        "title": "OpenQC: Read Calculator Results",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.quickVASP",
+        "title": "OpenQC: Quick VASP Calculation",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.quickCP2K",
+        "title": "OpenQC: Quick CP2K Calculation",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.quickQE",
+        "title": "OpenQC: Quick Quantum ESPRESSO Calculation",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.checkCalculators",
+        "title": "OpenQC: Check Calculator Availability",
+        "category": "ASE Integration"
+      },
+      {
+        "command": "openqc.migrateStructure",
+        "title": "OpenQC: Migrate Structure",
+        "category": "Migration"
+      },
+      {
+        "command": "openqc.migrateStructureAdvanced",
+        "title": "OpenQC: Migrate Structure (Advanced)",
+        "category": "Migration"
+      },
+      {
         "command": "openqc.migrateKpoints",
         "title": "OpenQC: Migrate k-Point Grid",
         "category": "Migration"
@@ -611,6 +681,18 @@
         "icon": "$(gear)"
       },
       {
+        "command": "openqc.aiSetApiKey",
+        "title": "OpenQC: Set OpenAI API Key",
+        "category": "AI",
+        "icon": "$(key)"
+      },
+      {
+        "command": "openqc.aiClearApiKey",
+        "title": "OpenQC: Clear OpenAI API Key",
+        "category": "AI",
+        "icon": "$(trash)"
+      },
+      {
         "command": "openqc.showConverterPanel",
         "title": "Show ASE Converter",
         "category": "OpenQC",
@@ -627,6 +709,12 @@
         "title": "OpenQC: Export Structure",
         "category": "OpenQC",
         "icon": "$(save)"
+      },
+      {
+        "command": "openqc.saveEditedStructureToSource",
+        "title": "OpenQC: Save Edited Structure to Source File",
+        "category": "OpenQC",
+        "icon": "$(save-as)"
       },
       {
         "command": "openqc.checkPythonBackend",
@@ -664,6 +752,11 @@
         "category": "OpenQC"
       },
       {
+        "command": "openqc.showOptimizationTrajectory",
+        "title": "OpenQC: Show Optimization Trajectory",
+        "category": "OpenQC"
+      },
+      {
         "command": "openqc.checkExternalAnalyzers",
         "title": "OpenQC: Check External Analyzers",
         "category": "OpenQC"
@@ -681,6 +774,11 @@
       {
         "command": "openqc.convertDensityC2x",
         "title": "OpenQC: Convert Density with c2x",
+        "category": "OpenQC"
+      },
+      {
+        "command": "openqc.convertStructureOpenBabel",
+        "title": "OpenQC: Convert Structure with Open Babel",
         "category": "OpenQC"
       }
     ],
@@ -1304,31 +1402,6 @@
           "default": 5000,
           "description": "Refresh interval in milliseconds for sidebar views"
         },
-        "openqc.visualization.moleculeRenderer": {
-          "type": "string",
-          "enum": [
-            "3Dmol.js",
-            "NGL",
-            "VTK"
-          ],
-          "default": "3Dmol.js",
-          "description": "Default molecule renderer"
-        },
-        "openqc.visualization.plotLibrary": {
-          "type": "string",
-          "enum": [
-            "Plotly.js",
-            "Chart.js",
-            "D3.js"
-          ],
-          "default": "Plotly.js",
-          "description": "Default plotting library"
-        },
-        "openqc.visualization.autoOpen": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically open visualization on file open"
-        },
         "openqc.converter.pythonPath": {
           "type": "string",
           "default": "python3",
@@ -1349,6 +1422,74 @@
           "default": 30000,
           "minimum": 1000,
           "description": "Timeout in milliseconds for Python subprocess bridge commands"
+        },
+        "openqc.calculators.vasp.command": {
+          "type": "string",
+          "default": "vasp",
+          "description": "Command used to run VASP calculator jobs"
+        },
+        "openqc.calculators.vasp.defaultParams": {
+          "type": "object",
+          "default": {
+            "encut": 400,
+            "kpts": [
+              4,
+              4,
+              4
+            ],
+            "prec": "Normal",
+            "ismear": 0,
+            "sigma": 0.1
+          },
+          "description": "Default VASP parameters used by OpenQC calculator input generation"
+        },
+        "openqc.calculators.cp2k.command": {
+          "type": "string",
+          "default": "cp2k.popt",
+          "description": "Command used to run CP2K calculator jobs"
+        },
+        "openqc.calculators.cp2k.defaultParams": {
+          "type": "object",
+          "default": {
+            "basis_set": "DZVP-MOLOPT-SR-GTH",
+            "potential": "GTH-PBE",
+            "xc_functional": "PBE",
+            "cutoff": 400,
+            "rel_cutoff": 50,
+            "ngrids": 4
+          },
+          "description": "Default CP2K parameters used by OpenQC calculator input generation"
+        },
+        "openqc.calculators.qe.command": {
+          "type": "string",
+          "default": "pw.x",
+          "description": "Command used to run Quantum ESPRESSO calculator jobs"
+        },
+        "openqc.calculators.qe.defaultParams": {
+          "type": "object",
+          "default": {
+            "calculation": "scf",
+            "ecutwfc": 40,
+            "ecutrho": 320,
+            "conv_thr": 1e-8,
+            "kpts": [
+              4,
+              4,
+              4
+            ]
+          },
+          "description": "Default Quantum ESPRESSO parameters used by OpenQC calculator input generation"
+        },
+        "openqc.external.allowExternalAnalyzers": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow OpenQC commands to execute external analyzers after preview confirmation"
+        },
+        "openqc.external.timeoutMs": {
+          "type": "number",
+          "default": 60000,
+          "minimum": 1000,
+          "description": "Timeout in milliseconds for external analyzer subprocesses"
         },
         "openqc.external.multiwfnPath": {
           "type": "string",
@@ -1379,15 +1520,15 @@
           "default": "ollama",
           "description": "AI provider (OpenAI or Ollama)"
         },
-        "openqc.ai.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "OpenAI API key (only used with OpenAI provider)"
-        },
         "openqc.ai.model": {
           "type": "string",
           "default": "llama2",
-          "description": "AI model name (gpt-4 for OpenAI, llama2 for Ollama)"
+          "description": "AI model name for the selected provider"
+        },
+        "openqc.ai.openaiBaseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "OpenAI-compatible API base URL"
         },
         "openqc.ai.ollamaUrl": {
           "type": "string",
@@ -1397,7 +1538,23 @@
         "openqc.ai.maxTokens": {
           "type": "number",
           "default": 2048,
+          "minimum": 1,
+          "maximum": 131072,
           "description": "Maximum tokens in AI response"
+        },
+        "openqc.ai.maxOutputChars": {
+          "type": "number",
+          "default": 100000,
+          "minimum": 256,
+          "maximum": 1000000,
+          "description": "Maximum AI response characters accepted by the extension"
+        },
+        "openqc.ai.timeoutSeconds": {
+          "type": "number",
+          "default": 120,
+          "exclusiveMinimum": 0,
+          "maximum": 600,
+          "description": "Timeout for AI provider and bridge requests"
         },
         "openqc.ai.temperature": {
           "type": "number",
@@ -1577,6 +1734,8 @@
     "test:integration": "jest --testPathPattern=tests/integration",
     "test:coverage": "jest --coverage",
     "test:e2e": "node ./out/test/runTest.js",
+    "test:visual": "npm run compile && node scripts/visual-smoke-openqc-viewer.mjs",
+    "test:visual:vsix": "node scripts/visual-smoke-vsix.mjs",
     "test:all": "jest --coverage --runInBand",
     "package:vsix": "node scripts/package-vsix.mjs",
     "verify:vsix": "node scripts/verify-vsix.mjs",
@@ -1585,7 +1744,7 @@
     "release:tag": "node scripts/create-release-tag.mjs",
     "release:tag:push": "node scripts/create-release-tag.mjs --push",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "check:release": "make check && npm run package:vsix && npm run verify:vsix && npm run release:assets",
+    "check:release": "make check && npm run test:visual && npm run package:vsix && npm run verify:vsix && npm run test:visual:vsix && npm run release:assets",
     "ci:pr": "npm run compile && npm run lint && npm run typecheck && npm run format:check && npm run audit:prod && npm run test:all",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -1606,6 +1765,7 @@
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
     "@vscode/test-electron": "^2.5.2",
+    "3dmol": "^2.5.5",
     "eslint": "^8.56.0",
     "glob": "^13.0.6",
     "husky": "^8.0.3",
@@ -1614,6 +1774,9 @@
     "jsdom": "^29.1.1",
     "lint-staged": "^15.2.0",
     "mocha": "^11.7.6",
+    "ngl": "^2.4.0",
+    "playwright": "^1.61.1",
+    "plotly.js-dist-min": "^3.7.0",
     "prettier": "^3.8.3",
     "sharp": "^0.34.5",
     "three": "^0.183.2",
@@ -1622,9 +1785,6 @@
     "vitepress": "^1.6.4"
   },
   "dependencies": {
-    "3dmol": "^2.5.5",
-    "ngl": "^2.4.0",
-    "plotly.js-dist-min": "^3.6.0",
     "vscode-languageclient": "^10.0.0"
   },
   "overrides": {

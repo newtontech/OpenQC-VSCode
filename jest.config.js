@@ -5,12 +5,15 @@ module.exports = {
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.tests.json' }],
   },
-  roots: ['<rootDir>'],
+  roots: ['<rootDir>/tests'],
   testMatch: ['**/tests/**/*.test.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/.worktrees/',
+    '<rootDir>/.vscode-test/',
+    '<rootDir>/out/',
     '<rootDir>/tests/unit/visualizers/ThreeJsRenderer.test.ts',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.worktrees/', '<rootDir>/.vscode-test/', '<rootDir>/out/'],
   moduleNameMapper: {
     '^vscode$': '<rootDir>/tests/mocks/vscode.ts',
   },

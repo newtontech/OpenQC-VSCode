@@ -6,6 +6,11 @@
  */
 
 import { ASEAtoms } from '../ase/ASEConverter';
+import {
+  convertParameterValue,
+  getParameterMappings,
+  ParameterMapping,
+} from '../utils/migration/params';
 
 // Worker message types
 export enum WorkerMessageType {
@@ -133,72 +138,40 @@ class ComputeWorker {
    * Parse structure from text content
    */
   private async parseStructure(payload: ParseStructurePayload): Promise<ASEAtoms> {
-    // Simulate heavy parsing (actual implementation would call Python backend)
-    const { content, format, options } = payload;
+    const { content, format } = payload;
 
-    // Basic validation
     if (!content || content.trim().length === 0) {
       throw new Error('Empty content provided');
     }
 
-    // For now, return a mock structure
-    // In production, this would call the Python converter
-    const lines = content.split('\n');
-    const atomCount = Math.min(lines.length, 1000);
+    const normalizedFormat = String(format || '').toLowerCase();
+    if (['xyz', 'extxyz'].includes(normalizedFormat)) {
+      return this.parseXyz(content, normalizedFormat);
+    }
+    if (['vasp', 'poscar', 'contcar'].includes(normalizedFormat)) {
+      return this.parsePoscar(content, normalizedFormat);
+    }
 
-    const atoms: ASEAtoms = {
-      chemical_symbols: Array(atomCount).fill('C'),
-      positions: Array(atomCount)
-        .fill(0)
-        .map((_, i) => [i * 1.5, i * 1.5, i * 1.5]),
-      pbc: [true, true, true],
-      cell: [
-        [10, 0, 0],
-        [0, 10, 0],
-        [0, 0, 10],
-      ],
-      info: { format, parsed: true },
-    };
-
-    return atoms;
+    throw new Error(`Unsupported structure format for worker-local parsing: ${format}`);
   }
 
   /**
    * Convert atoms to target format
    */
   private async convertFormat(payload: ConvertFormatPayload): Promise<string> {
-    const { atoms, targetFormat, options } = payload;
+    const { atoms, targetFormat } = payload;
+    const normalizedTarget = String(targetFormat || '').toLowerCase();
 
-    // Validate input
-    if (!atoms || !atoms.chemical_symbols || atoms.chemical_symbols.length === 0) {
-      throw new Error('Invalid atoms object');
+    this.validateAtoms(atoms);
+
+    if (['xyz', 'extxyz'].includes(normalizedTarget)) {
+      return this.formatXyz(atoms, normalizedTarget === 'extxyz');
+    }
+    if (['vasp', 'poscar', 'contcar'].includes(normalizedTarget)) {
+      return this.formatPoscar(atoms);
     }
 
-    // Simulate conversion (would call Python backend)
-    const lines: string[] = [];
-
-    // Header
-    lines.push(`# Converted to ${targetFormat}`);
-    lines.push(`# Atoms: ${atoms.chemical_symbols.length}`);
-    lines.push('');
-
-    // Cell (if periodic)
-    if (atoms.cell && atoms.pbc.some(p => p)) {
-      lines.push('# Unit cell:');
-      atoms.cell.forEach(row => {
-        lines.push(row.map(v => v.toFixed(6)).join(' '));
-      });
-      lines.push('');
-    }
-
-    // Atoms
-    lines.push('# Atomic positions:');
-    atoms.chemical_symbols.forEach((symbol, i) => {
-      const pos = atoms.positions[i];
-      lines.push(`${symbol} ${pos.map(v => v.toFixed(6)).join(' ')}`);
-    });
-
-    return lines.join('\n');
+    throw new Error(`Unsupported worker conversion target format: ${targetFormat}`);
   }
 
   /**
@@ -207,6 +180,7 @@ class ComputeWorker {
   private async validateStructure(payload: ValidateStructurePayload): Promise<Record<string, any>> {
     const { atoms, checks } = payload;
     const results: Record<string, any> = {};
+    this.validateAtoms(atoms);
 
     for (const check of checks) {
       switch (check) {
@@ -242,6 +216,7 @@ class ComputeWorker {
   ): Promise<Record<string, any>> {
     const { atoms, properties } = payload;
     const results: Record<string, any> = {};
+    this.validateAtoms(atoms);
 
     for (const prop of properties) {
       switch (prop) {
@@ -274,28 +249,80 @@ class ComputeWorker {
    */
   private async migrateParameters(payload: MigrateParametersPayload): Promise<Record<string, any>> {
     const { sourceFormat, targetFormat, parameters } = payload;
-
-    // Simulate parameter mapping
+    const source = String(sourceFormat || '').toLowerCase();
+    const target = String(targetFormat || '').toLowerCase();
     const migrated: Record<string, any> = {};
+    const warnings: string[] = [];
+    const notes = [`Migrated from ${source} to ${target}`];
+    const unmapped: string[] = [];
 
-    // Example mappings
-    if (sourceFormat === 'vasp' && targetFormat === 'cp2k') {
-      if (parameters.ENCUT) {
-        migrated.CUTOFF = Math.round(parameters.ENCUT * 1.1); // CP2K needs higher cutoff
+    if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)) {
+      throw new Error('parameters must be a key-value object');
+    }
+
+    const mappings = getParameterMappings(source, target);
+    if (mappings.length === 0) {
+      warnings.push(`No worker-local parameter mappings for ${source} -> ${target}`);
+      return {
+        migrated,
+        warnings,
+        notes,
+        unmapped: Object.keys(parameters),
+        supported: false,
+      };
+    }
+
+    const mappingLookup = new Map<string, ParameterMapping>();
+    mappings.forEach(mapping => mappingLookup.set(mapping.sourceParam.toUpperCase(), mapping));
+
+    Object.entries(parameters).forEach(([key, value]) => {
+      const baseKey = this.getBaseParameterName(key);
+      const mapping =
+        mappingLookup.get(key.toUpperCase()) || mappingLookup.get(baseKey.toUpperCase());
+
+      if (!mapping) {
+        unmapped.push(key);
+        return;
       }
-      if (parameters.EDIFF) {
-        migrated.EPSCF = parameters.EDIFF;
+
+      try {
+        const convertedValue = convertParameterValue(mapping, value);
+        if (
+          mapping.unitFactor !== undefined &&
+          typeof convertedValue === 'number' &&
+          !Number.isFinite(convertedValue)
+        ) {
+          throw new Error(`non-numeric value cannot be converted with unit factor`);
+        }
+        migrated[mapping.targetParam] = this.cleanConvertedValue(convertedValue);
+        if (mapping.unitFactor !== undefined && mapping.unitFactor !== 1) {
+          notes.push(
+            `${key} -> ${mapping.targetParam} converted with factor ${mapping.unitFactor}`
+          );
+        }
+      } catch (error) {
+        warnings.push(
+          `Failed to map ${key} to ${mapping.targetParam}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
       }
-    } else if (sourceFormat === 'qe' && targetFormat === 'vasp') {
-      if (parameters.ecutwfc) {
-        migrated.ENCUT = parameters.ecutwfc;
-      }
+    });
+
+    if (unmapped.length > 0) {
+      warnings.push(
+        `${unmapped.length} parameters could not be mapped: ${unmapped
+          .slice(0, 5)
+          .join(', ')}${unmapped.length > 5 ? '...' : ''}`
+      );
     }
 
     return {
       migrated,
-      warnings: [],
-      notes: [`Migrated from ${sourceFormat} to ${targetFormat}`],
+      warnings,
+      notes,
+      unmapped,
+      supported: true,
     };
   }
 
@@ -331,8 +358,11 @@ class ComputeWorker {
    * Check cell consistency
    */
   private checkCellConsistency(atoms: ASEAtoms): any {
-    if (!atoms.cell || !atoms.pbc.some(p => p)) {
+    if (!atoms.pbc.some(p => p)) {
       return { valid: true, warnings: ['Non-periodic system'] };
+    }
+    if (!atoms.cell) {
+      return { valid: false, warnings: ['Periodic system is missing unit-cell vectors'] };
     }
 
     const warnings: string[] = [];
@@ -378,10 +408,37 @@ class ComputeWorker {
    * Check charge neutrality (simplified)
    */
   private checkChargeNeutrality(atoms: ASEAtoms): any {
-    // Simplified check - would need actual charges in production
+    const charges = this.extractCharges(atoms);
+    if (!charges) {
+      return {
+        valid: true,
+        status: 'skipped',
+        netCharge: null,
+        warnings: ['No per-atom charges available; skipped charge neutrality check'],
+      };
+    }
+
+    if (charges.length !== atoms.chemical_symbols.length) {
+      return {
+        valid: false,
+        status: 'skipped',
+        netCharge: null,
+        warnings: [
+          `Charge array length ${charges.length} does not match atom count ${atoms.chemical_symbols.length}`,
+        ],
+      };
+    }
+
+    const netCharge = charges.reduce((sum, charge) => sum + charge, 0);
+    const tolerance = Number(atoms.info?.chargeTolerance ?? 1e-6);
+    const valid = Math.abs(netCharge) <= tolerance;
+
     return {
-      valid: true,
-      warnings: ['Charge neutrality check not implemented'],
+      valid,
+      status: 'checked',
+      netCharge,
+      tolerance,
+      warnings: valid ? [] : [`Net charge is ${netCharge.toFixed(6)} e`],
     };
   }
 
@@ -391,26 +448,53 @@ class ComputeWorker {
   private calculateCenterOfMass(atoms: ASEAtoms): number[] {
     const n = atoms.chemical_symbols.length;
     const com = [0, 0, 0];
+    const masses = this.getMasses(atoms);
+    const totalMass = masses.reduce((sum, mass) => sum + mass, 0);
+
+    if (n === 0 || totalMass === 0) {
+      return com;
+    }
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < 3; j++) {
-        com[j] += atoms.positions[i][j];
+        com[j] += atoms.positions[i][j] * masses[i];
       }
     }
 
-    return com.map(v => v / n);
+    return com.map(v => this.cleanNumber(v / totalMass));
   }
 
   /**
-   * Calculate moment of inertia tensor (simplified)
+   * Calculate moment of inertia tensor about the center of mass.
    */
   private calculateMomentOfInertia(atoms: ASEAtoms): number[][] {
-    // Simplified - return identity matrix
-    return [
-      [1, 0, 0],
-      [0, 1, 0],
-      [0, 0, 1],
+    const com = this.calculateCenterOfMass(atoms);
+    const masses = this.getMasses(atoms);
+    const tensor = [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
     ];
+
+    for (let i = 0; i < atoms.chemical_symbols.length; i++) {
+      const mass = masses[i];
+      const x = atoms.positions[i][0] - com[0];
+      const y = atoms.positions[i][1] - com[1];
+      const z = atoms.positions[i][2] - com[2];
+
+      tensor[0][0] += mass * (y * y + z * z);
+      tensor[1][1] += mass * (x * x + z * z);
+      tensor[2][2] += mass * (x * x + y * y);
+      tensor[0][1] -= mass * x * y;
+      tensor[0][2] -= mass * x * z;
+      tensor[1][2] -= mass * y * z;
+    }
+
+    tensor[1][0] = tensor[0][1];
+    tensor[2][0] = tensor[0][2];
+    tensor[2][1] = tensor[1][2];
+
+    return tensor.map(row => row.map(value => this.cleanNumber(value)));
   }
 
   /**
@@ -445,7 +529,372 @@ class ComputeWorker {
     }
     return Math.sqrt(sum);
   }
+
+  private parseXyz(content: string, format: string): ASEAtoms {
+    const rawLines = content.split(/\r?\n/);
+    const lines = rawLines.map(line => line.trim()).filter(line => line.length > 0);
+    if (lines.length === 0) {
+      throw new Error('Invalid XYZ: no atom lines found');
+    }
+
+    const declaredCount = Number.parseInt(lines[0], 10);
+    const hasHeader = Number.isInteger(declaredCount) && String(declaredCount) === lines[0];
+    const comment = hasHeader ? (rawLines[1] ?? '').trim() : '';
+    const atomLines = hasHeader ? rawLines.slice(2, declaredCount + 2) : rawLines;
+    const parsed = this.parseAtomCoordinateLines(atomLines);
+
+    if (hasHeader && parsed.chemical_symbols.length !== declaredCount) {
+      throw new Error(
+        `Invalid XYZ: declared ${declaredCount} atoms but parsed ${parsed.chemical_symbols.length}`
+      );
+    }
+    if (parsed.chemical_symbols.length === 0) {
+      throw new Error('Invalid XYZ: no valid atom coordinate lines found');
+    }
+
+    return {
+      chemical_symbols: parsed.chemical_symbols,
+      positions: parsed.positions,
+      pbc: [false, false, false],
+      info: {
+        format,
+        comment,
+        parsed: true,
+        parser: 'compute-worker-native',
+      },
+    };
+  }
+
+  private parsePoscar(content: string, format: string): ASEAtoms {
+    const lines = content
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    if (lines.length < 8) {
+      throw new Error('Invalid POSCAR: too few lines');
+    }
+
+    const title = lines[0];
+    const scale = this.parseFiniteNumber(lines[1], 'POSCAR scale');
+    const latticeScale = scale === 0 ? 1 : scale;
+    const cell = [
+      this.parseVector(lines[2], latticeScale, 'POSCAR cell a'),
+      this.parseVector(lines[3], latticeScale, 'POSCAR cell b'),
+      this.parseVector(lines[4], latticeScale, 'POSCAR cell c'),
+    ];
+
+    const line5 = lines[5].split(/\s+/);
+    const line6 = lines[6].split(/\s+/);
+    const hasElementLine = line5.every(token => /^[A-Za-z][A-Za-z0-9_+-]*$/.test(token));
+    const elements = hasElementLine ? line5.map(element => this.normalizeElement(element)) : [];
+    const counts = (hasElementLine ? line6 : line5).map((token, index) => {
+      const count = Number.parseInt(token, 10);
+      if (!Number.isInteger(count) || count < 0) {
+        throw new Error(`Invalid POSCAR atom count at index ${index + 1}`);
+      }
+      return count;
+    });
+    const symbols = hasElementLine ? elements : counts.map((_, index) => `X${index + 1}`);
+
+    let cursor = hasElementLine ? 7 : 6;
+    let mode = lines[cursor].toLowerCase();
+    if (mode.startsWith('s')) {
+      cursor += 1;
+      mode = lines[cursor].toLowerCase();
+    }
+    const direct = mode.startsWith('d');
+    const cartesian = mode.startsWith('c') || mode.startsWith('k');
+    if (!direct && !cartesian) {
+      throw new Error(`Invalid POSCAR coordinate mode: ${lines[cursor]}`);
+    }
+    cursor += 1;
+
+    const chemicalSymbols: string[] = [];
+    const positions: number[][] = [];
+    for (let speciesIndex = 0; speciesIndex < symbols.length; speciesIndex++) {
+      for (let atomIndex = 0; atomIndex < counts[speciesIndex]; atomIndex++) {
+        if (cursor >= lines.length) {
+          throw new Error('Invalid POSCAR: not enough coordinate lines');
+        }
+        const fractionalOrCartesian = this.parseVector(lines[cursor], 1, 'POSCAR atom position');
+        chemicalSymbols.push(symbols[speciesIndex]);
+        positions.push(
+          direct
+            ? this.fractionalToCartesian(fractionalOrCartesian, cell)
+            : fractionalOrCartesian.map(value => value * latticeScale)
+        );
+        cursor += 1;
+      }
+    }
+
+    return {
+      chemical_symbols: chemicalSymbols,
+      positions: positions.map(position => position.map(value => this.cleanNumber(value))),
+      cell,
+      pbc: [true, true, true],
+      info: {
+        format,
+        title,
+        coordinateMode: direct ? 'direct' : 'cartesian',
+        parsed: true,
+        parser: 'compute-worker-native',
+      },
+    };
+  }
+
+  private formatXyz(atoms: ASEAtoms, extended: boolean): string {
+    const comment =
+      extended && atoms.cell
+        ? `Lattice="${atoms.cell
+            .flatMap(vector => vector.slice(0, 3))
+            .map(value => this.formatCoordinate(value))
+            .join(' ')}" Properties=species:S:1:pos:R:3 pbc="${atoms.pbc
+            .map(value => (value ? 'T' : 'F'))
+            .join(' ')}"`
+        : String(atoms.info?.comment ?? 'OpenQC worker export');
+
+    const lines = [String(atoms.chemical_symbols.length), comment];
+    atoms.chemical_symbols.forEach((symbol, index) => {
+      lines.push(
+        `${this.normalizeElement(symbol)} ${atoms.positions[index]
+          .slice(0, 3)
+          .map(value => this.formatCoordinate(value))
+          .join(' ')}`
+      );
+    });
+
+    return lines.join('\n');
+  }
+
+  private formatPoscar(atoms: ASEAtoms): string {
+    if (!atoms.cell) {
+      throw new Error('Cannot convert to POSCAR/VASP without unit-cell vectors');
+    }
+
+    const groups = this.groupAtomIndicesBySymbol(atoms);
+    const lines = [
+      String(atoms.info?.title ?? 'OpenQC worker export'),
+      '1.000000000000',
+      ...atoms.cell.map(vector =>
+        vector
+          .slice(0, 3)
+          .map(value => this.formatCoordinate(value))
+          .join(' ')
+      ),
+      groups.map(group => group.symbol).join(' '),
+      groups.map(group => String(group.indices.length)).join(' '),
+      'Cartesian',
+    ];
+
+    groups.forEach(group => {
+      group.indices.forEach(index => {
+        lines.push(
+          atoms.positions[index]
+            .slice(0, 3)
+            .map(value => this.formatCoordinate(value))
+            .join(' ')
+        );
+      });
+    });
+
+    return lines.join('\n');
+  }
+
+  private groupAtomIndicesBySymbol(atoms: ASEAtoms): Array<{ symbol: string; indices: number[] }> {
+    const groups: Array<{ symbol: string; indices: number[] }> = [];
+    const bySymbol = new Map<string, number[]>();
+
+    atoms.chemical_symbols.forEach((rawSymbol, index) => {
+      const symbol = this.normalizeElement(rawSymbol);
+      let indices = bySymbol.get(symbol);
+      if (!indices) {
+        indices = [];
+        bySymbol.set(symbol, indices);
+        groups.push({ symbol, indices });
+      }
+      indices.push(index);
+    });
+
+    return groups;
+  }
+
+  private parseAtomCoordinateLines(
+    lines: string[]
+  ): Pick<ASEAtoms, 'chemical_symbols' | 'positions'> {
+    const chemicalSymbols: string[] = [];
+    const positions: number[][] = [];
+    for (const line of lines) {
+      const stripped = line.trim();
+      if (!stripped || stripped.startsWith('#')) {
+        continue;
+      }
+      const parts = stripped.split(/\s+/);
+      if (parts.length < 4 || !/^[A-Za-z][A-Za-z0-9_+-]*$/.test(parts[0])) {
+        continue;
+      }
+      const position = [
+        Number.parseFloat(parts[1]),
+        Number.parseFloat(parts[2]),
+        Number.parseFloat(parts[3]),
+      ];
+      if (position.some(value => !Number.isFinite(value))) {
+        continue;
+      }
+      chemicalSymbols.push(this.normalizeElement(parts[0]));
+      positions.push(position);
+    }
+
+    return { chemical_symbols: chemicalSymbols, positions };
+  }
+
+  private parseVector(line: string, scale: number, label: string): number[] {
+    const parts = line.split(/\s+/);
+    if (parts.length < 3) {
+      throw new Error(`Invalid ${label}: expected 3 numeric values`);
+    }
+    return [
+      this.parseFiniteNumber(parts[0], label) * scale,
+      this.parseFiniteNumber(parts[1], label) * scale,
+      this.parseFiniteNumber(parts[2], label) * scale,
+    ];
+  }
+
+  private parseFiniteNumber(value: string, label: string): number {
+    const number = Number.parseFloat(value);
+    if (!Number.isFinite(number)) {
+      throw new Error(`Invalid ${label}: ${value}`);
+    }
+    return number;
+  }
+
+  private fractionalToCartesian(fractional: number[], cell: number[][]): number[] {
+    return [
+      fractional[0] * cell[0][0] + fractional[1] * cell[1][0] + fractional[2] * cell[2][0],
+      fractional[0] * cell[0][1] + fractional[1] * cell[1][1] + fractional[2] * cell[2][1],
+      fractional[0] * cell[0][2] + fractional[1] * cell[1][2] + fractional[2] * cell[2][2],
+    ];
+  }
+
+  private normalizeElement(value: string): string {
+    const letters = value.replace(/[^A-Za-z]/g, '').slice(0, 2);
+    if (!letters) {
+      return 'X';
+    }
+    return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+  }
+
+  private extractCharges(atoms: ASEAtoms): number[] | undefined {
+    const candidate =
+      (atoms as any).charges ??
+      atoms.info?.charges ??
+      atoms.info?.initial_charges ??
+      atoms.info?.formal_charges;
+    if (!Array.isArray(candidate)) {
+      return undefined;
+    }
+
+    const charges = candidate.map(value => Number(value));
+    if (charges.some(value => !Number.isFinite(value))) {
+      return undefined;
+    }
+    return charges;
+  }
+
+  private getMasses(atoms: ASEAtoms): number[] {
+    if (
+      Array.isArray(atoms.masses) &&
+      atoms.masses.length === atoms.chemical_symbols.length &&
+      atoms.masses.every(mass => Number.isFinite(mass) && mass > 0)
+    ) {
+      return atoms.masses;
+    }
+
+    return atoms.chemical_symbols.map(symbol => ATOMIC_MASSES[symbol] ?? 1);
+  }
+
+  private cleanNumber(value: number): number {
+    return Math.abs(value) < 1e-12 ? 0 : Number(value.toFixed(12));
+  }
+
+  private cleanConvertedValue(value: any): any {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return this.cleanNumber(value);
+    }
+    return value;
+  }
+
+  private formatCoordinate(value: number): string {
+    return this.cleanNumber(value).toFixed(6);
+  }
+
+  private getBaseParameterName(key: string): string {
+    const parts = key.split('.');
+    return parts[parts.length - 1];
+  }
+
+  private validateAtoms(atoms: ASEAtoms | null | undefined): void {
+    if (!atoms || !Array.isArray(atoms.chemical_symbols) || !Array.isArray(atoms.positions)) {
+      throw new Error('Invalid atoms object');
+    }
+    if (atoms.chemical_symbols.length === 0) {
+      throw new Error('atoms must contain at least one atom');
+    }
+    if (atoms.chemical_symbols.length !== atoms.positions.length) {
+      throw new Error('chemical_symbols length must match positions length');
+    }
+    if (!Array.isArray(atoms.pbc) || atoms.pbc.length !== 3) {
+      throw new Error('pbc must be a 3-element boolean array');
+    }
+
+    atoms.positions.forEach((position, index) => {
+      if (
+        !Array.isArray(position) ||
+        position.length < 3 ||
+        position.slice(0, 3).some(value => !Number.isFinite(value))
+      ) {
+        throw new Error(`Atom ${index}: position must contain three finite numbers`);
+      }
+    });
+
+    if (atoms.cell !== undefined && atoms.cell !== null) {
+      if (
+        !Array.isArray(atoms.cell) ||
+        atoms.cell.length !== 3 ||
+        atoms.cell.some(
+          vector =>
+            !Array.isArray(vector) ||
+            vector.length < 3 ||
+            vector.slice(0, 3).some(value => !Number.isFinite(value))
+        )
+      ) {
+        throw new Error('cell must contain three finite 3D vectors');
+      }
+    }
+  }
 }
+
+const ATOMIC_MASSES: Record<string, number> = {
+  H: 1.008,
+  He: 4.002602,
+  Li: 6.94,
+  Be: 9.0121831,
+  B: 10.81,
+  C: 12.011,
+  N: 14.007,
+  O: 15.999,
+  F: 18.998403163,
+  Ne: 20.1797,
+  Na: 22.98976928,
+  Mg: 24.305,
+  Al: 26.9815385,
+  Si: 28.085,
+  P: 30.973761998,
+  S: 32.06,
+  Cl: 35.45,
+  Ar: 39.948,
+  K: 39.0983,
+  Ca: 40.078,
+};
 
 // Worker instance
 const worker = new ComputeWorker();

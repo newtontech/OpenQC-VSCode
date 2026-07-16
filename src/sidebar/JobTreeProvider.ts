@@ -6,6 +6,17 @@ import { createComponentLogger } from '../utils/Logger';
  */
 export type JobStatus = 'running' | 'completed' | 'failed' | 'queued' | 'cancelled';
 
+export interface JobResultData {
+  success: boolean;
+  energy?: number;
+  forces?: number[][];
+  stress?: number[][];
+  error?: string;
+  warnings?: string[];
+  metadata?: Record<string, any>;
+  outputFiles?: string[];
+}
+
 interface StoredJob {
   id: string;
   label: string;
@@ -14,6 +25,8 @@ interface StoredJob {
   software: string;
   startTime?: string;
   endTime?: string;
+  workingDirectory?: string;
+  result?: JobResultData;
 }
 
 /**
@@ -28,13 +41,15 @@ export class JobItem extends vscode.TreeItem {
     public readonly software: string,
     public readonly startTime?: Date,
     public readonly endTime?: Date,
+    public readonly workingDirectory?: string,
+    public readonly result?: JobResultData,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode
       .TreeItemCollapsibleState.None
   ) {
     super(label, collapsibleState);
 
     const duration = this.calculateDuration();
-    this.tooltip = `${label}\nStatus: ${status}\nSoftware: ${software}\nProgress: ${progress}%\nDuration: ${duration}`;
+    this.tooltip = `${label}\nStatus: ${status}\nSoftware: ${software}\nProgress: ${progress}%\nDuration: ${duration}${workingDirectory ? `\nDirectory: ${workingDirectory}` : ''}`;
     this.description = `${software} - ${progress}%`;
     this.contextValue = status;
 
@@ -144,7 +159,7 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
   /**
    * Update job status
    */
-  updateJobStatus(id: string, status: JobStatus, progress: number): void {
+  updateJobStatus(id: string, status: JobStatus, progress: number): boolean {
     const index = this.jobs.findIndex(j => j.id === id);
     if (index >= 0) {
       const job = this.jobs[index];
@@ -158,12 +173,46 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
         job.startTime,
         status === 'completed' || status === 'failed' || status === 'cancelled'
           ? new Date()
-          : undefined
+          : undefined,
+        job.workingDirectory,
+        job.result
       );
       this.jobs[index] = updatedJob;
       this.saveJobs();
       this._onDidChangeTreeData.fire();
+      return true;
     }
+    return false;
+  }
+
+  updateJobResult(
+    id: string,
+    status: 'completed' | 'failed',
+    result: JobResultData,
+    progress = status === 'completed' ? 100 : 0
+  ): boolean {
+    const index = this.jobs.findIndex(j => j.id === id);
+    if (index >= 0) {
+      const job = this.jobs[index];
+      if (job.status === 'cancelled') {
+        return false;
+      }
+      this.jobs[index] = new JobItem(
+        job.id,
+        job.label,
+        status,
+        progress,
+        job.software,
+        job.startTime,
+        new Date(),
+        job.workingDirectory,
+        result
+      );
+      this.saveJobs();
+      this._onDidChangeTreeData.fire();
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -181,29 +230,34 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
   /**
    * Cancel a running job
    */
-  cancelJob(id: string): void {
+  cancelJob(id: string): boolean {
     const job = this.jobs.find(j => j.id === id);
-    if (job && job.status === 'running') {
-      this.updateJobStatus(id, 'cancelled', job.progress);
+    if (job && (job.status === 'running' || job.status === 'queued')) {
+      return this.updateJobStatus(id, 'cancelled', job.progress);
     }
+    return false;
   }
 
   /**
    * Restart a job
    */
-  restartJob(id: string): void {
+  restartJob(id: string): JobItem | undefined {
     const job = this.jobs.find(j => j.id === id);
     if (job) {
       const newJob = new JobItem(
         `${job.id}-restart-${Date.now()}`,
         `${job.label} (restart)`,
-        'queued',
-        0,
+        'running',
+        5,
         job.software,
-        undefined
+        new Date(),
+        undefined,
+        job.workingDirectory
       );
       this.addJob(newJob);
+      return newJob;
     }
+    return undefined;
   }
 
   /**
@@ -239,20 +293,14 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
               j.progress,
               j.software,
               j.startTime ? new Date(j.startTime) : undefined,
-              j.endTime ? new Date(j.endTime) : undefined
+              j.endTime ? new Date(j.endTime) : undefined,
+              j.workingDirectory,
+              j.result
             )
         );
-
-      // If no saved jobs, add some sample data for demonstration
-      if (this.jobs.length === 0) {
-        this.addSampleJobs();
-      }
     } catch (error) {
       this.logger.error('Failed to load jobs from workspace state', error as Error);
-      this.logger.debug('Falling back to sample jobs after load failure');
       this.jobs = [];
-      // Add sample jobs as fallback
-      this.addSampleJobs();
     }
   }
 
@@ -269,6 +317,8 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
         software: job.software,
         startTime: job.startTime?.toISOString(),
         endTime: job.endTime?.toISOString(),
+        workingDirectory: job.workingDirectory,
+        result: job.result,
       }));
 
       await this.context.workspaceState.update('openqc.jobs', stored);
@@ -277,58 +327,9 @@ export class JobTreeProvider implements vscode.TreeDataProvider<JobItem> {
     }
   }
 
-  /**
-   * Add sample jobs for demonstration
-   */
-  private addSampleJobs(): void {
-    const samples = [
-      new JobItem(
-        'job-1',
-        'Water Optimization',
-        'running',
-        65,
-        'Gaussian',
-        new Date(Date.now() - 120000)
-      ),
-      new JobItem(
-        'job-2',
-        'Benzene Frequency',
-        'completed',
-        100,
-        'ORCA',
-        new Date(Date.now() - 3600000),
-        new Date(Date.now() - 3000000)
-      ),
-      new JobItem('job-3', 'Surface Calculation', 'queued', 0, 'VASP', undefined),
-      new JobItem(
-        'job-4',
-        'MD Simulation',
-        'failed',
-        45,
-        'CP2K',
-        new Date(Date.now() - 7200000),
-        new Date(Date.now() - 7000000)
-      ),
-    ];
-    this.jobs = samples;
-    this.saveJobs();
-  }
-
-  /**
-   * Update progress for running jobs (simulation)
-   */
   private updateRunningJobs(): void {
-    this.jobs.forEach(job => {
-      if (job.status === 'running' && job.progress < 100) {
-        const increment = Math.random() * 5;
-        const newProgress = Math.min(job.progress + increment, 100);
-        if (newProgress >= 100) {
-          this.updateJobStatus(job.id, 'completed', 100);
-        } else {
-          this.updateJobStatus(job.id, 'running', Math.floor(newProgress));
-        }
-      }
-    });
+    // Jobs are advanced by concrete command handlers when calculator execution returns.
+    // Refresh only redraws persisted state.
   }
 
   /**

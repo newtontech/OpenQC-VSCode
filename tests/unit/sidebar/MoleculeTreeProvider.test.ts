@@ -114,6 +114,12 @@ describe('MoleculeTreeProvider Full Coverage', () => {
       expect(Array.isArray(children)).toBe(true);
     });
 
+    it('should start empty when no molecules are stored', async () => {
+      const children = await provider.getChildren();
+      expect(children).toEqual([]);
+      expect(mockContext.workspaceState.update).not.toHaveBeenCalled();
+    });
+
     it('should get children when element provided (empty array)', async () => {
       const mol = new MoleculeItem('mol-1', 'Test', 'H2', 2);
       const children = await provider.getChildren(mol);
@@ -168,6 +174,7 @@ describe('MoleculeTreeProvider Full Coverage', () => {
         throw new Error('Load error');
       });
       const newProvider = new MoleculeTreeProvider(mockContext);
+      expect(newProvider.getMolecule('mol-1')).toBeUndefined();
       newProvider.dispose();
     });
 

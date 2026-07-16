@@ -1,7 +1,16 @@
 ## [0.0.1] - Unreleased
 
+### Added
+
+- Completed the bundled production 3Dmol workflow: atom and bond editing, VASP selective-dynamics constraints, undo/redo, bounded supercells, trajectory playback, PNG and native-structure export, and limited source writeback for XYZ/extXYZ/PDB/CIF/POSCAR/CONTCAR.
+- Connected the production viewer command to the compute-worker parser, structure LRU cache, and incremental document parser.
+- Added real VASP, CP2K, and Quantum ESPRESSO calculator commands plus Jobs sidebar execution, cancellation, restart, captured-result viewing/export, output trajectory routing, and guarded Multiwfn/c2x/Open Babel recovery.
+- Added deterministic 10,000- and 100,000-atom fixtures, desktop/narrow source and packaged visual smoke, and calculator/job/analyzer cancellation and failure coverage.
+
 ### Changed
 
+- Structures with at most 10,000 atoms retain the full editing surface. Larger structures use a deterministic 10,000-atom read-only LOD with editing, labels, measurements, trajectory playback, and supercell generation explicitly disabled.
+- Removed unconsumed renderer, plot-library, and visualization auto-open settings. External analyzer and calculator settings are now backed by runtime consumers.
 - Set the release identity to `newtontech.openqc@0.0.1` with display name `OpenQC - DFT/MD/Quantum Chemistry Suite`.
 - Standardized development and release automation on Node 22 with a locked local `@vscode/vsce`.
 - Added a reproducible release gate that emits a verified VSIX, SHA-256 checksum, and CycloneDX SBOM.
@@ -9,12 +18,24 @@
 - Added clean-tree, `origin/master`, tag/version, artifact identity, size, and payload-hygiene checks.
 - Retired the unused duplicate Python `core/` package; its maintained workflow-migration behavior already lives in `src/utils/migration/mdWorkflow.ts` with Jest coverage.
 
+### Secure AI providers and MCP
+
+- Switched the Python AI bridge to a module entry point with the OpenAI Responses API and
+  Ollama generate API, using fake-HTTP coverage rather than live provider requests.
+- Moved OpenAI credentials out of configuration and into VS Code SecretStorage with explicit set
+  and clear commands.
+- Added cancellation, provider and subprocess timeouts, bounded output, and secret-safe errors.
+- Routed and validated all five tools declared by the dependency-free MCP server while preserving
+  JSON-RPC request IDs and normalizing missing optional dependencies and tool failures.
+
 ## [3.0.6] - 2026-03-05
+
 ## [3.0.7] - 2026-03-05
 
 ### Added - Phase 5: Caching & Incremental Parsing ✅
 
 #### Cache Manager Module
+
 - **src/performance/cacheManager.ts** - Comprehensive LRU caching system with TTL support
   - `LRUCache<T>` - Generic LRU cache implementation
   - TTL (Time-To-Live) support for automatic expiration
@@ -26,6 +47,7 @@
   - Hash-based integrity checks
 
 #### Cache Key Generator
+
 - **CacheKeyGenerator** - Smart cache key generation
   - File-based keys using mtime for invalidation
   - Operation-specific keys (parse, convert, validate, calculate)
@@ -33,6 +55,7 @@
   - Automatic handling of missing files (test environment support)
 
 #### Cache Manager
+
 - **CacheManager** - Global cache management singleton
   - Separate caches for different use cases:
     - Structure cache (50MB, 200 entries)
@@ -44,6 +67,7 @@
   - Automatic disposal on extension shutdown
 
 #### Incremental Parser Module
+
 - **src/performance/incrementalParser.ts** - Smart parsing for large files
   - `IncrementalParser<T>` - Generic incremental parser
   - Change detection between document versions
@@ -54,6 +78,7 @@
   - Parse result caching with metadata
 
 #### Incremental Parsing Features
+
 - **ChangeSet** - Track document changes
   - Added ranges
   - Removed ranges
@@ -65,6 +90,7 @@
   - Change detection
 
 #### Incremental Parsing Manager
+
 - **IncrementalParsingManager** - Centralized parser management
   - Language-specific parser registration
   - Automatic document parsing delegation
@@ -73,6 +99,7 @@
   - Support for custom parse and diff functions
 
 #### Performance Module Index
+
 - **src/performance/index.ts** - Unified exports
   - Lazy loading module
   - WebWorker module
@@ -81,6 +108,7 @@
   - IncrementalParser module (NEW)
 
 #### Testing
+
 - **tests/performance/cacheManager.test.ts** - 22 comprehensive tests
   - LRUCache basic operations (set, get, delete, clear, has)
   - LRU eviction behavior
@@ -93,6 +121,7 @@
   - Bulk cache clearing
 
 ### Performance Improvements
+
 - **Cache hit rate optimization**: LRU eviction keeps frequently accessed data
 - **Automatic cleanup**: Expired entries removed every 5 minutes
 - **Disk persistence**: Cache survives extension restarts
@@ -101,6 +130,7 @@
 - **Statistics dashboard**: Real-time cache performance monitoring
 
 ### Phase 5 Progress: 75% Complete
+
 - ✅ Lazy loading for large structures
 - ✅ WebWorker for background computations
 - ✅ Caching system with LRU and TTL (NEW)
@@ -111,6 +141,7 @@
 - ⏳ Video tutorials (Pending)
 
 ### Technical Details
+
 - Total implementation: ~550 lines of TypeScript code
 - Test coverage: 22 tests, 100% passing
 - Cache capacity: 90MB total across 4 caches
@@ -118,15 +149,16 @@
 - Cleanup interval: 5 minutes (configurable)
 
 ### Next Steps
+
 - Memory optimization for 10k+ atom systems
 - Prepare marketplace publishing package
 - Update documentation website
 - Create video tutorials
 
-
 ### Added - Phase 2 Complete: Export Modified Structures ✅
 
 #### Structure Export Functionality
+
 - **src/utils/structureExporter.ts** - Complete structure export system
   - Export to 12 formats: VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS, LAMMPS, XYZ, extXYZ, PDB, CIF
   - VSCode command: `openqc.exportStructure` - Quick export with format picker
@@ -137,6 +169,7 @@
   - Python backend integration via `structure_writer.py`
 
 #### Python Backend
+
 - **python/openqc/ase/structure_writer.py** - New CLI tool for writing structures
   - Accepts JSON atoms data from TypeScript frontend
   - Support for all ASE write formats
@@ -145,25 +178,29 @@
   - JSON result reporting
 
 #### VSCode Commands
+
 - Export current 3D structure to file
 - Export with format picker (12 formats supported)
 - Automatic file extension based on format
 - Save dialog integration
 
 #### Type Definitions
+
 - `ExportFormat` - Supported export format types
 - `ExportOptions` - Configuration for export operations
 - `StructureData` - Structure data model for export
 - `ExportResult` - Result of export operations
 
 #### Testing
-- **src/utils/__tests__/structureExporter.test.ts** - 17 comprehensive tests
+
+- **src/utils/**tests**/structureExporter.test.ts** - 17 comprehensive tests
   - Format display name tests (12 formats)
   - Supported formats listing tests
   - Cell parameter conversion tests
   - Structure to ASE format conversion tests
 
 ### Phase 2 Complete ✅
+
 - Phase 2: Visualization - 100% Complete
   - ✅ Three.js integration
   - ✅ POSCAR/CONTCAR rendering
@@ -174,6 +211,7 @@
   - ✅ Export modified structures (NEW - COMPLETE)
 
 ### Next Steps
+
 - Phase 5: Advanced Features & Polish (50% → Next priority)
   - Caching and incremental parsing
   - Memory optimization for 10k+ atom systems
@@ -182,11 +220,13 @@
   - Video tutorials
 
 ---
+
 ## [3.0.5] - 2026-03-05
 
 ### Added - Interactive 3D Editing (Phase 2: Week 7-8)
 
 #### InteractiveControls Module
+
 - **src/visualizers/InteractiveControls.ts** - Comprehensive interactive 3D editing system
   - Click-to-select atoms with visual highlighting
   - Multi-selection support (Ctrl/Cmd click)
@@ -199,6 +239,7 @@
   - Visual measurement labels and lines
 
 #### ThreeJsRenderer Integration
+
 - Integrated InteractiveControls with ThreeJsRenderer
 - New methods:
   - `enableInteractiveControls()` - Enable interactive editing mode
@@ -211,12 +252,14 @@
   - `setMeasurements()` - Toggle measurement display
 
 #### Type Definitions
+
 - Added `SelectionState` - Track selected/hovered atoms
 - Added `MeasurementResult` - Distance/angle/dihedral measurements
 - Added `EditOperation` - Track edit operations
 - Added `InteractiveConfig` - Configuration for interactive features
 
 #### Testing
+
 - **tests/unit/visualizers/InteractiveControls.test.ts** - 31 comprehensive tests
   - Initialization tests
   - Atom selection/deselection tests
@@ -227,6 +270,7 @@
   - Edge case handling
 
 ### Updated Phase 2 Status
+
 - Phase 2: Visualization - 85% Complete
   - ✅ Three.js integration
   - ✅ POSCAR/CONTCAR rendering
@@ -242,10 +286,12 @@
 ### Fixed - Test Suite and Coverage Improvements
 
 #### Bug Fixes
+
 - Fixed VASP INCAR file detection in MDWorkflowConverter to accept files starting with 'INCAR' (not just exact match or 'INCAR-')
 - Fixed integration test timeout for VASP → XYZ → VASP round-trip test (increased to 30s)
 
 #### Test Coverage Improvements
+
 - Excluded InteractiveControls.ts from coverage (interactive 3D component requiring browser environment)
 - Excluded LSPDiscovery.ts from coverage (requires GitHub API network access)
 - All 850 tests passing
@@ -256,6 +302,7 @@
   - Lines: 91.89% (threshold: 90%)
 
 #### Configuration Updates
+
 - Updated jest.config.js to exclude additional files from coverage collection
 
 ---
@@ -265,6 +312,7 @@
 ### Added - Test Coverage Improvements
 
 #### OpenQCConverterProvider Tests
+
 - Complete test suite with 17 tests added
 - Constructor tests for view type and extension URI
 - Webview initialization tests (options, HTML content, message handlers)
@@ -273,6 +321,7 @@
 - JavaScript message passing tests
 
 #### Coverage Improvements
+
 - sidebar module: 85.84% → 98.17% (+12.33%)
 - OpenQCConverterProvider.ts: 0% → 100% (+100%)
 - Overall Statements: 83.69% → 85.35% (+1.66%)
@@ -281,6 +330,7 @@
 - Overall Functions: 88.29% → 90.73% (+2.44%)
 
 #### Test Results
+
 - All 729 tests passing (17 new tests added)
 - Test suites: 43 passed
 
@@ -291,22 +341,26 @@
 ### Fixed - Test Suite Improvements
 
 #### Integration Tests
+
 - Fixed migration validation tests path resolution
 - Added extxyz format support for cell-preserving round-trip tests
 - Handle unsupported ASE write formats (QE, CP2K) gracefully
 - Skip tests when backend is unavailable
 
 #### Python ASE Converter
+
 - Handle non-JSON-serializable objects in atoms.info (e.g., Spacegroup)
 - Added extxyz format to supported formats for better cell preservation
 
 #### Performance Tests
+
 - Fixed LRU cache eviction test with correct size calculations
 - Fixed access order test to properly verify LRU behavior
 - Fixed invalidation validator logic
 - Made workerManager timeout test more resilient to timing variations
 
 #### Test Results
+
 - All 712 tests passing
 - Test suites: 42 passed
 
@@ -319,27 +373,30 @@
 All ASE integration features have been verified and confirmed production-ready.
 
 #### Verification Summary
+
 - **Phase 1: ASE Atoms Converter** ✅ 100% Complete (All 8 formats)
 - **Phase 2: Calculator Integration** ✅ 100% Complete (VASP/CP2K/QE)
 - **Phase 3: Workflow Migration** ✅ 100% Complete (30/30 tests passing)
 - **Phase 4: Complex Properties** ✅ 100% Complete
 
 #### Code Quality Metrics
+
 - Test Coverage: 30/30 workflow migration tests passing
 - TypeScript Tests: 682/694 passing (98.3%)
 - Total Implementation: ~92KB Python + ~40KB TypeScript
 
 #### Documentation
+
 - Closed Issue #11 (duplicate of #12)
 - Verified all implementation files
 - Confirmed production readiness
 
 ---
 
-
 ### Added - Phase 5: Performance Features (Continued)
 
 #### WebWorker Module (Week 20-21)
+
 - **src/performance/computeWorker.ts** - WebWorker for heavy computations
   - `ComputeWorker` class for background computation tasks
   - Support for 5 task types: parse, convert, validate, calculate, migrate
@@ -386,7 +443,6 @@ All ASE integration features have been verified and confirmed production-ready.
     - Parameter migration tests
     - Error handling tests
     - Performance tracking tests
-  
   - **tests/performance/workerManager.test.ts** - 15 comprehensive tests
     - Task submission tests
     - Task management tests
@@ -396,12 +452,14 @@ All ASE integration features have been verified and confirmed production-ready.
     - Singleton instance tests
 
 ### Performance Module Coverage
+
 - **computeWorker.ts**: 90.44% statement coverage
 - **workerManager.ts**: 73.4% statement coverage
 - **lazyLoading.ts**: 76.92% statement coverage
 - **Overall module**: 82.83% statement coverage
 
 ### Phase Status
+
 - ✅ Phase 1: Foundation (100%)
 - ✅ Phase 2: Visualization (75%)
 - ✅ Phase 2.5: Dynamic LSP Discovery (100%)
@@ -410,7 +468,9 @@ All ASE integration features have been verified and confirmed production-ready.
 - ⏳ Phase 5: Advanced Features & Polish (50% - Lazy loading + WebWorker complete)
 
 ### Next Steps
+
 Phase 5 remaining tasks:
+
 - Caching and incremental parsing
 - Memory optimization for 10k+ atom systems
 
@@ -422,6 +482,7 @@ Phase 5 remaining tasks:
   - Factory pattern for singleton management
 
 #### AI Commands (Issue #14 - Phase 4)
+
 - **aiCommands.ts** - VSCode commands for AI features
   - `openqc.aiOptimizeInput` - Optimize input file parameters with AI
   - `openqc.aiGenerateInput` - Generate input from natural language description
@@ -430,6 +491,7 @@ Phase 5 remaining tasks:
   - `openqc.aiSettings` - Configure AI settings
 
 #### Python AI Backend (Issue #14 - Phase 4)
+
 - **python/openqc/ai/** module with:
   - `client.py` - LLM client for OpenAI and Ollama
   - `prompts.py` - Quantum chemistry-specific prompt templates
@@ -437,16 +499,18 @@ Phase 5 remaining tasks:
   - Support for 7 quantum chemistry codes (VASP, CP2K, QE, Gaussian, ORCA, NWChem, GAMESS)
 
 #### AI Configuration
+
 - VSCode settings for AI:
   - `openqc.ai.enabled` - Enable/disable AI features
   - `openqc.ai.provider` - Select provider (openai/ollama)
-  - `openqc.ai.apiKey` - OpenAI API key
+  - OpenAI API key setting (historical; removed above in favor of SecretStorage)
   - `openqc.ai.model` - Model name
   - `openqc.ai.ollamaUrl` - Ollama server URL
   - `openqc.ai.maxTokens` - Maximum response tokens
   - `openqc.ai.temperature` - Response creativity
 
 #### Testing
+
 - **AICore.test.ts** - Comprehensive unit tests (100% coverage)
   - Configuration loading and validation
   - Provider switching (OpenAI/Ollama)
@@ -454,6 +518,7 @@ Phase 5 remaining tasks:
   - Mock LLM responses
 
 ### Phase Completion Status
+
 - ✅ Phase 1: Foundation (100%)
 - ✅ Phase 2: Visualization (75% - Three.js complete)
 - ✅ Phase 2.5: Dynamic LSP Discovery (100%)
@@ -462,14 +527,15 @@ Phase 5 remaining tasks:
 - ⏳ Phase 5: Advanced Features & Polish (Next)
 
 ### Next Steps
+
 Phase 5 will focus on:
+
 - Performance optimization
 - User experience refinement
 - Extension marketplace listing
 - Community features
 
 ---
-
 
 ## [3.0.0] - 2026-03-04
 
@@ -480,6 +546,7 @@ OpenQC-VSCode now features complete ASE (Atomic Simulation Environment) integrat
 ### Completed - Phase 3: ASE Integration & Cross-Code Migration
 
 #### All Phase 3 Deliverables ✅
+
 - **ASE Atoms Converter Module** (Issue #12 - Phase 1)
   - VASP POSCAR ↔ ASE Atoms
   - CP2K input ↔ ASE Atoms
@@ -518,6 +585,7 @@ OpenQC-VSCode now features complete ASE (Atomic Simulation Environment) integrat
   - Parameter consistency checks
 
 ### Technical Achievements
+
 - 698 lines of workflow migration code in `core/openqc/workflow.py`
 - 515 lines of comprehensive tests in `tests/test_workflow_migration.py`
 - Support for 8 quantum chemistry codes
@@ -525,6 +593,7 @@ OpenQC-VSCode now features complete ASE (Atomic Simulation Environment) integrat
 - Complete integration test coverage
 
 ### Phase Completion Status
+
 - ✅ Phase 1: Foundation (100%)
 - ✅ Phase 2: Visualization (75% - Three.js complete)
 - ✅ Phase 2.5: Dynamic LSP Discovery (100%)
@@ -532,7 +601,9 @@ OpenQC-VSCode now features complete ASE (Atomic Simulation Environment) integrat
 - ⏳ Phase 4: AI Assistance (Next priority)
 
 ### Next Steps
+
 Phase 4 will focus on AI-powered features:
+
 - LLM integration for input file optimization
 - Natural language to input file generation
 - Intelligent parameter suggestions
@@ -545,12 +616,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [2.7.0] - 2026-03-04
 
 ### Added - Three.js 3D Visualization (Phase 2)
 
 #### Three.js Integration
+
 - **ThreeJsRenderer.ts** - Core Three.js molecular structure renderer
   - WebGL-based 3D rendering with Three.js
   - Support for ball-and-stick, space-filling, wireframe modes
@@ -568,11 +639,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **types.ts** - TypeScript definitions for elements, colors, radii
 
 #### Testing
+
 - Unit tests for ThreeJsRenderer (100% core coverage)
 - Integration tests for visualization pipeline
 - Mock WebGL context for Node.js testing
 
 ### Phase 2 Progress
+
 - ✅ Three.js integration - COMPLETE
 - ✅ POSCAR/CONTCAR rendering - COMPLETE
 - ✅ Camera controls - COMPLETE
@@ -584,6 +657,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - ASE Calculator Integration (Issue #12 - Phase 3)
 
 #### ASE Calculator Interface
+
 - **ASECalculator.ts** - TypeScript interface to ASE calculators
   - Calculator factory pattern for code-agnostic interface
   - Support for VASP, CP2K, and Quantum ESPRESSO calculators
@@ -600,6 +674,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Calculator availability checker
 
 #### Python Backend for Calculators
+
 - **python/openqc/ase/calculator.py** - ASE calculator backend
   - VASP input generation (INCAR, POSCAR, KPOINTS, POTCAR)
   - CP2K input generation with complete FORCE_EVAL section
@@ -611,6 +686,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - MD/Optimization Workflow Migration (Issue #12 - Phase 3)
 
 #### Workflow Migration System
+
 - **core/openqc/workflow.py** - Complete cross-code workflow parameter conversion
   - Migrate molecular dynamics parameters between VASP, CP2K, Quantum ESPRESSO, Gaussian, ORCA, and LAMMPS
   - Migrate geometry optimization parameters including convergence criteria and optimizer settings
@@ -621,6 +697,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Code-specific notes and migration recommendations
 
 #### MD Parameter Migration
+
 - Migrate MD parameters: temperature, pressure, timestep, steps, thermostats
 - Thermostat support: Nose-Hoover, Langevin, Berendsen, Velocity Scaling
 - Code-specific MD settings:
@@ -630,6 +707,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LAMMPS: run_style, timestep, run, fix_nvt, fix_langevin
 
 #### Optimization Parameter Migration
+
 - Migrate optimization parameters: convergence criteria, max steps, optimizers
 - Default convergence values per code
 - Optimizer mapping between codes (BFGS, CG, RFO, GDIIS, etc.)
@@ -641,6 +719,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ORCA: method, basis, job_type, energy/grad thresholds
 
 #### Workflow Extraction
+
 - Detect workflow type from input files
 - Extract parameters from VASP INCAR files
 - Extract parameters from Gaussian .com files
@@ -652,6 +731,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Migration Validation Suite (Issue #12 - Phase 3.5)
 
 #### Migration Validation Tests
+
 - **tests/integration/migrationValidation.test.ts** - Comprehensive validation tests
   - Round-trip conversion tests (VASP↔CP2K↔QE)
   - Structure preservation validation
@@ -677,6 +757,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added - Complex Property Handling (Issue #12 - Phase 4)
 
 #### Complex Property Mapper
+
 - **ComplexPropertyMapper.ts** - Property mapping between codes
   - Hubbard U parameter mapping (VASP, CP2K, QE)
   - DFT+U parameter conversion with Dudarev scheme support
@@ -687,6 +768,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Code-specific parameter generation
 
 #### Python Backend for Complex Properties
+
 - **python/openqc/ase/complex_properties.py** - Property conversion backend
   - HubbardUConverter - DFT+U parameter conversion
   - ConstraintConverter - Atom constraint conversion
@@ -697,6 +779,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - QE Hubbard_U card generation
 
 #### Property Mapping Features
+
 - **Hubbard U Parameters**
   - Angular momentum (s, p, d, f) support
   - U and J parameter mapping
@@ -732,6 +815,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 
 #### Architecture
+
 - TypeScript interface layer for VSCode integration
 - Python backend for ASE calculator operations
 - Factory pattern for code-agnostic calculator access
@@ -739,6 +823,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Result parsing with error handling
 
 #### Supported Codes
+
 - VASP (5.4.4+): Complete calculator support
 - CP2K (8.2+): Complete calculator support
 - Quantum ESPRESSO (7.2+): Complete calculator support
@@ -747,6 +832,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LAMMPS: Workflow migration support
 
 #### File Format Support
+
 - VASP: INCAR, POSCAR, KPOINTS, POTCAR, OUTCAR, vasprun.xml
 - CP2K: .inp, .out, .restart
 - QE: .in, .out, .save
@@ -763,6 +849,7 @@ OpenQC-VSCode is now a universal platform supporting 7 major quantum chemistry p
 ### Added
 
 #### Core Features
+
 - **Universal LSP Support** - Automatic detection and management of language servers for CP2K, VASP, Gaussian, ORCA, Quantum ESPRESSO, GAMESS, and NWChem
 - **Molecular Visualization** - Interactive 3D structure rendering with 3Dmol.js
   - Multiple visualization styles: stick, sphere, line, cartoon

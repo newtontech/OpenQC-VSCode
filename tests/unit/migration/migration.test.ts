@@ -566,7 +566,8 @@ Test`;
       };
 
       const result = converter.convertParameters(sourceParams, 'cp2k');
-      expect(result.parameters.CUTOFF).toBe(520);
+      expect(result.parameters.CUTOFF).toBeCloseTo(38.219295063, 9);
+      expect(result.parameters.EPS_SCF).toBe(1e-6);
     });
 
     it('should track unmapped parameters', () => {

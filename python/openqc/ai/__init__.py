@@ -5,8 +5,16 @@ AI-powered features for quantum chemistry input file optimization,
 generation, explanation, and debugging.
 """
 
-from .client import AIClient, AIRequest, AIResponse
-from .prompts import PromptTemplates
 from .parser import ResponseParser
+from .prompts import PromptTemplates
 
-__all__ = ['AIClient', 'AIRequest', 'AIResponse', 'PromptTemplates', 'ResponseParser']
+__all__ = ["AIClient", "AIRequest", "AIResponse", "PromptTemplates", "ResponseParser"]
+
+
+def __getattr__(name):
+    """Load client types lazily so ``python -m openqc.ai.client`` stays warning-free."""
+    if name in {"AIClient", "AIRequest", "AIResponse"}:
+        from . import client
+
+        return getattr(client, name)
+    raise AttributeError(name)

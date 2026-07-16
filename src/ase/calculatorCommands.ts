@@ -16,18 +16,26 @@ import {
   getCalculatorConfiguration,
 } from './ASECalculator';
 import { ASEConverter, ASEAtoms } from './ASEConverter';
+import { parseOutput } from '../results/OutputParserBridge';
+import type { OpenQCResults } from '../results/OpenQCResults';
+
+type OutputCandidate = {
+  filePath: string;
+  software: string;
+};
 
 /**
  * Register calculator commands
  */
 export function registerCalculatorCommands(context: vscode.ExtensionContext): void {
   const factory = new CalculatorFactory(context);
+  const converter = new ASEConverter(context);
 
   // Command: Generate calculator input
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'openqc.generateCalculatorInput',
-      async () => await generateCalculatorInput(factory)
+      async () => await generateCalculatorInput(factory, converter)
     )
   );
 
@@ -41,14 +49,14 @@ export function registerCalculatorCommands(context: vscode.ExtensionContext): vo
 
   // Command: Read calculation results
   context.subscriptions.push(
-    vscode.commands.registerCommand('openqc.readResults', async () => await readResults())
+    vscode.commands.registerCommand('openqc.readResults', async () => await readResults(factory))
   );
 
   // Command: Quick VASP calculation
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'openqc.quickVASP',
-      async () => await quickCalculation(factory, CalculatorType.VASP)
+      async () => await quickCalculation(factory, converter, CalculatorType.VASP)
     )
   );
 
@@ -56,7 +64,7 @@ export function registerCalculatorCommands(context: vscode.ExtensionContext): vo
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'openqc.quickCP2K',
-      async () => await quickCalculation(factory, CalculatorType.CP2K)
+      async () => await quickCalculation(factory, converter, CalculatorType.CP2K)
     )
   );
 
@@ -64,7 +72,7 @@ export function registerCalculatorCommands(context: vscode.ExtensionContext): vo
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'openqc.quickQE',
-      async () => await quickCalculation(factory, CalculatorType.QE)
+      async () => await quickCalculation(factory, converter, CalculatorType.QE)
     )
   );
 
@@ -80,7 +88,10 @@ export function registerCalculatorCommands(context: vscode.ExtensionContext): vo
 /**
  * Generate input files for a calculator
  */
-async function generateCalculatorInput(factory: CalculatorFactory): Promise<void> {
+async function generateCalculatorInput(
+  factory: CalculatorFactory,
+  converter: ASEConverter
+): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showErrorMessage('No active editor');
@@ -121,6 +132,9 @@ async function generateCalculatorInput(factory: CalculatorFactory): Promise<void
   }
 
   const calculator = factory.createCalculator(config);
+  if (!(await ensureBackendAvailable(calculator))) {
+    return;
+  }
 
   // Show progress
   await vscode.window.withProgress(
@@ -132,10 +146,6 @@ async function generateCalculatorInput(factory: CalculatorFactory): Promise<void
     async progress => {
       progress.report({ message: 'Reading structure...' });
 
-      // Read structure from current file
-      const converter = new ASEConverter(
-        vscode.extensions.getExtension('newtontech.openqc')!.exports.context
-      );
       const filepath = editor.document.uri.fsPath;
       const readResult = await converter.readToAtoms(filepath);
 
@@ -205,6 +215,12 @@ async function runCalculation(factory: CalculatorFactory): Promise<void> {
   }
 
   const calculator = factory.createCalculator(config);
+  if (!(await ensureBackendAvailable(calculator))) {
+    return;
+  }
+  if (!(await ensureCalculatorExecutableAvailable(calculator, calculatorType))) {
+    return;
+  }
 
   // Run calculation
   await vscode.window.withProgress(
@@ -234,7 +250,7 @@ async function runCalculation(factory: CalculatorFactory): Promise<void> {
 /**
  * Read calculation results
  */
-async function readResults(): Promise<void> {
+async function readResults(factory: CalculatorFactory): Promise<void> {
   // Select output directory
   const outputDir = await vscode.window.showInputBox({
     prompt: 'Enter output directory containing calculation results',
@@ -253,26 +269,26 @@ async function readResults(): Promise<void> {
     return;
   }
 
+  const outputCandidate = findCalculationOutputCandidate(outputDir);
+  if (outputCandidate) {
+    await parseDetectedCalculationOutput(outputCandidate);
+    return;
+  }
+
   // Select calculator type
   const calculatorType = await selectCalculatorType();
   if (!calculatorType) {
     return;
   }
 
-  // Create temporary calculator to read results
-  const extension = vscode.extensions.getExtension('newtontech.openqc');
-  if (!extension) {
-    vscode.window.showErrorMessage('OpenQC extension not found');
-    return;
-  }
-
-  const { CalculatorFactory } = await import('./ASECalculator');
-  const factory = new CalculatorFactory(extension.exports.context);
   const config: CalculatorConfig = {
     type: calculatorType,
     parameters: {},
   };
   const calculator = factory.createCalculator(config);
+  if (!(await ensureBackendAvailable(calculator))) {
+    return;
+  }
 
   // Read results
   await vscode.window.withProgress(
@@ -298,11 +314,45 @@ async function readResults(): Promise<void> {
   );
 }
 
+async function parseDetectedCalculationOutput(candidate: OutputCandidate): Promise<void> {
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `Reading ${candidate.software.toUpperCase()} results`,
+      cancellable: false,
+    },
+    async progress => {
+      progress.report({ message: `Parsing ${path.basename(candidate.filePath)}...` });
+
+      const result = await parseOutput(candidate.filePath, candidate.software);
+
+      if (!result.success || !result.data) {
+        vscode.window.showErrorMessage(
+          `Failed to parse calculation output: ${result.error || 'No result data returned'}`
+        );
+        return;
+      }
+
+      if (result.data.success === false) {
+        const warning =
+          result.data.warnings?.[0] ||
+          result.data.errors?.[0] ||
+          'No calculation output data could be extracted from this file.';
+        vscode.window.showWarningMessage(warning);
+        return;
+      }
+
+      displayOpenQCResults(result.data);
+    }
+  );
+}
+
 /**
  * Quick calculation from current file
  */
 async function quickCalculation(
   factory: CalculatorFactory,
+  converter: ASEConverter,
   calculatorType: CalculatorType
 ): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -342,6 +392,12 @@ async function quickCalculation(
   }
 
   const calculator = factory.createCalculator(config);
+  if (!(await ensureBackendAvailable(calculator))) {
+    return;
+  }
+  if (!(await ensureCalculatorExecutableAvailable(calculator, calculatorType))) {
+    return;
+  }
 
   // Run calculation
   await vscode.window.withProgress(
@@ -353,10 +409,6 @@ async function quickCalculation(
     async progress => {
       progress.report({ message: 'Reading structure...' });
 
-      // Read structure
-      const converter = new ASEConverter(
-        vscode.extensions.getExtension('newtontech.openqc')!.exports.context
-      );
       const readResult = await converter.readToAtoms(filepath);
 
       if (!readResult.success || !readResult.atoms) {
@@ -400,13 +452,40 @@ async function checkCalculators(factory: CalculatorFactory): Promise<void> {
     const calcAvailable = await calculator.isCalculatorAvailable();
 
     results.push(
-      `${type.toUpperCase()}: Backend ${backendAvailable ? '✓' : '✗'}, Calculator ${
-        calcAvailable ? '✓' : '✗'
+      `${type.toUpperCase()}: Backend ${backendAvailable ? 'available' : 'missing'}, Calculator ${
+        calcAvailable ? 'available' : 'missing'
       }`
     );
   }
 
   vscode.window.showInformationMessage(`Calculator Status: ${results.join(', ')}`, { modal: true });
+}
+
+async function ensureBackendAvailable(calculator: ASECalculator): Promise<boolean> {
+  const backendAvailable = await calculator.isAvailable();
+  if (!backendAvailable) {
+    vscode.window.showWarningMessage(
+      'ASE Python backend is unavailable. Install ASE in the configured Python environment or update openqc.pythonPath before using calculator commands.'
+    );
+    return false;
+  }
+
+  return true;
+}
+
+async function ensureCalculatorExecutableAvailable(
+  calculator: ASECalculator,
+  calculatorType: CalculatorType
+): Promise<boolean> {
+  const executableAvailable = await calculator.isCalculatorAvailable();
+  if (!executableAvailable) {
+    vscode.window.showWarningMessage(
+      `${calculatorType.toUpperCase()} executable is unavailable. Install the calculator or configure its command before running calculations.`
+    );
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -428,6 +507,90 @@ async function selectCalculatorType(): Promise<CalculatorType | undefined> {
   });
 
   return selected?.type;
+}
+
+function findCalculationOutputCandidate(outputDir: string): OutputCandidate | undefined {
+  let entries: string[];
+  try {
+    entries = fs.readdirSync(outputDir);
+  } catch {
+    return undefined;
+  }
+
+  const files = entries
+    .map(entry => path.join(outputDir, entry))
+    .filter(filePath => {
+      try {
+        return fs.statSync(filePath).isFile();
+      } catch {
+        return false;
+      }
+    });
+
+  return findOutputByName(files) || findOutputByContent(files);
+}
+
+function findOutputByName(files: string[]): OutputCandidate | undefined {
+  const patterns: Array<{ software: string; pattern: RegExp; priority: number }> = [
+    { software: 'orca', pattern: /^ORCA.*\.out$/i, priority: 10 },
+    { software: 'gaussian', pattern: /^Gaussian.*\.log$/i, priority: 20 },
+    { software: 'gamess', pattern: /^GAMESS.*\.(?:log|dat)$/i, priority: 30 },
+    { software: 'qe', pattern: /^(?:pw|ph|cppp)\.out$/i, priority: 40 },
+    { software: 'cp2k', pattern: /^cp2k.*\.log$/i, priority: 50 },
+    { software: 'cp2k', pattern: /^.*\.ener$/i, priority: 55 },
+  ];
+
+  for (const { software, pattern } of patterns.sort((a, b) => a.priority - b.priority)) {
+    const match = files.find(filePath => pattern.test(path.basename(filePath)));
+    if (match) {
+      return { filePath: match, software };
+    }
+  }
+
+  return undefined;
+}
+
+function findOutputByContent(files: string[]): OutputCandidate | undefined {
+  for (const filePath of files) {
+    const sample = readOutputSample(filePath);
+    if (!sample) {
+      continue;
+    }
+
+    const software = detectOutputSoftware(sample);
+    if (software) {
+      return { filePath, software };
+    }
+  }
+
+  return undefined;
+}
+
+function readOutputSample(filePath: string): string | undefined {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    try {
+      const buffer = Buffer.alloc(1024 * 1024);
+      const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
+      return buffer.toString('utf8', 0, bytesRead);
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return undefined;
+  }
+}
+
+function detectOutputSoftware(content: string): string | undefined {
+  const signatures: Array<{ software: string; pattern: RegExp }> = [
+    { software: 'gaussian', pattern: /Entering Gaussian System|SCF Done:/i },
+    { software: 'orca', pattern: /^\s*\* O\s+R\s+C\s+A \*|FINAL SINGLE POINT ENERGY/im },
+    { software: 'cp2k', pattern: /^CP2K\||^ENERGY\|/im },
+    { software: 'qe', pattern: /Program PWSCF|!\s+total energy\s+=/i },
+    { software: 'gamess', pattern: /GAMESS VERSION|^\s*TOTAL ENERGY\s*=/im },
+  ];
+
+  return signatures.find(signature => signature.pattern.test(content))?.software;
 }
 
 /**
@@ -461,11 +624,46 @@ async function configureCalculator(
     return defaults;
   }
 
-  // TODO: Implement parameter customization UI
-  // For now, return defaults
-  vscode.window.showInformationMessage('Using default parameters (customization coming soon)');
+  const parameterJson = await vscode.window.showInputBox({
+    prompt: `Enter ${calculatorType.toUpperCase()} parameters as JSON`,
+    value: JSON.stringify(defaults.parameters, null, 2),
+    validateInput: value => {
+      try {
+        const parsed = JSON.parse(value || '{}');
+        if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+          return 'Calculator parameters must be a JSON object';
+        }
+        return null;
+      } catch (error) {
+        return `Invalid calculator parameter JSON: ${
+          error instanceof Error ? error.message : String(error)
+        }`;
+      }
+    },
+  });
 
-  return defaults;
+  if (parameterJson === undefined) {
+    return undefined;
+  }
+
+  let parsedParameters: Record<string, any>;
+  try {
+    const parsed = JSON.parse(parameterJson || '{}');
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+      throw new Error('Calculator parameters must be a JSON object');
+    }
+    parsedParameters = parsed;
+  } catch (error) {
+    vscode.window.showErrorMessage(
+      `Invalid calculator parameter JSON: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return undefined;
+  }
+
+  return {
+    ...defaults,
+    parameters: parsedParameters,
+  };
 }
 
 /**
@@ -512,6 +710,36 @@ function displayCalculationResults(result: {
   vscode.workspace
     .openTextDocument({
       content: resultContent,
+      language: 'json',
+    })
+    .then(doc => vscode.window.showTextDocument(doc));
+}
+
+function displayOpenQCResults(result: OpenQCResults): void {
+  const messages: string[] = [];
+  const software = result.software ? result.software.toUpperCase() : 'CALCULATION';
+
+  if (result.finalEnergy) {
+    messages.push(
+      `${software} energy: ${result.finalEnergy.value.toFixed(6)} ${result.finalEnergy.unit}`
+    );
+  }
+
+  if (result.scfEnergies?.length) {
+    messages.push(`SCF steps: ${result.scfEnergies.length}`);
+  }
+
+  if (result.warnings?.length) {
+    messages.push(`Warnings: ${result.warnings.length}`);
+  }
+
+  vscode.window.showInformationMessage(
+    messages.length > 0 ? messages.join(', ') : `Parsed ${software} results`
+  );
+
+  vscode.workspace
+    .openTextDocument({
+      content: JSON.stringify(result, null, 2),
       language: 'json',
     })
     .then(doc => vscode.window.showTextDocument(doc));

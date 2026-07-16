@@ -302,6 +302,7 @@ export class LRUCache<T> {
     this.cleanupTimer = setInterval(() => {
       this.cleanup();
     }, this.config.cleanupInterval);
+    this.cleanupTimer.unref?.();
   }
 
   /**

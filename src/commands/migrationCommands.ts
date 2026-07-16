@@ -18,67 +18,67 @@ import { MDWorkflowConverter, quickMigrateMDWorkflow } from '../utils/migration/
  */
 export function registerMigrationCommands(context: vscode.ExtensionContext): void {
   // Structure migration command
-  const migrateStructureCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.migrateStructure',
     'OpenQC.migrateStructure',
-    async () => {
-      await quickMigrateStructure(context);
-    }
+    () => quickMigrateStructure(context)
   );
-  context.subscriptions.push(migrateStructureCommand);
 
   // Advanced structure migration with options
-  const migrateStructureAdvancedCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.migrateStructureAdvanced',
     'OpenQC.migrateStructureAdvanced',
-    async () => {
-      await migrateStructureWithOptions(context);
-    }
+    () => migrateStructureWithOptions(context)
   );
-  context.subscriptions.push(migrateStructureAdvancedCommand);
 
   // k-Point grid migration
-  const migrateKpointsCommand = vscode.commands.registerCommand(
-    'OpenQC.migrateKpoints',
-    async () => {
-      await migrateKpoints(context);
-    }
+  registerCommandWithLegacyAlias(context, 'openqc.migrateKpoints', 'OpenQC.migrateKpoints', () =>
+    migrateKpoints(context)
   );
-  context.subscriptions.push(migrateKpointsCommand);
 
   // Electronic parameter migration
-  const migrateParametersCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.migrateParameters',
     'OpenQC.migrateParameters',
-    async () => {
-      await migrateParameters(context);
-    }
+    () => migrateParameters(context)
   );
-  context.subscriptions.push(migrateParametersCommand);
 
   // MD/Optimization workflow migration (Phase 3.4)
-  const migrateMDWorkflowCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.migrateMDWorkflow',
     'OpenQC.migrateMDWorkflow',
-    async () => {
-      await quickMigrateMDWorkflow(context);
-    }
+    () => quickMigrateMDWorkflow(context)
   );
-  context.subscriptions.push(migrateMDWorkflowCommand);
 
   // Legacy MD parameters migration (for backward compatibility)
-  const migrateMDParametersCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.migrateMDParameters',
     'OpenQC.migrateMDParameters',
-    async () => {
-      await migrateMDParameters(context);
-    }
+    () => migrateMDParameters(context)
   );
-  context.subscriptions.push(migrateMDParametersCommand);
 
   // Show migration validation report
-  const showValidationCommand = vscode.commands.registerCommand(
+  registerCommandWithLegacyAlias(
+    context,
+    'openqc.showMigrationValidation',
     'OpenQC.showMigrationValidation',
-    async () => {
-      await showMigrationValidation(context);
-    }
+    () => showMigrationValidation(context)
   );
-  context.subscriptions.push(showValidationCommand);
+}
+
+function registerCommandWithLegacyAlias(
+  context: vscode.ExtensionContext,
+  command: string,
+  legacyCommand: string,
+  handler: () => Promise<void>
+): void {
+  context.subscriptions.push(vscode.commands.registerCommand(command, handler));
+  context.subscriptions.push(vscode.commands.registerCommand(legacyCommand, handler));
 }
 
 /**

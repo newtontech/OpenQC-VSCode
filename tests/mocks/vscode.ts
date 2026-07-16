@@ -6,6 +6,11 @@ export const window = {
   showWarningMessage: jest.fn(() => Promise.resolve(undefined)),
   showErrorMessage: jest.fn(() => Promise.resolve(undefined)),
   showTextDocument: jest.fn(() => Promise.resolve(undefined)),
+  showSaveDialog: jest.fn(() => Promise.resolve(undefined)),
+  showInputBox: jest.fn(() => Promise.resolve(undefined)),
+  showQuickPick: jest.fn(() => Promise.resolve(undefined)),
+  showOpenDialog: jest.fn(() => Promise.resolve(undefined)),
+  withProgress: jest.fn((_options: unknown, task: (progress?: unknown) => unknown) => task()),
   activeTextEditor: undefined,
   visibleTextEditors: [],
   tabGroups: {
@@ -83,6 +88,7 @@ export const workspace = {
   workspaceFolders: [],
   getWorkspaceFolder: jest.fn(),
   asRelativePath: jest.fn((path: string) => path),
+  openTextDocument: jest.fn(),
   fs: {
     readFile: jest.fn(),
     writeFile: jest.fn(),
@@ -388,8 +394,39 @@ export const FoldingRangeKind = {
   Region: 3,
 };
 
+export const TreeItemCollapsibleState = {
+  None: 0,
+  Collapsed: 1,
+  Expanded: 2,
+};
+
+export class TreeItem {
+  command?: unknown;
+  contextValue?: string;
+  description?: string;
+  iconPath?: unknown;
+  tooltip?: string;
+
+  constructor(
+    public label: string,
+    public collapsibleState?: number
+  ) {}
+}
+
+export class ThemeColor {
+  constructor(public id: string) {}
+}
+
+export class ThemeIcon {
+  constructor(
+    public id: string,
+    public color?: ThemeColor
+  ) {}
+}
+
 export const commands = {
   registerCommand: jest.fn(() => ({ dispose: jest.fn() })),
+  executeCommand: jest.fn(),
 };
 
 export const env = {
@@ -400,6 +437,10 @@ export const ViewColumn = {
   One: 1,
   Two: 2,
   Three: 3,
+};
+
+export const ProgressLocation = {
+  Notification: 15,
 };
 
 export const Uri = {
@@ -474,7 +515,12 @@ export default {
   SymbolKind,
   SymbolTag,
   FoldingRangeKind,
+  TreeItemCollapsibleState,
+  TreeItem,
+  ThemeColor,
+  ThemeIcon,
   ViewColumn,
+  ProgressLocation,
   Uri,
   EventEmitter,
   ExtensionContext,

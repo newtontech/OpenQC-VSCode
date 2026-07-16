@@ -1,3 +1,5 @@
+import { generateNonce } from '../utils/nonce';
+
 export interface ResultsWebviewData {
   jobId: string;
   jobName: string;
@@ -194,11 +196,4 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-}
+const getNonce = generateNonce;

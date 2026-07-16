@@ -5,7 +5,7 @@
  */
 
 import * as vscode from 'vscode';
-import { WorkerMessage, WorkerResponse, WorkerMessageType } from './computeWorker';
+import { ComputeWorker, WorkerMessage, WorkerMessageType } from './computeWorker';
 
 export interface WorkerTask {
   id: string;
@@ -39,6 +39,9 @@ export class WorkerManager {
   private taskMap: Map<string, WorkerTask> = new Map();
   private maxWorkers: number;
   private taskCounter: number = 0;
+  private activeTasks: number = 0;
+  private completedDurations: number[] = [];
+  private readonly computeWorker = new ComputeWorker();
   private stats: WorkerStats = {
     activeWorkers: 0,
     pendingTasks: 0,
@@ -212,14 +215,10 @@ export class WorkerManager {
    * Process task queue
    */
   private processQueue(): void {
-    // Check if we can start more tasks
-    if (this.taskQueue.length === 0) {
-      return;
+    while (this.taskQueue.length > 0 && this.activeTasks < this.maxWorkers) {
+      void this.executeTask(this.taskQueue.shift()!);
     }
-
-    // For now, execute tasks synchronously
-    // In production, this would use actual WebWorkers
-    this.executeTask(this.taskQueue.shift()!);
+    this.updateQueueStats();
   }
 
   /**
@@ -228,13 +227,20 @@ export class WorkerManager {
   private async executeTask(task: WorkerTask): Promise<void> {
     task.status = 'running';
     task.startTime = Date.now();
+    this.activeTasks++;
+    this.updateQueueStats();
 
     try {
-      // Simulate worker execution
-      // In production, this would send message to WebWorker
-      const result = await this.simulateWorkerExecution(task);
+      const response = await this.computeWorker.processMessage({
+        id: task.id,
+        type: task.type,
+        payload: task.payload,
+      });
+      if (!response.success) {
+        throw new Error(response.error || 'Worker task failed');
+      }
 
-      task.result = result;
+      task.result = response.result;
       task.status = 'completed';
       task.endTime = Date.now();
 
@@ -245,49 +251,24 @@ export class WorkerManager {
       task.endTime = Date.now();
 
       this.stats.failedTasks++;
+    } finally {
+      this.activeTasks = Math.max(0, this.activeTasks - 1);
+      if (task.startTime && task.endTime) {
+        this.completedDurations.push(task.endTime - task.startTime);
+        this.stats.averageDuration =
+          this.completedDurations.reduce((sum, duration) => sum + duration, 0) /
+          this.completedDurations.length;
+      }
+      this.updateQueueStats();
     }
-
-    this.stats.pendingTasks = this.taskQueue.length;
 
     // Process next task
     this.processQueue();
   }
 
-  /**
-   * Simulate worker execution (for testing)
-   */
-  private async simulateWorkerExecution(task: WorkerTask): Promise<any> {
-    // Simulate computation time
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Return mock result
-    switch (task.type) {
-      case WorkerMessageType.PARSE_STRUCTURE:
-        return {
-          chemical_symbols: ['C', 'C', 'C'],
-          positions: [
-            [0, 0, 0],
-            [1, 0, 0],
-            [2, 0, 0],
-          ],
-          pbc: [false, false, false],
-        };
-
-      case WorkerMessageType.CONVERT_FORMAT:
-        return '# Converted structure\nC 0 0 0\nC 1 0 0\n';
-
-      case WorkerMessageType.VALIDATE_STRUCTURE:
-        return { valid: true, warnings: [] };
-
-      case WorkerMessageType.CALCULATE_PROPERTIES:
-        return { center_of_mass: [1, 0, 0] };
-
-      case WorkerMessageType.MIGRATE_PARAMETERS:
-        return { migrated: {}, warnings: [] };
-
-      default:
-        throw new Error(`Unknown task type: ${task.type}`);
-    }
+  private updateQueueStats(): void {
+    this.stats.activeWorkers = this.activeTasks;
+    this.stats.pendingTasks = this.taskQueue.length;
   }
 }
 
