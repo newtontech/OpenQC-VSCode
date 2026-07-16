@@ -5,91 +5,115 @@ on:
     tags:
       - 'v*'
 
-jobs:
-  build-and-release:
-    name: Build and Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Build extension
-        run: npm run compile
-      
-      - name: Package extension
-        run: npx @vscode/vsce package
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v3
-        with:
-          files: '*.vsix'
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
-  publish-to-marketplace:
-    name: Publish to VSCode Marketplace
+jobs:
+  build-and-verify:
+    name: Build and verify
     runs-on: ubuntu-latest
-    needs: build-and-release
+    timeout-minutes: 30
     permissions:
       contents: read
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Publish to Marketplace
-        run: npx @vscode/vsce publish -p ${{ secrets.VSCE_TOKEN }}
-      
-      - name: Publish to Open VSX Registry
-        run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
 
-  update-changelog:
-    name: Update Changelog
+    steps:
+      - name: Checkout tag with history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify clean synchronized release tag
+        run: npm run release:guard -- --tag "${GITHUB_REF_NAME}"
+
+      - name: Build and verify release assets
+        run: npm run check:release
+
+      - name: Upload immutable release assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: openqc-${{ github.ref_name }}
+          path: |
+            vsix/*.vsix
+            vsix/*.vsix.sha256
+            vsix/*.sbom.json
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-marketplace:
+    name: Publish to VS Code Marketplace
+    needs: build-and-verify
     runs-on: ubuntu-latest
-    needs: build-and-release
+    timeout-minutes: 15
+    environment: marketplace
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout release tooling
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install pinned release tooling
+        run: npm ci
+
+      - name: Download verified release assets
+        uses: actions/download-artifact@v8
+        with:
+          name: openqc-${{ github.ref_name }}
+          path: vsix
+
+      - name: Publish the verified VSIX
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          test -n "${VSCE_PAT}"
+          mapfile -t vsix_files < <(find vsix -maxdepth 1 -type f -name '*.vsix' | sort)
+          test "${#vsix_files[@]}" -eq 1
+          (cd vsix && sha256sum --check "$(basename "${vsix_files[0]}").sha256")
+          ./node_modules/.bin/vsce publish --packagePath "${vsix_files[0]}" -p "${VSCE_PAT}"
+
+  finalize-github-release:
+    name: Finalize GitHub Release
+    needs: publish-marketplace
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-      
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      
-      - name: Update CHANGELOG
+      - name: Download published release assets
+        uses: actions/download-artifact@v8
+        with:
+          name: openqc-${{ github.ref_name }}
+          path: vsix
+
+      - name: Create GitHub Release last
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Extract release notes from GitHub release
-          # Update CHANGELOG.md with the new version
-          echo "Updating changelog for version ${{ steps.get_version.outputs.VERSION }}"
-      
-      - name: Commit changelog update
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git commit -m "docs: update changelog for ${{ steps.get_version.outputs.VERSION }}"
-          git push
+          mapfile -t vsix_files < <(find vsix -maxdepth 1 -type f -name '*.vsix' | sort)
+          test "${#vsix_files[@]}" -eq 1
+          (cd vsix && sha256sum --check "$(basename "${vsix_files[0]}").sha256")
+          gh release create "${GITHUB_REF_NAME}" \
+            vsix/*.vsix \
+            vsix/*.vsix.sha256 \
+            vsix/*.sbom.json \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --generate-notes \
+            --title "OpenQC ${GITHUB_REF_NAME}"

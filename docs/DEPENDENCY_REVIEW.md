@@ -25,6 +25,15 @@ For each new dependency (npm or Python):
 | plotly.js-dist-min | ^3.6.0 | MIT | Data plotting | |
 | vscode-languageclient | ^9.0.1 | MIT | LSP client | |
 
+## Release Tooling
+
+| Package | Version | Purpose | Shipping status |
+|---------|---------|---------|-----------------|
+| @vscode/vsce | 3.9.2 | Reproducible VSIX packaging and Marketplace publication | Dev-only; exact version locked in `package-lock.json` |
+
+Release automation runs on Node 22 and invokes `node_modules/.bin/vsce`; global or floating `npx @vscode/vsce` commands are not part of the supported release path.
+The transitive `form-data` package is overridden to `4.0.6` to exclude the CRLF-injection advisory affecting earlier 4.x releases.
+
 ## Optional Python Dependencies
 
 These are NOT bundled with the extension. They are checked at runtime and missing packages produce actionable setup hints.
