@@ -112,17 +112,44 @@ export function resolveLspCommand(
  *   - `openqc.lsp.<languageId>.command`
  *   - `openqc.lsp.<languageId>.args`
  *   - `openqc.lsp.<languageId>.env`
+ *
+ * Only user/workspace/language overrides are returned. Extension-contributed
+ * defaults from package.json are intentionally ignored so local sibling LSP
+ * checkouts can still be auto-detected.
  */
 export function readCommandOverrides(
   config: vscode.WorkspaceConfiguration,
   languageId: string
 ): LspCommandOverrides {
   return {
-    path: config.get<string | undefined>(`${languageId}.path`, undefined),
-    command: config.get<string | undefined>(`${languageId}.command`, undefined),
-    args: config.get<string[] | undefined>(`${languageId}.args`, undefined),
-    env: config.get<Record<string, string> | undefined>(`${languageId}.env`, undefined),
+    path: readExplicitConfigValue<string>(config, `${languageId}.path`),
+    command: readExplicitConfigValue<string>(config, `${languageId}.command`),
+    args: readExplicitConfigValue<string[]>(config, `${languageId}.args`),
+    env: readExplicitConfigValue<Record<string, string>>(config, `${languageId}.env`),
   };
+}
+
+function readExplicitConfigValue<T>(
+  config: vscode.WorkspaceConfiguration,
+  key: string
+): T | undefined {
+  const inspection = typeof config.inspect === 'function' ? config.inspect<T>(key) : undefined;
+  if (inspection) {
+    return firstDefined<T>(
+      inspection.workspaceFolderLanguageValue,
+      inspection.workspaceLanguageValue,
+      inspection.globalLanguageValue,
+      inspection.workspaceFolderValue,
+      inspection.workspaceValue,
+      inspection.globalValue
+    );
+  }
+
+  return config.get<T | undefined>(key, undefined);
+}
+
+function firstDefined<T>(...values: Array<T | undefined>): T | undefined {
+  return values.find((value): value is T => value !== undefined);
 }
 
 // ---------------------------------------------------------------------------

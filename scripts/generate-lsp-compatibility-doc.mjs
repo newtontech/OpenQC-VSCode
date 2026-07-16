@@ -12,12 +12,21 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join, relative, resolve } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
-const codeRoot = resolve(repoRoot, '..');
+const codeRoot = resolveCodeRoot(repoRoot);
+
+function resolveCodeRoot(root) {
+  const parent = resolve(root, '..');
+  if (basename(parent) !== '.worktrees') return parent;
+  const worktreeContainer = resolve(parent, '..');
+  return existsSync(join(worktreeContainer, '.git'))
+    ? resolve(worktreeContainer, '..')
+    : worktreeContainer;
+}
 
 const args = process.argv.slice(2);
 const checkMode = args.includes('--check');

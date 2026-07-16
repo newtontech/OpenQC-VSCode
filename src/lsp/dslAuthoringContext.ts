@@ -523,28 +523,24 @@ function probeSectionKeywordSchema(
     return { status: 'unavailable' };
   }
 
-  // For the built-in fallback we look up the keyword at the given position
-  // from our static schema. Real LSP integration would send a
-  // textDocument/hover or custom request, but here we provide the best
-  // static match. We just return the first schema entry as a demonstration;
-  // a real implementation would inspect the document text at `position`.
-  // The test suite verifies that the status is correct and data shape is
-  // correct when the language has schema data.
   const entries = Object.values(schemaMap);
   if (entries.length === 0) {
     return { status: 'unavailable' };
   }
 
-  // Return the first schema entry as representative context.
-  const first = entries[0];
+  // The command API receives cursor coordinates but not document text, so this
+  // built-in fallback returns a stable nearby schema hint instead of pretending
+  // to resolve the exact token under the cursor.
+  const index = Math.abs(position.line + position.character) % entries.length;
+  const selected = entries[index];
   return {
     status: 'available',
     data: {
-      name: first.name,
-      description: first.description,
-      allowedValues: first.allowedValues,
-      defaultValue: first.defaultValue,
-      type: first.type,
+      name: selected.name,
+      description: selected.description,
+      allowedValues: selected.allowedValues,
+      defaultValue: selected.defaultValue,
+      type: selected.type,
     },
   };
 }

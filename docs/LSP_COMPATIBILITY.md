@@ -10,30 +10,30 @@ Regenerate it with `npm run lsp:generate-compatibility-doc` after registry, back
 | Backends | 17 |
 | Passing | 17 |
 | Blocking gaps | 0 |
-| Warnings | 16 |
-| Graduation score | 80/100 |
+| Warnings | 0 |
+| Graduation score | 100/100 |
 
 ## Backend Matrix
 
 | Backend | Language | Branch | File Types | Registry Stability | Gate Maturity | Release Evidence | Manifest | Provenance | Fixtures | Smoke | Diagnostics | Traceability |
 |---------|----------|--------|------------|--------------------|---------------|------------------|----------|------------|----------|-------|-------------|--------------|
-| [newtontech/abacus-lsp](https://github.com/newtontech/abacus-lsp) | `abacus` | `main` | `INPUT`, `STRU`, `KPT` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `1e5d05f91b3f` | pass | pass | pass | pass | pass | missing |
-| [newtontech/abinit-lsp](https://github.com/newtontech/abinit-lsp) | `abinit` | `main` | `.abi`, `.abinit` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `7612aeda243b` | pass | pass | pass | pass | pass | missing |
-| [newtontech/cif-lsp](https://github.com/newtontech/cif-lsp) | `cif` | `master` | `.cif` | experimental | stable | `v1.0.2`<br>HEAD `b3784d69cece` | pass | pass | pass | pass | pass | missing |
-| [newtontech/cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | `cp2k` | `develop` | `.inp` | experimental | stable | `v0.9.1`<br>HEAD `c38db0a58344` | pass | pass | pass | pass | pass | missing |
-| [newtontech/VASP-LSP](https://github.com/newtontech/VASP-LSP) | `vasp` | `main` | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR`, `CONTCAR`, `OSZICAR`, `OUTCAR`, `vasprun.xml` | stable | stable | `v0.4.4`<br>VERSION `0.4.4`<br>HEAD `587fd094f7a7` | pass | pass | pass | pass | pass | missing |
-| [newtontech/gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | `gaussian` | `main` | `.gjf`, `.com` | stable | stable | `v0.2.11`<br>VERSION `0.2.11`<br>HEAD `e886a6553cd9` | pass | pass | pass | pass | pass | missing |
-| [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `main` | `.inp` | stable | stable | `v0.5.5`<br>VERSION `0.5.5`<br>HEAD `ecd4cabdba75` | pass | pass | pass | pass | pass | missing |
-| [newtontech/qe-lsp](https://github.com/newtontech/qe-lsp) | `qe` | `main` | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | stable | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `ab0c4ac6cee1` | pass | pass | pass | pass | pass | missing |
-| [newtontech/gamess-lsp](https://github.com/newtontech/gamess-lsp) | `gamess` | `main` | `.inp` | stable | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `1dd85afa3d85` | pass | pass | pass | pass | pass | missing |
-| [newtontech/nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | `nwchem` | `main` | `.nw`, `.nwinp` | experimental | stable | `v0.3.0`<br>HEAD `a9109413251e` | pass | pass | pass | pass | pass | missing |
-| [newtontech/gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | `gpumd` | `main` | `run.in`, `nep.in` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `882a582a23dd` | pass | pass | pass | pass | pass | missing |
-| [newtontech/gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | `gromacs` | `main` | `.top`, `.itp`, `.mdp`, `.gro` | experimental | stable | `v0.0.3`<br>VERSION `0.0.3`<br>HEAD `3074ac19d5a7` | pass | pass | pass | pass | pass | missing |
-| [newtontech/lammps-lsp](https://github.com/newtontech/lammps-lsp) | `lammps` | `master` | `.lmp`, `.lammps`, `.lmps`, `in.lammps` | experimental | stable | `0.1.0-pre-release-3`<br>HEAD `8d77f45d8229` | pass | pass | pass | pass | pass | missing |
-| [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `main` | `.mlip.json`, `.mlip.yaml`, `.mlip.yml`, `mlip.json`, `mlip.yaml`, `mlip.yml` | experimental | stable | `v0.2.0`<br>VERSION `0.2.0`<br>HEAD `74599859d2da` | pass | pass | pass | pass | pass | missing |
-| [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | `.pyatb.py`, `run_pyatb.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `beacd3141616` | pass | pass | pass | pass | pass | missing |
-| [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | `.pyscf.py`, `run_pyscf.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `766cf71b9e20` | pass | pass | pass | pass | pass | missing |
-| [newtontech/dpgen-lsp](https://github.com/newtontech/dpgen-lsp) | `dpgen` | `main` | `param.json`, `machine.json` | experimental | stable | `v0.0.1`<br>VERSION `0.1.0`<br>HEAD `91380c94419b` | pass | pass | pass | pass | pass | pass |
+| [newtontech/abacus-lsp](https://github.com/newtontech/abacus-lsp) | `abacus` | `main` | `INPUT`, `STRU`, `KPT` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `71e0ead0463d` | pass | pass | pass | pass | pass | pass |
+| [newtontech/abinit-lsp](https://github.com/newtontech/abinit-lsp) | `abinit` | `main` | `.abi`, `.abinit` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `b1c3124534ec` | pass | pass | pass | pass | pass | pass |
+| [newtontech/cif-lsp](https://github.com/newtontech/cif-lsp) | `cif` | `master` | `.cif` | experimental | stable | `v1.0.2`<br>HEAD `314942468eff` | pass | pass | pass | pass | pass | pass |
+| [newtontech/cp2k-lsp-enhanced](https://github.com/newtontech/cp2k-lsp-enhanced) | `cp2k` | `develop` | `.inp` | experimental | stable | `v0.9.1`<br>HEAD `7661a8c277fa` | pass | pass | pass | pass | pass | pass |
+| [newtontech/VASP-LSP](https://github.com/newtontech/VASP-LSP) | `vasp` | `main` | `INCAR`, `POSCAR`, `KPOINTS`, `POTCAR`, `CONTCAR`, `OSZICAR`, `OUTCAR`, `vasprun.xml` | stable | stable | `v0.4.4`<br>VERSION `0.4.4`<br>HEAD `be948e700924` | pass | pass | pass | pass | pass | pass |
+| [newtontech/gaussian-lsp](https://github.com/newtontech/gaussian-lsp) | `gaussian` | `main` | `.gjf`, `.com` | stable | stable | `v0.2.11`<br>VERSION `0.2.11`<br>HEAD `282fb98ead89` | pass | pass | pass | pass | pass | pass |
+| [newtontech/orca-lsp](https://github.com/newtontech/orca-lsp) | `orca` | `main` | `.inp` | stable | stable | `v0.5.5`<br>VERSION `0.5.5`<br>HEAD `7e7fa2f5d7ca` | pass | pass | pass | pass | pass | pass |
+| [newtontech/qe-lsp](https://github.com/newtontech/qe-lsp) | `qe` | `main` | `.in`, `.pw.in`, `.relax.in`, `.vc-relax.in`, `.scf.in`, `.nscf.in`, `.bands.in`, `.ph.in`, `.dos.in` | stable | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `c54045ae3b42` | pass | pass | pass | pass | pass | pass |
+| [newtontech/gamess-lsp](https://github.com/newtontech/gamess-lsp) | `gamess` | `main` | `.inp` | stable | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `289f1ac125fd` | pass | pass | pass | pass | pass | pass |
+| [newtontech/nwchem-lsp](https://github.com/newtontech/nwchem-lsp) | `nwchem` | `main` | `.nw`, `.nwinp` | experimental | stable | `v0.3.0`<br>HEAD `cecc5ac62fb2` | pass | pass | pass | pass | pass | pass |
+| [newtontech/gpumd-lsp](https://github.com/newtontech/gpumd-lsp) | `gpumd` | `main` | `run.in`, `nep.in` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `6c5d623c9d79` | pass | pass | pass | pass | pass | pass |
+| [newtontech/gromacs-lsp](https://github.com/newtontech/gromacs-lsp) | `gromacs` | `main` | `.top`, `.itp`, `.mdp`, `.gro` | experimental | stable | `v0.0.3`<br>VERSION `0.0.3`<br>HEAD `61623cc06e71` | pass | pass | pass | pass | pass | pass |
+| [newtontech/lammps-lsp](https://github.com/newtontech/lammps-lsp) | `lammps` | `master` | `.lmp`, `.lammps`, `.lmps`, `in.lammps` | experimental | stable | `0.1.0-pre-release-3`<br>HEAD `6f085a20b8f7` | pass | pass | pass | pass | pass | pass |
+| [newtontech/mlip-lsp](https://github.com/newtontech/mlip-lsp) | `mlip` | `main` | `.mlip.json`, `.mlip.yaml`, `.mlip.yml`, `mlip.json`, `mlip.yaml`, `mlip.yml` | experimental | stable | `v0.2.0`<br>VERSION `0.2.0`<br>HEAD `d428ba5fbbda` | pass | pass | pass | pass | pass | pass |
+| [newtontech/pyatb-lsp](https://github.com/newtontech/pyatb-lsp) | `pyatb` | `main` | `.pyatb.py`, `run_pyatb.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `b100e3ef8f12` | pass | pass | pass | pass | pass | pass |
+| [newtontech/pyscf-lsp](https://github.com/newtontech/pyscf-lsp) | `pyscf` | `main` | `.pyscf.py`, `run_pyscf.py` | experimental | stable | `v0.1.0`<br>VERSION `0.1.0`<br>HEAD `fe377735407b` | pass | pass | pass | pass | pass | pass |
+| [newtontech/dpgen-lsp](https://github.com/newtontech/dpgen-lsp) | `dpgen` | `main` | `param.json`, `machine.json` | experimental | stable | `v0.0.1`<br>VERSION `0.1.0`<br>HEAD `436419c1ced1` | pass | pass | pass | pass | pass | pass |
 
 ## Agent CLI Readiness
 
@@ -59,54 +59,7 @@ Regenerate it with `npm run lsp:generate-compatibility-doc` after registry, back
 
 ## Actionable Gate Gaps
 
-### abacus-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### abinit-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### cif-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### cp2k-lsp-enhanced
-- WARN: No docstring/wiki/raw traceability report found
-
-### vasp-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### gaussian-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### orca-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### qe-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### gamess-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### nwchem-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### gpumd-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### gromacs-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### lammps-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### mlip-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### pyatb-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
-### pyscf-lsp
-- WARN: No docstring/wiki/raw traceability report found
-
+No blocking or warning gaps are reported by `scripts/check-lsp-family.mjs`.
 
 ## OpenQC Integration Guarantees
 
