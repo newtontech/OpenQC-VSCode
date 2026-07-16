@@ -54,7 +54,7 @@ jobs:
     needs: build-and-verify
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: marketplace
+    environment: marketplace-production
     permissions:
       contents: read
 
