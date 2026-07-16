@@ -1,12 +1,14 @@
 {
   "name": "openqc",
-  "displayName": "OpenQC - Quantum Chemistry & Molecular Dynamics Suite",
+  "displayName": "OpenQC - DFT/MD/Quantum Chemistry Suite",
   "description": "Parse, visualize, and analyze computational chemistry, materials, and molecular-simulation files with 17 bundled LSP integrations.",
-  "version": "3.0.13",
+  "version": "0.0.1",
   "publisher": "newtontech",
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.120.0",
+    "node": ">=22 <23"
   },
+  "packageManager": "npm@10.9.8",
   "categories": [
     "Programming Languages",
     "Visualization",
@@ -1698,16 +1700,25 @@
     "test:e2e": "node ./out/test/runTest.js",
     "test:visual": "npm run compile && node scripts/visual-smoke-openqc-viewer.mjs",
     "test:visual:vsix": "node scripts/visual-smoke-vsix.mjs",
-    "package:vsix": "npx @vscode/vsce package",
-    "ci:pr": "npm run compile && npm run lint && npm run typecheck && npm run format:check && npm run test:unit && npm run test:integration",
+    "test:all": "jest --coverage --runInBand",
+    "package:vsix": "node scripts/package-vsix.mjs",
+    "verify:vsix": "node scripts/verify-vsix.mjs",
+    "release:assets": "node scripts/release-assets.mjs",
+    "release:guard": "node scripts/release-guard.mjs",
+    "release:tag": "node scripts/create-release-tag.mjs",
+    "release:tag:push": "node scripts/create-release-tag.mjs --push",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "check:release": "make check && npm run test:visual && npm run package:vsix && npm run verify:vsix && npm run test:visual:vsix && npm run release:assets",
+    "ci:pr": "npm run compile && npm run lint && npm run typecheck && npm run format:check && npm run audit:prod && npm run test:all",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "format:write": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/release-*.mjs\" \"scripts/package-vsix.mjs\" \"scripts/verify-vsix.mjs\" \".github/workflows/ci.yml\" \".github/workflows/release.yml\" \"package*.json\"",
+    "format:write": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" \"scripts/release-*.mjs\" \"scripts/package-vsix.mjs\" \"scripts/verify-vsix.mjs\" \".github/workflows/ci.yml\" \".github/workflows/release.yml\" \"package*.json\"",
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@vscode/vsce": "3.9.2",
     "@types/glob": "^8.1.0",
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^28.0.0",
@@ -1741,6 +1752,7 @@
     "vscode-languageclient": "^10.0.0"
   },
   "overrides": {
+    "form-data": "4.0.6",
     "three": "^0.183.2",
     "vite": "^6.4.3"
   },

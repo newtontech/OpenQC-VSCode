@@ -134,7 +134,7 @@ import { expect } from 'chai';
 
 describe('Extension Integration', () => {
   it('should activate and register commands', async () => {
-    const ext = vscode.extensions.getExtension('newtontech.openqc-vscode');
+    const ext = vscode.extensions.getExtension('newtontech.openqc');
     await ext.activate();
     
     const commands = await vscode.commands.getCommands(true);

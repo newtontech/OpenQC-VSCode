@@ -1,4 +1,4 @@
-## Unreleased
+## [0.0.1] - Unreleased
 
 ### Added
 
@@ -11,6 +11,12 @@
 
 - Structures with at most 10,000 atoms retain the full editing surface. Larger structures use a deterministic 10,000-atom read-only LOD with editing, labels, measurements, trajectory playback, and supercell generation explicitly disabled.
 - Removed unconsumed renderer, plot-library, and visualization auto-open settings. External analyzer and calculator settings are now backed by runtime consumers.
+- Set the release identity to `newtontech.openqc@0.0.1` with display name `OpenQC - DFT/MD/Quantum Chemistry Suite`.
+- Standardized development and release automation on Node 22 with a locked local `@vscode/vsce`.
+- Added a reproducible release gate that emits a verified VSIX, SHA-256 checksum, and CycloneDX SBOM.
+- Split tag releases into build-and-verify, protected Marketplace publication, and final GitHub Release creation.
+- Added clean-tree, `origin/master`, tag/version, artifact identity, size, and payload-hygiene checks.
+- Retired the unused duplicate Python `core/` package; its maintained workflow-migration behavior already lives in `src/utils/migration/mdWorkflow.ts` with Jest coverage.
 
 ## [3.0.6] - 2026-03-05
 

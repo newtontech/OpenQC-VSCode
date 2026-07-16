@@ -6,7 +6,7 @@ import path from 'path';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const defaultVsix = path.join(root, `${packageJson.name}-${packageJson.version}.vsix`);
+const defaultVsix = path.join(root, 'vsix', `${packageJson.name}-${packageJson.version}.vsix`);
 const vsixPath = path.resolve(process.argv[2] || defaultVsix);
 const extractRoot = path.join(root, 'output', 'playwright', 'vsix-visual-smoke');
 const extensionRoot = path.join(extractRoot, 'extension');

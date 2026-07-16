@@ -16,6 +16,10 @@ out/
 output/
 build/
 *.vsix
+vsix/*.vsix
+vsix/*.sha256
+vsix/*.sbom.json
+!vsix/.gitkeep
 *.egg-info/
 .eggs/
 
