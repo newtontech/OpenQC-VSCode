@@ -10,7 +10,7 @@
     },
     "cp2k-lsp-enhanced": {
       "package": "cp2k-lsp-enhanced",
-      "targetVersion": "0.1.0",
+      "targetVersion": "0.1.1",
       "channel": "pypi"
     },
     "vasp-lsp": { "package": "vasp-lsp", "targetVersion": "0.4.5", "channel": "pypi" },
@@ -27,7 +27,7 @@
       "channel": "github-release"
     },
     "mlip-lsp": { "package": "mlip-lsp", "targetVersion": "0.2.1", "channel": "pypi" },
-    "pyatb-lsp": { "package": "pyatb-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
+    "pyatb-lsp": { "package": "pyatb-lsp", "targetVersion": "0.1.2", "channel": "pypi" },
     "pyscf-lsp": { "package": "pyscf-lsp", "targetVersion": "0.1.1", "channel": "pypi" },
     "dpgen-lsp": { "package": "dpgen-lsp", "targetVersion": "0.1.2", "channel": "pypi" }
   }
